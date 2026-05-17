@@ -1,0 +1,29 @@
+# Large source data (embedded inline in pages/njsearch.html)
+data/njstructures.json
+
+# Reference materials (source spreadsheets, not part of the site)
+reference/
+
+# Build / migration scripts (kept locally, not needed on GitHub)
+scripts/
+
+# Archived/legacy files
+_archive/
+
+# Excel lock files
+~$*.xlsx
+~$*.xls
+~$*.docx
+
+# OS junk
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Editor folders
+.vscode/
+.idea/
+.claude/
+
+# Backup folder (handled outside the repo)
+Work Order Website - Backup */

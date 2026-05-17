@@ -1,0 +1,642 @@
+[
+  {
+    "county": "Warren",
+    "location": "Columbia DOT",
+    "address": "Simpson Street Columbia, NJ",
+    "phone Number": "908-496-4088",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.935311,
+    "longitude": -75.101895
+  },
+  {
+    "county": "Warren",
+    "location": "Port Colden DOT",
+    "address": "619 Rt. 57 behind State Police Bldg Port Colden, NJ",
+    "phone Number": "908-689-0570",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.76586,
+    "longitude": -74.93224
+  },
+  {
+    "county": "Warren",
+    "location": "Yellow Frame DOT",
+    "address": "Rt. 94 between Mott Rd & Kerr Rd Marksboro, NJ",
+    "phone Number": "908-362-6896",
+    "hours": "7:45 am to 3:45 pm M-F",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.98829409,
+    "longitude": -74.88516556
+  },
+  {
+    "county": "Union",
+    "location": "Summit DOT",
+    "address": "46 Springfield Avenue Summit, NJ",
+    "phone Number": "973-376-1302",
+    "hours": "7:30 am to 3:45 pm M-F",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.716273,
+    "longitude": -74.329762
+  },
+  {
+    "county": "Union",
+    "location": "Elizabeth DOT",
+    "address": "906 North Ave East Elizabeth, NJ",
+    "phone Number": "908-282-7633",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.675312,
+    "longitude": -74.191895
+  },
+  {
+    "county": "Sussex",
+    "location": "Branchville DOT",
+    "address": "349 Rt. 206 Branchville, NJ",
+    "phone Number": "973-948-3590",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 41.15154413,
+    "longitude": -74.76831456
+  },
+  {
+    "county": "Sussex",
+    "location": "Lafayette DOT",
+    "address": "38 Rt. 94 (1/4 mile North of Rt. 15) Lafayette, NJ",
+    "phone Number": "973-383-3003",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 41.09273552,
+    "longitude": -74.67791503
+  },
+  {
+    "county": "Sussex",
+    "location": "Sussex DOT",
+    "address": "Rt. 23 North At County Rd 565 Sussex, NJ",
+    "phone Number": "973-875-4719",
+    "hours": "7:30 am to 3:45 pm M-F",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 41.199888,
+    "longitude": -74.597297
+  },
+  {
+    "county": "Somerset",
+    "location": "Bedminster DOT",
+    "address": "455 Rt. 202/206 South Pluckemin, NJ",
+    "phone Number": "908-234-2130",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.65123677,
+    "longitude": -74.64499021
+  },
+  {
+    "county": "Somerset",
+    "location": "Bridgewater DOT",
+    "address": "150 Commons Way Bridgewater, NJ",
+    "phone Number": "908-704-3096",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.58997095,
+    "longitude": -74.62639744
+  },
+  {
+    "county": "Salem",
+    "location": "Deepwater DOT",
+    "address": "County Rd 551 (Hook Rd) Exit 1c Rt. 295 southbound Deepwater, NJ",
+    "phone Number": "856-299-3407",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.677937,
+    "longitude": -75.486985
+  },
+  {
+    "county": "Salem",
+    "location": "Elmer DOT",
+    "address": "355 Rt. 40 At mile marker 21.5 Pittsgrove, NJ",
+    "phone Number": "856-358-8813",
+    "hours": "7:30 am to 3:45 pm M-F",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.598444,
+    "longitude": -75.149157
+  },
+  {
+    "county": "Passaic",
+    "location": "Clifton DOT",
+    "address": "Bloomfield Ave East & Isabella St. Clifton, NJ",
+    "phone Number": "201-866-7274",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.838978,
+    "longitude": -74.16158
+  },
+  {
+    "county": "Passaic",
+    "location": "Totowa DOT",
+    "address": "300 Minisink Rd. off Rt. 80 West Bound Totowa, NJ",
+    "phone Number": "973-785-9310",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.89776431,
+    "longitude": -74.22975736
+  },
+  {
+    "county": "Passaic",
+    "location": "Paterson DOT",
+    "address": "1 McClean Blvd Paterson, NJ",
+    "phone Number": "973-278-5541",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.93588669,
+    "longitude": -74.14187188
+  },
+  {
+    "county": "Ocean",
+    "location": "Lakewood DOT",
+    "address": "45 Honey Locust Drive Behind 84 Lumber Lakewood, NJ",
+    "phone Number": "732-942-2700",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.0495718,
+    "longitude": -74.22339715
+  },
+  {
+    "county": "Ocean",
+    "location": "Manahawkin DOT",
+    "address": "Rt. 72 at Rt.9 South To 123 Grassy Hollow Rd Manahawkin, NJ",
+    "phone Number": "609-597-2166",
+    "hours": "7:45 am to 3:45 pm M-F",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.69451178,
+    "longitude": -74.26486765
+  },
+  {
+    "county": "Ocean",
+    "location": "Toms River DOT",
+    "address": "743 Rt. 37 West Toms River, NJ",
+    "phone Number": "732-341-2216",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.967832,
+    "longitude": -74.234329
+  },
+  {
+    "county": "Monmouth",
+    "location": "Freehold DOT",
+    "address": "Rt. 79 & Route 33 Freehold, NJ",
+    "phone Number": "732-462-0034",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.248312,
+    "longitude": -74.267812
+  },
+  {
+    "county": "Monmouth",
+    "location": "Eatontown DOT",
+    "address": "90 Rt. 35 South Bound Eatontown, NJ",
+    "phone Number": "732-542-1087",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.298411,
+    "longitude": -74.053121
+  },
+  {
+    "county": "Monmouth",
+    "location": "Puritan Facility",
+    "address": "3 Puritan Way Monmouth, NJ",
+    "phone Number": "732-431-2831",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.23280082,
+    "longitude": -74.06037254
+  },
+  {
+    "county": "Monmouth",
+    "location": "Wall Twp. DOT",
+    "address": "2436 Paynters Rd. Off Rt. 34 Wall Twp., NJ",
+    "phone Number": "732-528-7339",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.12265214,
+    "longitude": -74.07707522
+  },
+  {
+    "county": "Middlesex",
+    "location": "College Farm DOT",
+    "address": "Rt. 1 (north bound) At College Farm Rd North Brunswick, NJ",
+    "phone Number": "732-247-5775",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.46633234,
+    "longitude": -74.43153684
+  },
+  {
+    "county": "Middlesex",
+    "location": "East Brunswick Public Works",
+    "address": "4 Harts Lane East Brunswick, NJ",
+    "phone Number": "732-390-6886",
+    "hours": "8:00 am to 4:00 pm M-F",
+    "fuel": "Unleaded",
+    "latitude": 40.443121,
+    "longitude": -74.412198
+  },
+  {
+    "county": "Middlesex",
+    "location": "Monmouth Junction DOT",
+    "address": "Rt. 1 Monmouth Junction, NJ",
+    "phone Number": "732-297-0671",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.41112755,
+    "longitude": -74.54426021
+  },
+  {
+    "county": "Middlesex",
+    "location": "Sayreville DOT",
+    "address": "25 Melrose Avenue Sayreville, NJ",
+    "phone Number": "",
+    "hours": "7:30 am to 3:45 pm",
+    "fuel": "Diesel",
+    "latitude": 40.49016916,
+    "longitude": -74.300182
+  },
+  {
+    "county": "Morris",
+    "location": "Hanover DOT",
+    "address": "Rt. 10 West Bound at Cedar Knolls Rd Hanover, NJ",
+    "phone Number": "973-887-5682",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.82142,
+    "longitude": -74.44181
+  },
+  {
+    "county": "Morris",
+    "location": "Netcong DOT",
+    "address": "90 Rt. 183 North Netcong, NJ",
+    "phone Number": "973-691-4917",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.89337617,
+    "longitude": -74.698314
+  },
+  {
+    "county": "Mercer",
+    "location": "Trenton Motor Pool",
+    "address": "150 Hanover Street Trenton, NJ",
+    "phone Number": "609-292-3112",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.221984,
+    "longitude": -74.756123
+  },
+  {
+    "county": "Mercer",
+    "location": "Hamilton State Police",
+    "address": "Troop 'C' Barracks Klockner Rd off Rt.130 Hamilton Twp., NJ",
+    "phone Number": "609-584-5000",
+    "hours": "7:00 am to 7:00 pm",
+    "fuel": "Unleaded",
+    "latitude": 40.20184,
+    "longitude": -74.64984
+  },
+  {
+    "county": "Mercer",
+    "location": "Lawrence Twp. DOT",
+    "address": "Rt. 1, 2798 Brunswick Ave. Lawrence Twp., NJ",
+    "phone Number": "609-530-2650",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.283121,
+    "longitude": -74.721098
+  },
+  {
+    "county": "Mercer",
+    "location": "Ewing DOT",
+    "address": "1035 Parkway Avenue Ewing, NJ",
+    "phone Number": "609-530-2000",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.26535133,
+    "longitude": -74.71632132
+  },
+  {
+    "county": "Mercer",
+    "location": "Washington Twp. DOT",
+    "address": "Rt. 130 & Voelbel Rd. Washington Twp., NJ",
+    "phone Number": "609-448-4224",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.24521913,
+    "longitude": -74.56851629
+  },
+  {
+    "county": "Mercer",
+    "location": "West Trenton DOT",
+    "address": "780 Bear Tavern Rd (Exit 2 off I-95) West Trenton, NJ",
+    "phone Number": "609-883-5049",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.27645795,
+    "longitude": -74.82595939
+  },
+  {
+    "county": "Hunterdon",
+    "location": "Bloomsbury DOT",
+    "address": "1000 Rt. 173 Bloomsbury, NJ",
+    "phone Number": "908-479-4851",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.660786,
+    "longitude": -75.06664165
+  },
+  {
+    "county": "Hunterdon",
+    "location": "Clinton Point DOT",
+    "address": "84 Beaver Ave Clinton, NJ",
+    "phone Number": "908-735-4002",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.638122,
+    "longitude": -74.912384
+  },
+  {
+    "county": "Hunterdon",
+    "location": "Flemington DOT",
+    "address": "Route 31 & Route 202 Flemington, NJ",
+    "phone Number": "908-782-2341",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.512198,
+    "longitude": -74.859841
+  },
+  {
+    "county": "Hudson",
+    "location": "Jersey City DOT",
+    "address": "14 Harmonia Street Jersey City, NJ",
+    "phone Number": "201-217-2100",
+    "hours": "7:30 am to 3:45 pm M-F",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.73686317,
+    "longitude": -74.08018562
+  },
+  {
+    "county": "Gloucester",
+    "location": "Mickleton DOT",
+    "address": "Rt. 295 North Bound Milepost 17 Mickleton, NJ",
+    "phone Number": "856-423-1122",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.798124,
+    "longitude": -75.243198
+  },
+  {
+    "county": "Essex",
+    "location": "Newark DOT",
+    "address": "Jct. Rts. 1,9,21,22 Newark, NJ",
+    "phone Number": "973-648-2725",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.7094199,
+    "longitude": -74.17571162
+  },
+  {
+    "county": "Essex",
+    "location": "West Orange DOT",
+    "address": "1255 Pleasant Valley Way at National Guard Armory West Orange, NJ",
+    "phone Number": "",
+    "hours": "7:30 am to 3:45 pm M-F",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.78366162,
+    "longitude": -74.27598034
+  },
+  {
+    "county": "Cumberland",
+    "location": "Bayside Facility",
+    "address": "4294 Rt. 47 Leesburg, NJ",
+    "phone Number": "856-785-0040x5429",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.23339997,
+    "longitude": -74.96568202
+  },
+  {
+    "county": "Cumberland",
+    "location": "Cumberland DOT",
+    "address": "Rt. 49 & Hesstown Rd. Cumberland, NJ",
+    "phone Number": "856-825-3320",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.36417407,
+    "longitude": -74.93084981
+  },
+  {
+    "county": "Cumberland",
+    "location": "Port Norris State Police",
+    "address": "8861 Highland Street Port Norris, NJ",
+    "phone Number": "609-785-0036",
+    "hours": "7:00 am to 7:00 pm",
+    "fuel": "Unleaded",
+    "latitude": 39.248312,
+    "longitude": -75.031219
+  },
+  {
+    "county": "Cumberland",
+    "location": "Millville DOT",
+    "address": "Route 55 & Route 49 Millville, NJ",
+    "phone Number": "856-825-1034",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.401298,
+    "longitude": -75.04187987
+  },
+  {
+    "county": "Cape May",
+    "location": "Ocean City Facility",
+    "address": "Route 52 Causeway Ocean City, NJ",
+    "phone Number": "609-399-1234",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded",
+    "latitude": 39.281298,
+    "longitude": -74.581203
+  },
+  {
+    "county": "Cape May",
+    "location": "Avalon DOT",
+    "address": "Milepost 13 Garden State Parkway Avalon, NJ",
+    "phone Number": "609-465-1034",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded",
+    "latitude": 39.101298,
+    "longitude": -74.731204
+  },
+  {
+    "county": "Cape May",
+    "location": "Cape May Court House State Police",
+    "address": "Route 9 & Garden State Parkway Cape May Court House, NJ",
+    "phone Number": "609-465-7834",
+    "hours": "7:00 am to 7:00 pm",
+    "fuel": "Unleaded",
+    "latitude": 39.00778,
+    "longitude": -74.79131
+  },
+  {
+    "county": "Cape May",
+    "location": "Petersburg DOT",
+    "address": "400 Old Tuckahoe Rd Petersburg, NJ",
+    "phone Number": "609-628-2533",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.25964713,
+    "longitude": -74.73066206
+  },
+  {
+    "county": "Cape May",
+    "location": "Woodbine Dev. Center",
+    "address": "1175 DeHirsch Ave. & Fantail Woodbine, NJ",
+    "phone Number": "609-861-2164,2272",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.238122,
+    "longitude": -74.812398
+  },
+  {
+    "county": "Camden",
+    "location": "Cherry Hill DOT",
+    "address": "Route 70 & I-295 Cherry Hill, NJ",
+    "phone Number": "856-428-2341",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.912198,
+    "longitude": -75.012398
+  },
+  {
+    "county": "Camden",
+    "location": "Ancora Hospital",
+    "address": "Spring Garden Rd Ancora, NJ",
+    "phone Number": "609-561-1700",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.681298,
+    "longitude": -74.851204
+  },
+  {
+    "county": "Camden",
+    "location": "Camden DOT",
+    "address": "1 Federal Street Camden, NJ",
+    "phone Number": "856-614-2000",
+    "hours": "7:30 am to 3:45 pm M-F",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.948123,
+    "longitude": -75.121098
+  },
+  {
+    "county": "Camden",
+    "location": "Bellmawr DOT",
+    "address": "Route 168 & I-295 Bellmawr, NJ",
+    "phone Number": "856-931-1034",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.861298,
+    "longitude": -75.081204
+  },
+  {
+    "county": "Camden",
+    "location": "Magnolia DOT",
+    "address": "Route 30 & Evesham Rd Magnolia, NJ",
+    "phone Number": "856-783-1034",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.848123,
+    "longitude": -75.041098
+  },
+  {
+    "county": "Camden",
+    "location": "Pennsauken DOT",
+    "address": "Route 130 & Route 73 Pennsauken, NJ",
+    "phone Number": "856-665-2995",
+    "hours": "7:30 am to 3:45 pm M-F",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.94934153,
+    "longitude": -75.07126805
+  },
+  {
+    "county": "Burlington",
+    "location": "Bordentown DOT",
+    "address": "Dunns Mill Rd. - off Rt. 130 Bordentown NJ",
+    "phone Number": "609-298-2980",
+    "hours": "Unleaded -Open 24 Hrs, Diesel – 7:30 am -3:45 pm M-F",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 40.138122,
+    "longitude": -74.712398
+  },
+  {
+    "county": "Burlington",
+    "location": "Mt. Laurel DOT",
+    "address": "Route 38 East of Rt. 295 Mt. Laurel, NJ",
+    "phone Number": "856-235-3096",
+    "hours": "Open 24 Hrs",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.96744662,
+    "longitude": -74.88930386
+  },
+  {
+    "county": "Burlington",
+    "location": "Red Lion DOT",
+    "address": "Rt. 70 West of Rt. 206 at Red Lion Circle Southampton, NJ",
+    "phone Number": "609-859-2335",
+    "hours": "Open 24 Hrs.",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.898412,
+    "longitude": -74.743121
+  },
+  {
+    "county": "Atlantic",
+    "location": "Buena DOT",
+    "address": "Rt. 40 near Catherine Avenue Buena, NJ",
+    "phone Number": "609-697-1136",
+    "hours": "7:45 am to 3:45 pm M-F",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.51554447,
+    "longitude": -74.92849165
+  },
+  {
+    "county": "Atlantic",
+    "location": "Buena Vista State Police",
+    "address": "1045 Rt. 54 South of Rt. 322 Buena Vista Twp., NJ",
+    "phone Number": "609-625-1105",
+    "hours": "7:00 am to 7:00 pm",
+    "fuel": "Unleaded",
+    "latitude": 39.57804,
+    "longitude": -74.86834
+  },
+  {
+    "county": "Atlantic",
+    "location": "Hammonton Motor Pool",
+    "address": "253-D North White Horse Pike Hammonton, NJ",
+    "phone Number": "609-567-1100",
+    "hours": "Open 24Hrs",
+    "fuel": "Unleaded",
+    "latitude": 39.65486598,
+    "longitude": -74.79584455
+  },
+  {
+    "county": "Atlantic",
+    "location": "Folsom DOT",
+    "address": "Rt. 54 SB & County Rt. 561 Milepost 7.5 Hammonton, NJ",
+    "phone Number": "",
+    "hours": "Unmanned site",
+    "fuel": "Diesel",
+    "latitude": 39.598124,
+    "longitude": -74.843198
+  },
+  {
+    "county": "Atlantic",
+    "location": "Pomona DOT",
+    "address": "Rt. 30 & W. McKinley Ave Pomona, NJ",
+    "phone Number": "609-441-3196",
+    "hours": "7:45 am to 3:45 pm M-F",
+    "fuel": "Unleaded/Diesel",
+    "latitude": 39.47751148,
+    "longitude": -74.70172997
+  }
+]
