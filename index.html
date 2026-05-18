@@ -169,7 +169,7 @@
     .card-border-green { border-top-color: #10b981; }
     .card-border-slate { border-top-color: #64748b; }
 
-    /* Dark mode toggle button */
+    /* Dark mode toggle button + install trigger */
     .dark-toggle {
       margin-left: auto;
       background: rgba(255,255,255,0.06);
@@ -181,6 +181,19 @@
       transition: background 0.14s, color 0.14s;
     }
     .dark-toggle:hover { background: rgba(255,255,255,0.14); color: #f9fafb; }
+    .install-trigger {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 6px;
+      width: 32px; height: 32px;
+      display: none; align-items: center; justify-content: center;
+      cursor: pointer; color: #9ca3af; flex-shrink: 0;
+      transition: background 0.14s, color 0.14s;
+    }
+    .install-trigger:hover { background: rgba(255,255,255,0.14); color: #f59e0b; }
+    @media (max-width: 640px) {
+      .install-trigger { display: flex; }
+    }
 
     /* Footer */
     .page-footer {
@@ -264,6 +277,12 @@
   <button id="dark-toggle" class="dark-toggle" title="Toggle dark mode" aria-label="Toggle dark mode">
     <svg id="dark-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
   </button>
+  <button id="install-trigger" class="install-trigger" title="Add to Home Screen" aria-label="Add to Home Screen">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="5" y="2" width="14" height="20" rx="2"/>
+      <line x1="12" y1="8" x2="12" y2="14"/><line x1="9" y1="11" x2="15" y2="11"/>
+    </svg>
+  </button>
 </div>
 
 <div class="content">
@@ -335,7 +354,7 @@
   <div class="install-banner-icon">📲</div>
   <div class="install-banner-text">
     <div class="install-banner-title" id="install-banner-title">Install Field Tools Hub</div>
-    <div class="install-banner-desc" id="install-banner-desc">Add to your home screen for quick access and offline use.</div>
+    <div class="install-banner-desc" id="install-banner-desc">Add to your home screen for quick access and offline use.<br><span style="font-size:11px;opacity:0.7;">This prompt shows twice. Use the 📲 button in the top corner anytime to bring it back.</span></div>
     <div class="install-banner-actions">
       <button id="install-btn-dismiss" class="install-btn install-btn-dismiss">Not now</button>
       <button id="install-btn-go" class="install-btn install-btn-primary">Install</button>
@@ -424,7 +443,7 @@
 
     if (isIOS) {
       titleEl.textContent = 'Add to Home Screen';
-      descEl.innerHTML = 'Tap <strong>Share ↑</strong> then <strong>"Add to Home Screen"</strong> for app-like access and offline use.';
+      descEl.innerHTML = 'Tap <strong>Share ↑</strong> then <strong>"Add to Home Screen"</strong> for app-like access and offline use.<br><span style="font-size:11px;opacity:0.7;">This prompt shows twice. Use the 📲 button in the top corner anytime to bring it back.</span>';
       btnGo.textContent = 'Got it';
       btnGo.addEventListener('click', hideBanner);
     } else {
@@ -440,6 +459,14 @@
 
     // Always show — don't gate on beforeinstallprompt
     showBanner();
+
+    // Manual re-trigger button (visible on mobile in topbar)
+    var triggerBtn = document.getElementById('install-trigger');
+    if (triggerBtn) {
+      triggerBtn.addEventListener('click', function() {
+        banner.classList.add('visible');
+      });
+    }
   })();
 })();
 </script>
