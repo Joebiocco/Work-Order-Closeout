@@ -435,7 +435,16 @@
 
     btnDismiss.addEventListener('click', hideBanner);
 
-    // Capture native install prompt if Chrome fires it
+    // Detect browser for tailored instructions
+    var ua = navigator.userAgent;
+    var isFirefox  = /firefox/i.test(ua);
+    var isSamsung  = /samsungbrowser/i.test(ua);
+    var isEdge     = /edg\//i.test(ua);
+    var isChrome   = /chrome/i.test(ua) && !isEdge && !isSamsung;
+
+    var note = '<br><span style="font-size:11px;opacity:0.7;">This prompt shows twice — use the 📲 button in the top corner anytime to bring it back.</span>';
+
+    // Capture native install event (Chrome, Edge, Samsung Internet)
     window.addEventListener('beforeinstallprompt', function(e) {
       e.preventDefault();
       deferredPrompt = e;
@@ -443,16 +452,33 @@
 
     if (isIOS) {
       titleEl.textContent = 'Add to Home Screen';
-      descEl.innerHTML = 'Tap <strong>Share ↑</strong> then <strong>"Add to Home Screen"</strong> for app-like access and offline use.<br><span style="font-size:11px;opacity:0.7;">This prompt shows twice. Use the 📲 button in the top corner anytime to bring it back.</span>';
+      descEl.innerHTML = 'Tap the <strong>Share ↑</strong> button at the bottom of Safari, then tap <strong>"Add to Home Screen"</strong>.' + note;
+      btnGo.textContent = 'Got it';
+      btnGo.addEventListener('click', hideBanner);
+    } else if (isFirefox) {
+      titleEl.textContent = 'Add to Home Screen';
+      descEl.innerHTML = 'Tap the <strong>⋮ menu</strong> in Firefox, then tap <strong>"Install"</strong> or <strong>"Add to Home Screen"</strong>.' + note;
+      btnGo.textContent = 'Got it';
+      btnGo.addEventListener('click', hideBanner);
+    } else if (isSamsung) {
+      titleEl.textContent = 'Add to Home Screen';
+      descEl.innerHTML = 'Tap the <strong>☰ menu</strong> in Samsung Internet, then tap <strong>"Add page to"</strong> → <strong>"Home screen"</strong>.' + note;
       btnGo.textContent = 'Got it';
       btnGo.addEventListener('click', hideBanner);
     } else {
+      // Chrome, Edge, or unknown — try native prompt, fall back to instructions
+      descEl.innerHTML = 'Add to your home screen for quick access and offline use.' + note;
       btnGo.addEventListener('click', function() {
-        hideBanner();
         if (deferredPrompt) {
-          // Native Chrome install
+          hideBanner();
           deferredPrompt.prompt();
           deferredPrompt.userChoice.then(function(){ deferredPrompt = null; });
+        } else {
+          // Native prompt not ready yet — show manual instructions
+          descEl.innerHTML = 'Tap the <strong>⋮ menu</strong> in your browser, then tap <strong>"Add to Home Screen"</strong> or <strong>"Install app"</strong>.' + note;
+          btnGo.textContent = 'Got it';
+          btnGo.removeEventListener('click', arguments.callee);
+          btnGo.addEventListener('click', hideBanner);
         }
       });
     }

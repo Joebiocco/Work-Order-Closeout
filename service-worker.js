@@ -10,6 +10,8 @@ const LOCAL_ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
   './pages/njsearch.html',
   './pages/njfuel.html',
   './pages/WorkOrderCloseout.html',
