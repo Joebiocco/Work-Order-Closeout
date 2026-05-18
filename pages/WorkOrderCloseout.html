@@ -752,6 +752,14 @@ html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
 
   </style>
   <script>if(localStorage.getItem("field_dark_mode")==="1")document.documentElement.setAttribute("data-dark","");</script>
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XZJ7XL4S34"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XZJ7XL4S34');
+  </script>
 </head>
 <body>
 
@@ -1765,6 +1773,7 @@ saveDraftBtn.addEventListener('click', function() {
         showToast('Session data may not have saved — try again', 'err', 4000);
       });
       renderRecent();
+      if (typeof gtag !== 'undefined') gtag('event', 'session_saved', {work_order: rec.wo || '', page_count: rec.pageCount || 1});
     } catch(re) {}
 
   } catch(e) {
