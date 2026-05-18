@@ -1003,8 +1003,9 @@ function dbDeletePhotos(key) {
   }).catch(function() {});
 }
 
-// ── PHOTO HELPERS ─────────────────────────────
-// Collect all photo data URLs from every page into a 2-D array.
+// ── SESSION DATA HELPERS ──────────────────────
+
+// Collect photo data URLs: 2-D array [page][slot].
 function collectPhotos() {
   var photos = [];
   pagesContainer.querySelectorAll('.page-block').forEach(function(block) {
@@ -1016,6 +1017,22 @@ function collectPhotos() {
     photos.push(row);
   });
   return photos;
+}
+
+// Collect all non-photo field values per page, keyed by data-base
+// (not el.name which includes a page-number suffix that changes on rebuild).
+function collectPageData() {
+  var pages = [];
+  pagesContainer.querySelectorAll('.page-block').forEach(function(block) {
+    var obj = {};
+    block.querySelectorAll('[data-base]').forEach(function(el) {
+      if (el.type === 'file') return; // photos stored separately
+      if (el.type === 'checkbox') obj[el.dataset.base] = el.checked;
+      else obj[el.dataset.base] = el.value || '';
+    });
+    pages.push(obj);
+  });
+  return pages;
 }
 
 // Apply a 2-D photos array back to the current pages.
@@ -1038,6 +1055,34 @@ function applyPhotos(photos) {
     });
   }
   updatePhotoBadge();
+}
+
+// Apply saved page text data (location, description, etc.).
+function applyPageData(pageDataArr) {
+  if (!pageDataArr) return;
+  pagesContainer.querySelectorAll('.page-block').forEach(function(block, pi) {
+    var pd = pageDataArr[pi] || {};
+    block.querySelectorAll('[data-base]').forEach(function(el) {
+      if (el.type === 'file') return;
+      var val = pd[el.dataset.base];
+      if (val === undefined) return;
+      if (el.type === 'checkbox') el.checked = !!val;
+      else el.value = val || '';
+    });
+    // Refresh autosizes and char counters after setting values
+    if (typeof attachAutosize === 'function') attachAutosize(block);
+  });
+}
+
+// Adjust the live page count to match the saved session's page count.
+function restorePageCount(targetCount) {
+  if (!targetCount || targetCount < 1) targetCount = 1;
+  var blocks = pagesContainer.querySelectorAll('.page-block');
+  // Remove extras (never remove the last one)
+  for (var i = blocks.length - 1; i >= targetCount; i--) blocks[i].remove();
+  // Add missing pages
+  while (pagesContainer.querySelectorAll('.page-block').length < targetCount) buildPage();
+  updatePageNumbers();
 }
 
 function renderRecent() {
@@ -1129,24 +1174,55 @@ function renderRecent() {
         }
       }
 
-      // 3. Restore photos from IndexedDB (or legacy embedded field)
+      // 3. Restore full session from IndexedDB: page count, text fields, photos
       var ov = document.getElementById('recentOverlay');
       var rb = document.getElementById('recentBtn');
-      var finish = function(photos) {
+
+      function applyFullSession(snap) {
+        // snap may be a new-format object {photos,pageData,pageCount,isCloseout}
+        // or a legacy plain 2-D array of photos, or null
+        var photos    = null;
+        var pageData  = null;
+        var pageCount = 1;
+        var isCloseout = false;
+
+        if (snap && Array.isArray(snap)) {
+          // Legacy format: bare photos array
+          photos = snap;
+        } else if (snap && typeof snap === 'object') {
+          photos     = snap.photos     || null;
+          pageData   = snap.pageData   || null;
+          pageCount  = snap.pageCount  || 1;
+          isCloseout = snap.isCloseout || false;
+        }
+
+        // Restore isCloseout checkbox
+        var co = document.getElementById('isCloseout');
+        if (co) co.checked = isCloseout;
+
+        // Adjust page count to match saved session
+        restorePageCount(pageCount);
+
+        // Restore per-page text fields (location, description, etc.)
+        applyPageData(pageData);
+
+        // Restore photos
         applyPhotos(photos);
+
+        // Close overlay
         if (ov) ov.classList.remove('open');
         if (rb) rb.classList.remove('btn-active');
         showToast('Loaded: WO ' + (r.wo || '—'), 'ok', 2500);
-      };
-      if (r.photoKey) {
-        dbGetPhotos(r.photoKey).then(finish).catch(function() { finish(null); });
-      } else if (r.photos) {
-        // legacy: photos were embedded directly in localStorage record
-        finish(r.photos);
-      } else {
-        finish(null);
       }
-      return; // handler exits; finish() closes overlay async
+
+      if (r.photoKey) {
+        dbGetPhotos(r.photoKey).then(applyFullSession).catch(function() { applyFullSession(null); });
+      } else if (r.photos) {
+        applyFullSession(r.photos); // legacy embedded photos
+      } else {
+        applyFullSession(null);
+      }
+      return; // handler exits; applyFullSession() finishes async
     });
   });
 
@@ -1611,9 +1687,15 @@ saveDraftBtn.addEventListener('click', function() {
         recentArr.splice(5).forEach(function(r) { dbDeletePhotos(r.photoKey); });
       }
       saveRecentList(recentArr);
-      // Save photos to IndexedDB (no size limit — handles 20+ photos easily)
-      dbPutPhotos(rec.photoKey, collectPhotos()).catch(function() {
-        showToast('Photos may not have saved — try again', 'err', 4000);
+      // Save full session snapshot to IndexedDB: photos + all text fields + page count
+      var sessionSnap = {
+        photos:     collectPhotos(),
+        pageData:   collectPageData(),
+        pageCount:  pagesContainer.querySelectorAll('.page-block').length,
+        isCloseout: (document.getElementById('isCloseout')||{}).checked || false
+      };
+      dbPutPhotos(rec.photoKey, sessionSnap).catch(function() {
+        showToast('Session data may not have saved — try again', 'err', 4000);
       });
       renderRecent();
     } catch(re) {}
