@@ -59,7 +59,7 @@
       transition: background 0.15s, border-color 0.15s, color 0.15s;
       flex-shrink: 0; white-space: nowrap;
     }
-    .topbar-back:hover { background: #38bdf8; border-color: #38bdf8; color: #000; }
+    .topbar-back:hover { background: #0ea5e9; border-color: #0ea5e9; color: #fff; }
     .topbar-div { width: 1px; height: 22px; background: #374557; }
     #topbar h1 { color: #fff; font-size: 16px; font-weight: 600; }
     .state-badge {
@@ -428,10 +428,10 @@
       transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
       flex-shrink: 0;
     }
-    .fuel-bookmark-btn:hover { border-color: #38bdf8; color: #38bdf8; }
+    .fuel-bookmark-btn:hover { border-color: #f59e0b; color: #f59e0b; }
     .fuel-bookmark-btn.bookmarked {
-      background: rgba(56,189,248,0.12); color: #38bdf8;
-      border-color: rgba(56,189,248,0.5);
+      background: rgba(245,158,11,0.12); color: #f59e0b;
+      border-color: rgba(245,158,11,0.5);
     }
     .fuel-bookmark-btn svg { width: 11px; height: 11px; }
     @keyframes fuelBookmarkPop {
@@ -448,14 +448,14 @@
       transition: background 0.15s, color 0.15s, border-color 0.15s;
       flex-shrink: 0;
     }
-    .fuel-bookmark-filter:hover { border-color: #38bdf8; color: #38bdf8; }
+    .fuel-bookmark-filter:hover { border-color: #f59e0b; color: #f59e0b; }
     .fuel-bookmark-filter.active {
-      background: rgba(56,189,248,0.12); color: #38bdf8;
-      border-color: rgba(56,189,248,0.5);
+      background: rgba(245,158,11,0.12); color: #f59e0b;
+      border-color: rgba(245,158,11,0.5);
     }
     .fuel-bookmark-filter svg { width: 11px; height: 11px; }
     .station-card.is-bookmarked .station-name::after {
-      content: ' ★'; color: #38bdf8;
+      content: ' ★'; color: #f59e0b;
     }
 
   
@@ -567,9 +567,15 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 14px 16px;
-      margin-top: 12px;
+      padding: 16px 18px;
+      margin-top: 16px;
+      margin-bottom: 24px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    /* Add visual separation between bookmark card and results */
+    #results-section {
+      margin-top: 8px;
+      padding-top: 8px;
     }
     .bookmark-card-title {
       font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
@@ -998,35 +1004,10 @@
     el.classList.toggle('visible', !!text);
   }
 
-  var LOC_CACHE_KEY = 'ft_fuel_last_loc';
-  var LOC_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes — reuse cached location to skip permission prompt
-  function getCachedLocation() {
-    try {
-      var raw = localStorage.getItem(LOC_CACHE_KEY);
-      if (!raw) return null;
-      var data = JSON.parse(raw);
-      if (!data || typeof data.lat !== 'number' || typeof data.lng !== 'number') return null;
-      if (Date.now() - data.ts > LOC_CACHE_TTL_MS) return null;
-      return data;
-    } catch(e) { return null; }
-  }
-  function setCachedLocation(lat, lng) {
-    try { localStorage.setItem(LOC_CACHE_KEY, JSON.stringify({ lat: lat, lng: lng, ts: Date.now() })); } catch(e){}
-  }
-
   function startLocate() {
     const btn = document.getElementById('locate-btn');
     btn.disabled = true;
     setError('');
-
-    // Use cached position if fresh — avoids the permission prompt on every reload
-    var cached = getCachedLocation();
-    if (cached) {
-      setStatus('Using your recent location…', true);
-      onPosition({ coords: { latitude: cached.lat, longitude: cached.lng } });
-      return;
-    }
-
     setStatus('Getting your location…', true);
 
     if (!navigator.geolocation) {
@@ -1036,27 +1017,17 @@
       return;
     }
 
-    // Try to respect the user's prior permission decision before prompting again
-    if (navigator.permissions && navigator.permissions.query) {
-      navigator.permissions.query({ name: 'geolocation' }).then(function(result) {
-        if (result.state === 'denied') {
-          setStatus('', false);
-          setError('Location access is blocked. Allow location in your browser settings.');
-          btn.disabled = false;
-          return;
-        }
-        navigator.geolocation.getCurrentPosition(onPosition, onGeoError, { timeout: 10000, maximumAge: 60000 });
-      }).catch(function() {
-        navigator.geolocation.getCurrentPosition(onPosition, onGeoError, { timeout: 10000, maximumAge: 60000 });
-      });
-    } else {
-      navigator.geolocation.getCurrentPosition(onPosition, onGeoError, { timeout: 10000, maximumAge: 60000 });
-    }
+    // Always request fresh location — users move and need accurate updates.
+    // maximumAge: 0 forces a new lookup, no cached results.
+    navigator.geolocation.getCurrentPosition(onPosition, onGeoError, {
+      enableHighAccuracy: true,
+      timeout: 12000,
+      maximumAge: 0
+    });
   }
 
   async function onPosition(pos) {
     const { latitude: userLat, longitude: userLng } = pos.coords;
-    setCachedLocation(userLat, userLng);
     setStatus('Loading station data…', true);
 
     try {
@@ -1163,7 +1134,10 @@
     }).join('');
 
     section.classList.add('visible');
-    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Scroll to bookmarks card first so the user sees their saved stations
+    var bmCard = document.querySelector('.bookmark-card');
+    var scrollTarget = bmCard || section;
+    scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
     applyClosedFilter();
   }
   // Initialize bookmark count display on load
