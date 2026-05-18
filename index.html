@@ -403,8 +403,9 @@
 
   // ── INSTALL PROMPT (max 2 times) ─────────────
   (function(){
-    var INSTALL_KEY = 'ft_install_shown';
-    var MAX_SHOWS   = 2;
+    var isDesktop     = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    var INSTALL_KEY   = isDesktop ? 'ft_bookmark_shown' : 'ft_install_shown';
+    var MAX_SHOWS     = 2;
     var banner      = document.getElementById('install-banner');
     var btnGo       = document.getElementById('install-btn-go');
     var btnDismiss  = document.getElementById('install-btn-dismiss');
@@ -483,7 +484,21 @@
       });
     }
 
-    // Always show — don't gate on beforeinstallprompt
+    // Desktop: show a bookmark tip instead of install banner
+    if (isDesktop) {
+      var isMac = /mac/i.test(navigator.platform);
+      titleEl.textContent = 'Bookmark Field Tools Hub';
+      descEl.innerHTML = 'Press <strong>' + (isMac ? '⌘D' : 'Ctrl+D') + '</strong> to save this page for quick access.' +
+        '<br><span style="font-size:11px;opacity:0.7;">This prompt shows twice — use the 📲 button in the top corner anytime to bring it back.</span>';
+      btnGo.textContent = 'Got it';
+      btnGo.addEventListener('click', hideBanner);
+      // Re-style as a softer info banner on desktop
+      banner.style.borderTopColor = '#3b82f6';
+      showBanner();
+      return;
+    }
+
+    // Mobile: show install banner
     showBanner();
 
     // Manual re-trigger button (visible on mobile in topbar)
