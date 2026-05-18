@@ -264,7 +264,7 @@
       opacity: 0;
       transform: translateY(-10px);
       pointer-events: none;
-      transition: opacity 220ms ease-out, transform 220ms ease-out;
+      transition: opacity 380ms cubic-bezier(0.16, 1, 0.3, 1), transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
     }
     .install-dropdown.open {
       opacity: 1; transform: translateY(0);
@@ -371,16 +371,16 @@
     html.theme-transitioning *,
     html.theme-transitioning *::before,
     html.theme-transitioning *::after {
-      transition: background-color 280ms ease-in-out,
-                  color 280ms ease-in-out,
-                  border-color 280ms ease-in-out,
-                  fill 280ms ease-in-out,
-                  stroke 280ms ease-in-out,
-                  box-shadow 280ms ease-in-out !important;
+      transition: background-color 420ms cubic-bezier(0.65, 0, 0.35, 1),
+                  color 420ms cubic-bezier(0.65, 0, 0.35, 1),
+                  border-color 420ms cubic-bezier(0.65, 0, 0.35, 1),
+                  fill 420ms cubic-bezier(0.65, 0, 0.35, 1),
+                  stroke 420ms cubic-bezier(0.65, 0, 0.35, 1),
+                  box-shadow 420ms cubic-bezier(0.65, 0, 0.35, 1) !important;
     }
     /* Page fade-in on load */
     @keyframes pageFadeIn { from { opacity: 0; } to { opacity: 1; } }
-    body { animation: pageFadeIn 220ms ease-out; }
+    body { animation: pageFadeIn 460ms cubic-bezier(0.16, 1, 0.3, 1); }
     /* Button tap scale (works on real buttons + anchor buttons) */
     button:active,
     .btn:active,
@@ -399,12 +399,12 @@
       transition: transform 80ms ease-out !important;
     }
 
-    /* Tool card stagger */
-    @keyframes cardSlide { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .tool-card { animation: cardSlide 300ms ease-out backwards; }
-    .tool-grid .tool-card:nth-child(1) { animation-delay: 0ms; }
-    .tool-grid .tool-card:nth-child(2) { animation-delay: 70ms; }
-    .tool-grid .tool-card:nth-child(3) { animation-delay: 140ms; }
+    /* Tool card stagger — luxurious feel */
+    @keyframes cardSlide { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .tool-card { animation: cardSlide 520ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+    .tool-grid .tool-card:nth-child(1) { animation-delay: 60ms; }
+    .tool-grid .tool-card:nth-child(2) { animation-delay: 140ms; }
+    .tool-grid .tool-card:nth-child(3) { animation-delay: 220ms; }
 
     /* Respect reduced-motion preference */
     @media (prefers-reduced-motion: reduce) {
@@ -416,23 +416,79 @@
     }
 
   
-    /* Slide-in from right when returning from a tool */
+    /* Slide-in from right when returning from a tool — luxurious depth */
     @keyframes slideInFromRight {
-      from { opacity: 0; transform: translateX(100%); }
-      to   { opacity: 1; transform: translateX(0); }
+      0%   { opacity: 0.25; transform: translateX(50%) scale(0.97); }
+      100% { opacity: 1; transform: translateX(0) scale(1); }
     }
     html.returning-from-tool body {
-      animation: slideInFromRight 320ms ease-out;
+      animation: slideInFromRight 540ms cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform, opacity;
     }
 
   
-    /* Hub exit animation when entering a tool */
-    @keyframes pageOutUp {
-      from { opacity: 1; transform: translateY(0) scale(1); }
-      to   { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    /* Hub exit animation when entering a tool — slides RIGHT with depth scale */
+    @keyframes pageOutRight {
+      0%   { opacity: 1; transform: translateX(0) scale(1); }
+      100% { opacity: 0.25; transform: translateX(100vw) scale(0.96); }
     }
     html.exiting-to-tool body {
-      animation: pageOutUp 240ms ease-out forwards;
+      animation: pageOutRight 520ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+      overflow: hidden;
+      will-change: transform, opacity;
+      transform-origin: center center;
+    }
+    html.exiting-to-tool { overflow: hidden; }
+
+  
+    /* Button click glow — soft outer pulse without changing button colors */
+    @keyframes btnGlow {
+      0%   { box-shadow: 0 0 0 0 rgba(245,158,11,0.35); }
+      55%  { box-shadow: 0 0 0 7px rgba(245,158,11,0); }
+      100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
+    }
+    @keyframes btnGlowAccent {
+      0%   { box-shadow: 0 0 0 0 rgba(26,86,219,0.32); }
+      55%  { box-shadow: 0 0 0 7px rgba(26,86,219,0); }
+      100% { box-shadow: 0 0 0 0 rgba(26,86,219,0); }
+    }
+    button:active,
+    .btn:active,
+    a.btn:active,
+    .install-btn:active,
+    .filter-toggle:active,
+    .drop-btn-cam:active,
+    .drop-btn-gal:active,
+    .btn-sm:active,
+    .hub-back:active,
+    .topbar-back:active,
+    .locate-pill:active,
+    .bookmark-btn:active,
+    .fuel-bookmark-btn:active,
+    .bookmark-filter:active,
+    .fuel-bookmark-filter:active,
+    .install-trigger:active,
+    .dark-toggle:active {
+      animation: btnGlow 220ms ease-out;
+    }
+    /* Accent-blue glow for primary actions */
+    .btn-primary:active,
+    .btn-sm-primary:active,
+    .btn-sm-nav:active {
+      animation: btnGlowAccent 220ms ease-out;
+    }
+
+  
+    /* Smart header hide/reveal on scroll */
+    .topbar, #topbar {
+      position: sticky; top: 0; z-index: 100;
+      transition: transform 460ms cubic-bezier(0.65, 0, 0.35, 1), opacity 460ms cubic-bezier(0.65, 0, 0.35, 1);
+      will-change: transform;
+    }
+    .topbar.header-hidden, #topbar.header-hidden {
+      transform: translateY(-100%);
+      opacity: 0;
+      pointer-events: none;
     }
 
   </style>
@@ -628,7 +684,7 @@
       updateDarkIcon();
       btn.classList.remove('icon-swapping');
     }, 150);
-    setTimeout(function(){d.classList.remove('theme-transitioning');},320);
+    setTimeout(function(){d.classList.remove('theme-transitioning');},450);
   });}
   // Last used badge
   try{
@@ -654,15 +710,93 @@
   if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js').catch(function(){});}
 
 
-  // Hub-to-tool transition — fade & slide up briefly before navigating
+  // Hub-to-tool transition — hub slides right while next page is loaded
   document.querySelectorAll('.tool-card').forEach(function(card) {
+    if (card.classList.contains('is-soon')) return;
     card.addEventListener('click', function(e) {
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
       e.preventDefault();
+      try { sessionStorage.setItem('ft_opening_from_hub', '1'); } catch(_){}
       document.documentElement.classList.add('exiting-to-tool');
-      setTimeout(function() { window.location.href = card.href; }, 230);
+      setTimeout(function() { window.location.href = card.href; }, 480);
     });
   });
+
+
+
+  // Smart header hide on scroll-down (after 1s), reveal on scroll-up
+  (function() {
+    var topbar = document.querySelector('#topbar, .topbar');
+    if (!topbar) return;
+    if (!('IntersectionObserver' in window)) return; // skip on very old browsers
+    var lastY = window.scrollY;
+    var lastDir = 'up';
+    var hideTimeout = null;
+    var HIDE_DELAY = 1000;
+    var THRESHOLD = 80;
+    function onScroll() {
+      var y = window.scrollY;
+      var dy = y - lastY;
+      if (Math.abs(dy) < 4) return;
+      var dir = dy > 0 ? 'down' : 'up';
+      if (dir !== lastDir) {
+        lastDir = dir;
+        if (dir === 'up') {
+          topbar.classList.remove('header-hidden');
+          if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
+        }
+      }
+      if (y < THRESHOLD) {
+        topbar.classList.remove('header-hidden');
+        if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
+      } else if (dir === 'down' && !hideTimeout && !topbar.classList.contains('header-hidden')) {
+        hideTimeout = setTimeout(function() {
+          if (lastDir === 'down') topbar.classList.add('header-hidden');
+          hideTimeout = null;
+        }, HIDE_DELAY);
+      }
+      lastY = y;
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+  })();
+
+  // ── INSTALL/BOOKMARK TRIGGER BUTTON ───────────
+  // Standalone setup so it always works even after the popup has reached its show limit
+  (function(){
+    var isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    var isMac     = /mac/i.test(navigator.platform);
+    var triggerBtn = document.getElementById('install-trigger');
+    var dropdown   = document.getElementById('install-dropdown');
+    var banner     = document.getElementById('install-banner');
+    if (!triggerBtn) return;
+
+    var shortcutEl = document.getElementById('install-shortcut');
+    if (shortcutEl) shortcutEl.textContent = isMac ? '⌘D' : 'Ctrl+D';
+
+    triggerBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (isDesktop && dropdown) {
+        var wasOpen = dropdown.classList.contains('open');
+        dropdown.classList.toggle('open');
+        triggerBtn.classList.toggle('open', !wasOpen);
+      } else if (banner) {
+        banner.classList.add('visible');
+      }
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!dropdown || !dropdown.classList.contains('open')) return;
+      if (dropdown.contains(e.target) || triggerBtn.contains(e.target)) return;
+      dropdown.classList.remove('open');
+      triggerBtn.classList.remove('open');
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && dropdown && dropdown.classList.contains('open')) {
+        dropdown.classList.remove('open');
+        triggerBtn.classList.remove('open');
+      }
+    });
+  })();
 
   // ── INSTALL PROMPT (max 2 times) ─────────────
   (function(){
@@ -747,41 +881,11 @@
       });
     }
 
-    // Manual re-trigger button — desktop opens topbar dropdown, mobile re-opens bottom banner
-    var isMac = /mac/i.test(navigator.platform);
-    var triggerBtn = document.getElementById('install-trigger');
-    var dropdown   = document.getElementById('install-dropdown');
-    if (triggerBtn) {
-      var shortcutEl = document.getElementById('install-shortcut');
-      if (shortcutEl) shortcutEl.textContent = isMac ? '⌘D' : 'Ctrl+D';
-      triggerBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        if (isDesktop && dropdown) {
-          var wasOpen = dropdown.classList.contains('open');
-          dropdown.classList.toggle('open');
-          triggerBtn.classList.toggle('open', !wasOpen);
-        } else if (banner) {
-          banner.classList.add('visible');
-        }
-      });
-      document.addEventListener('click', function(e) {
-        if (!dropdown || !dropdown.classList.contains('open')) return;
-        if (dropdown.contains(e.target) || triggerBtn.contains(e.target)) return;
-        dropdown.classList.remove('open');
-        triggerBtn.classList.remove('open');
-      });
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && dropdown && dropdown.classList.contains('open')) {
-          dropdown.classList.remove('open');
-          triggerBtn.classList.remove('open');
-        }
-      });
-    }
-
     // Desktop: show a bookmark tip instead of install banner
     if (isDesktop) {
+      var isMacInner = /mac/i.test(navigator.platform);
       titleEl.textContent = 'Bookmark Field Tools Hub';
-      descEl.innerHTML = 'Press <strong>' + (isMac ? '⌘D' : 'Ctrl+D') + '</strong> to save this page for quick access.' +
+      descEl.innerHTML = 'Press <strong>' + (isMacInner ? '⌘D' : 'Ctrl+D') + '</strong> to save this page for quick access.' +
         '<br><span style="font-size:11px;opacity:0.7;">This prompt shows twice — use the 📲 button in the top corner anytime to bring it back.</span>';
       btnGo.textContent = 'Got it';
       btnGo.addEventListener('click', hideBanner);

@@ -350,16 +350,16 @@
     html.theme-transitioning *,
     html.theme-transitioning *::before,
     html.theme-transitioning *::after {
-      transition: background-color 280ms ease-in-out,
-                  color 280ms ease-in-out,
-                  border-color 280ms ease-in-out,
-                  fill 280ms ease-in-out,
-                  stroke 280ms ease-in-out,
-                  box-shadow 280ms ease-in-out !important;
+      transition: background-color 420ms cubic-bezier(0.65, 0, 0.35, 1),
+                  color 420ms cubic-bezier(0.65, 0, 0.35, 1),
+                  border-color 420ms cubic-bezier(0.65, 0, 0.35, 1),
+                  fill 420ms cubic-bezier(0.65, 0, 0.35, 1),
+                  stroke 420ms cubic-bezier(0.65, 0, 0.35, 1),
+                  box-shadow 420ms cubic-bezier(0.65, 0, 0.35, 1) !important;
     }
     /* Page fade-in on load */
     @keyframes pageFadeIn { from { opacity: 0; } to { opacity: 1; } }
-    body { animation: pageFadeIn 220ms ease-out; }
+    body { animation: pageFadeIn 460ms cubic-bezier(0.16, 1, 0.3, 1); }
     /* Button tap scale (works on real buttons + anchor buttons) */
     button:active,
     .btn:active,
@@ -379,11 +379,11 @@
     }
 
     /* Map fade-in on first load */
-    @keyframes mapFade { from { opacity: 0; } to { opacity: 1; } }
-    #map { animation: mapFade 380ms ease-out; }
+    @keyframes mapFade { from { opacity: 0; transform: scale(0.99); } to { opacity: 1; transform: scale(1); } }
+    #map { animation: mapFade 620ms cubic-bezier(0.16, 1, 0.3, 1); }
     /* Station card fade-in */
-    @keyframes stationFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-    .station-card { animation: stationFade 220ms ease-out backwards; }
+    @keyframes stationFade { from { opacity: 0; transform: translateY(10px) scale(0.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .station-card { animation: stationFade 460ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
 
     /* Respect reduced-motion preference */
     @media (prefers-reduced-motion: reduce) {
@@ -395,18 +395,121 @@
     }
 
   
-    /* Slide-left exit animation when returning to Hub */
+    /* Slide-left exit animation when returning to Hub — luxurious depth */
     @keyframes slideOutLeft {
-      from { opacity: 1; transform: translateX(0); }
-      to   { opacity: 0; transform: translateX(-100vw); }
+      0%   { opacity: 1; transform: translateX(0) scale(1); }
+      100% { opacity: 0.25; transform: translateX(-100vw) scale(0.96); }
     }
     html.exiting-to-hub body {
-      animation: slideOutLeft 300ms ease-in-out forwards;
+      animation: slideOutLeft 520ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
       overflow: hidden;
+      will-change: transform, opacity;
+    }
+
+  
+    /* Fuel station bookmark UI (mirrors bridge bookmark style) */
+    .fuel-bookmark-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px;
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: 50%; cursor: pointer;
+      color: var(--muted2); padding: 0;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .fuel-bookmark-btn:hover { border-color: #f59e0b; color: #f59e0b; }
+    .fuel-bookmark-btn.bookmarked {
+      background: rgba(245,158,11,0.12); color: #f59e0b;
+      border-color: rgba(245,158,11,0.5);
+    }
+    .fuel-bookmark-btn svg { width: 13px; height: 13px; }
+    @keyframes fuelBookmarkPop {
+      0% { transform: scale(1); } 40% { transform: scale(1.22); }
+      70% { transform: scale(0.95); } 100% { transform: scale(1); }
+    }
+    .fuel-bookmark-btn.popping { animation: fuelBookmarkPop 420ms cubic-bezier(0.16, 1, 0.3, 1); }
+    .fuel-bookmark-filter {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 100px; padding: 4px 10px;
+      font-family: var(--sans); font-size: 11px; font-weight: 600;
+      color: var(--muted); cursor: pointer; user-select: none;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .fuel-bookmark-filter:hover { border-color: #f59e0b; color: #f59e0b; }
+    .fuel-bookmark-filter.active {
+      background: rgba(245,158,11,0.12); color: #f59e0b;
+      border-color: rgba(245,158,11,0.5);
+    }
+    .fuel-bookmark-filter svg { width: 11px; height: 11px; }
+    .station-card.is-bookmarked .station-name::after {
+      content: ' ★'; color: #f59e0b;
+    }
+
+  
+    /* Button click glow — soft outer pulse without changing button colors */
+    @keyframes btnGlow {
+      0%   { box-shadow: 0 0 0 0 rgba(245,158,11,0.35); }
+      55%  { box-shadow: 0 0 0 7px rgba(245,158,11,0); }
+      100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
+    }
+    @keyframes btnGlowAccent {
+      0%   { box-shadow: 0 0 0 0 rgba(26,86,219,0.32); }
+      55%  { box-shadow: 0 0 0 7px rgba(26,86,219,0); }
+      100% { box-shadow: 0 0 0 0 rgba(26,86,219,0); }
+    }
+    button:active,
+    .btn:active,
+    a.btn:active,
+    .install-btn:active,
+    .filter-toggle:active,
+    .drop-btn-cam:active,
+    .drop-btn-gal:active,
+    .btn-sm:active,
+    .hub-back:active,
+    .topbar-back:active,
+    .locate-pill:active,
+    .bookmark-btn:active,
+    .fuel-bookmark-btn:active,
+    .bookmark-filter:active,
+    .fuel-bookmark-filter:active,
+    .install-trigger:active,
+    .dark-toggle:active {
+      animation: btnGlow 320ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    /* Accent-blue glow for primary actions */
+    .btn-primary:active,
+    .btn-sm-primary:active,
+    .btn-sm-nav:active {
+      animation: btnGlowAccent 320ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+  
+    /* Stagger station-card fade-in */
+    .station-card:nth-child(1) { animation-delay: 0ms; }
+    .station-card:nth-child(2) { animation-delay: 60ms; }
+    .station-card:nth-child(3) { animation-delay: 120ms; }
+    .station-card:nth-child(4) { animation-delay: 180ms; }
+    .station-card:nth-child(5) { animation-delay: 240ms; }
+    .station-card:nth-child(6) { animation-delay: 300ms; }
+    .station-card:nth-child(7) { animation-delay: 360ms; }
+    .station-card:nth-child(8) { animation-delay: 420ms; }
+
+  
+    /* Hub-to-tool entrance: slide in from the LEFT with depth scale */
+    @keyframes slideInFromLeft {
+      0%   { opacity: 0.25; transform: translateX(-50%) scale(0.97); }
+      100% { opacity: 1; transform: translateX(0) scale(1); }
+    }
+    html.entering-from-hub body {
+      animation: slideInFromLeft 540ms cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform, opacity;
     }
 
   </style>
   <script>if(localStorage.getItem("field_dark_mode")==="1")document.documentElement.setAttribute("data-dark","");</script>
+  <script>try{if(sessionStorage.getItem('ft_opening_from_hub')==='1'){sessionStorage.removeItem('ft_opening_from_hub');document.documentElement.classList.add('entering-from-hub');setTimeout(function(){document.documentElement.classList.remove('entering-from-hub');},600);}}catch(_){}</script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-XZJ7XL4S34"></script>
   <script>
@@ -476,6 +579,62 @@
 
   // Map state
   let currentStations = [];
+  // -- Fuel station bookmarks (localStorage-backed) --
+  var FUEL_BOOKMARK_KEY = 'ft_fuel_bookmarks';
+  function _fuelKey(s) {
+    // Composite stable key: rounded coordinates
+    if (!s) return '';
+    return (s.latitude != null ? s.latitude.toFixed(5) : '') + ',' + (s.longitude != null ? s.longitude.toFixed(5) : '');
+  }
+  function getFuelBookmarks() {
+    try { return JSON.parse(localStorage.getItem(FUEL_BOOKMARK_KEY) || '[]'); }
+    catch(e) { return []; }
+  }
+  function setFuelBookmarks(arr) {
+    try { localStorage.setItem(FUEL_BOOKMARK_KEY, JSON.stringify(arr)); } catch(e) {}
+  }
+  function isFuelBookmarked(key) {
+    return getFuelBookmarks().indexOf(key) !== -1;
+  }
+  function toggleFuelBookmarkClick(btnEl) {
+    var key = btnEl.getAttribute('data-key');
+    if (!key) return;
+    var arr = getFuelBookmarks();
+    var i = arr.indexOf(key);
+    if (i === -1) arr.push(key); else arr.splice(i, 1);
+    setFuelBookmarks(arr);
+    var nowBookmarked = i === -1;
+    btnEl.classList.toggle('bookmarked', nowBookmarked);
+    btnEl.classList.remove('popping');
+    void btnEl.offsetWidth;
+    btnEl.classList.add('popping');
+    var filled = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+    var empty  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+    btnEl.innerHTML = nowBookmarked ? filled : empty;
+    btnEl.title = nowBookmarked ? 'Remove bookmark' : 'Bookmark this station';
+    // Also toggle the card class
+    var card = btnEl.closest('.station-card');
+    if (card) card.classList.toggle('is-bookmarked', nowBookmarked);
+    // If filter is on and we just unbookmarked, re-render
+    if (fuelBookmarkFilterOn && !nowBookmarked) {
+      renderStations(_applyFuelFilters(currentStations));
+    }
+  }
+  var fuelBookmarkFilterOn = false;
+  function _applyFuelFilters(stations) {
+    if (!fuelBookmarkFilterOn) return stations;
+    var bms = getFuelBookmarks();
+    return stations.filter(function(s) { return bms.indexOf(_fuelKey(s)) !== -1; });
+  }
+  function toggleFuelBookmarkFilter() {
+    fuelBookmarkFilterOn = !fuelBookmarkFilterOn;
+    var fbtn = document.getElementById('fuel-bookmark-filter');
+    var flbl = document.getElementById('fuel-bookmark-filter-label');
+    if (fbtn) fbtn.classList.toggle('active', fuelBookmarkFilterOn);
+    if (flbl) flbl.textContent = fuelBookmarkFilterOn ? 'Showing Bookmarks' : 'Bookmarks';
+    renderStations(_applyFuelFilters(currentStations));
+  }
+
   let fuelMap = null;
   let stationMarkers = [];
   let userMarker = null;
@@ -766,7 +925,7 @@
       var lat = s.latitude.toFixed(5);
       var lng = s.longitude.toFixed(5);
       return (
-        '<div class="station-card' + closedClass + '" data-idx="' + idx + '" onclick="focusMapOnStation(' + idx + ', currentStations)">' +
+        '<div class="station-card' + closedClass + (isFuelBookmarked(_fuelKey(s)) ? ' is-bookmarked' : '') + '" data-idx="' + idx + '" onclick="focusMapOnStation(' + idx + ', currentStations)">' +
           '<div class="station-top">' +
             '<div class="station-name">' + escHtml(s.location) + '</div>' +
             '<div style="display:flex;align-items:center;gap:5px;flex-shrink:0">' +
@@ -828,7 +987,7 @@
       e.preventDefault();
       try { sessionStorage.setItem('ft_returning_to_hub', '1'); } catch(_){}
       document.documentElement.classList.add('exiting-to-hub');
-      setTimeout(function() { window.location.href = link.href; }, 290);
+      setTimeout(function() { window.location.href = link.href; }, 480);
     });
   })();
 

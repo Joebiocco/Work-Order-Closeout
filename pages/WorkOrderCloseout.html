@@ -729,7 +729,7 @@ html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
   font-weight: 500;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s, transform 0.2s;
+  transition: opacity 240ms cubic-bezier(0.16, 1, 0.3, 1), transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 999;
   white-space: normal;
   word-break: break-word;
@@ -769,16 +769,16 @@ html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
     html.theme-transitioning *,
     html.theme-transitioning *::before,
     html.theme-transitioning *::after {
-      transition: background-color 280ms ease-in-out,
-                  color 280ms ease-in-out,
-                  border-color 280ms ease-in-out,
-                  fill 280ms ease-in-out,
-                  stroke 280ms ease-in-out,
-                  box-shadow 280ms ease-in-out !important;
+      transition: background-color 420ms cubic-bezier(0.65, 0, 0.35, 1),
+                  color 420ms cubic-bezier(0.65, 0, 0.35, 1),
+                  border-color 420ms cubic-bezier(0.65, 0, 0.35, 1),
+                  fill 420ms cubic-bezier(0.65, 0, 0.35, 1),
+                  stroke 420ms cubic-bezier(0.65, 0, 0.35, 1),
+                  box-shadow 420ms cubic-bezier(0.65, 0, 0.35, 1) !important;
     }
     /* Page fade-in on load */
     @keyframes pageFadeIn { from { opacity: 0; } to { opacity: 1; } }
-    body { animation: pageFadeIn 220ms ease-out; }
+    body { animation: pageFadeIn 460ms cubic-bezier(0.16, 1, 0.3, 1); }
     /* Button tap scale (works on real buttons + anchor buttons) */
     button:active,
     .btn:active,
@@ -798,14 +798,24 @@ html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
     }
 
     /* Photo preview fade-in when uploaded */
-    @keyframes photoPop { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
-    .drop-preview.active { animation: photoPop 220ms ease-out; }
+    @keyframes photoPop { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+    .drop-preview.active { animation: photoPop 420ms cubic-bezier(0.16, 1, 0.3, 1); }
     /* Recent chip slide-in */
-    @keyframes chipSlide { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
-    .recent-chip { animation: chipSlide 220ms ease-out backwards; }
+    @keyframes chipSlide { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    .recent-chip { animation: chipSlide 420ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
     /* Page block fade-in when added */
-    @keyframes blockFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-    .page-block { animation: blockFadeIn 260ms ease-out; }
+    @keyframes blockFadeIn { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .page-block { animation: blockFadeIn 520ms cubic-bezier(0.16, 1, 0.3, 1); }
+    /* Page block removal: fade + scale, height collapse handled in JS */
+    @keyframes pageRemoveFade {
+      from { opacity: 1; transform: scale(1); }
+      to   { opacity: 0; transform: scale(0.94); }
+    }
+    .page-block.page-removing {
+      animation: pageRemoveFade 380ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+      overflow: hidden;
+      pointer-events: none;
+    }
 
     /* Respect reduced-motion preference */
     @media (prefers-reduced-motion: reduce) {
@@ -817,18 +827,82 @@ html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
     }
 
   
-    /* Slide-left exit animation when returning to Hub */
+    /* Slide-left exit animation when returning to Hub — luxurious depth */
     @keyframes slideOutLeft {
-      from { opacity: 1; transform: translateX(0); }
-      to   { opacity: 0; transform: translateX(-100vw); }
+      0%   { opacity: 1; transform: translateX(0) scale(1); }
+      100% { opacity: 0.25; transform: translateX(-100vw) scale(0.96); }
     }
     html.exiting-to-hub body {
-      animation: slideOutLeft 300ms ease-in-out forwards;
+      animation: slideOutLeft 520ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
       overflow: hidden;
+      will-change: transform, opacity;
+    }
+
+  
+    /* Button click glow — soft outer pulse without changing button colors */
+    @keyframes btnGlow {
+      0%   { box-shadow: 0 0 0 0 rgba(245,158,11,0.35); }
+      55%  { box-shadow: 0 0 0 7px rgba(245,158,11,0); }
+      100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
+    }
+    @keyframes btnGlowAccent {
+      0%   { box-shadow: 0 0 0 0 rgba(26,86,219,0.32); }
+      55%  { box-shadow: 0 0 0 7px rgba(26,86,219,0); }
+      100% { box-shadow: 0 0 0 0 rgba(26,86,219,0); }
+    }
+    button:active,
+    .btn:active,
+    a.btn:active,
+    .install-btn:active,
+    .filter-toggle:active,
+    .drop-btn-cam:active,
+    .drop-btn-gal:active,
+    .btn-sm:active,
+    .hub-back:active,
+    .topbar-back:active,
+    .locate-pill:active,
+    .bookmark-btn:active,
+    .fuel-bookmark-btn:active,
+    .bookmark-filter:active,
+    .fuel-bookmark-filter:active,
+    .install-trigger:active,
+    .dark-toggle:active {
+      animation: btnGlow 320ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    /* Accent-blue glow for primary actions */
+    .btn-primary:active,
+    .btn-sm-primary:active,
+    .btn-sm-nav:active {
+      animation: btnGlowAccent 320ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+  
+    /* Smart header hide/reveal on scroll */
+    .topbar, #topbar {
+      position: sticky; top: 0; z-index: 100;
+      transition: transform 460ms cubic-bezier(0.65, 0, 0.35, 1), opacity 460ms cubic-bezier(0.65, 0, 0.35, 1);
+      will-change: transform;
+    }
+    .topbar.header-hidden, #topbar.header-hidden {
+      transform: translateY(-100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+  
+    /* Hub-to-tool entrance: slide in from the LEFT with depth scale */
+    @keyframes slideInFromLeft {
+      0%   { opacity: 0.25; transform: translateX(-50%) scale(0.97); }
+      100% { opacity: 1; transform: translateX(0) scale(1); }
+    }
+    html.entering-from-hub body {
+      animation: slideInFromLeft 540ms cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform, opacity;
     }
 
   </style>
   <script>if(localStorage.getItem("field_dark_mode")==="1")document.documentElement.setAttribute("data-dark","");</script>
+  <script>try{if(sessionStorage.getItem('ft_opening_from_hub')==='1'){sessionStorage.removeItem('ft_opening_from_hub');document.documentElement.classList.add('entering-from-hub');setTimeout(function(){document.documentElement.classList.remove('entering-from-hub');},600);}}catch(_){}</script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-XZJ7XL4S34"></script>
   <script>
@@ -1703,9 +1777,10 @@ function buildPage() {
     var all = pagesContainer.querySelectorAll('.page-block');
     if (all.length <= 1) { showToast('Cannot remove the last page', 'err'); return; }
     if (!confirm('Remove this page and all its photos? This cannot be undone.')) return;
-    block.remove();
-    updatePageNumbers();
-    updatePhotoBadge();
+    removePageWithAnimation(block, function() {
+      updatePageNumbers();
+      updatePhotoBadge();
+    });
     showToast('Page removed', 'ok');
   });
 
@@ -1963,6 +2038,33 @@ saveDraftBtn.addEventListener('click', function() {
   showToast('Draft loaded', 'ok');
 })();
 
+// Smoothly animate page removal: fade + scale, then collapse height
+function removePageWithAnimation(block, onDone) {
+  if (!block) { if (onDone) onDone(); return; }
+  // Capture current height to enable a smooth height collapse
+  var h = block.offsetHeight;
+  block.style.maxHeight = h + 'px';
+  // Use rAF to ensure the initial maxHeight is applied before transitioning
+  requestAnimationFrame(function() {
+    block.classList.add('page-removing');
+    // Phase 1: fade + scale (handled by CSS animation), 240ms
+    setTimeout(function() {
+      // Phase 2: collapse height 200ms
+      block.style.transition = 'max-height 200ms ease-in-out, margin 200ms ease-in-out, padding 200ms ease-in-out, opacity 200ms ease-in-out';
+      block.style.maxHeight = '0';
+      block.style.marginTop = '0';
+      block.style.marginBottom = '0';
+      block.style.paddingTop = '0';
+      block.style.paddingBottom = '0';
+      block.style.opacity = '0';
+      setTimeout(function() {
+        block.remove();
+        if (onDone) onDone();
+      }, 220);
+    }, 240);
+  });
+}
+
 // Smoothly scroll to the most recently added page block
 function scrollToLastPage() {
   var pages = pagesContainer.querySelectorAll('.page-block');
@@ -1994,9 +2096,10 @@ removePageBtn.addEventListener('click', function() {
   void btn.offsetWidth;
   btn.classList.add('btn-flash-red');
   btn.addEventListener('animationend', function() { btn.classList.remove('btn-flash-red'); }, { once: true });
-  pages[pages.length - 1].remove();
-  updatePageNumbers();
-  updatePhotoBadge();
+  removePageWithAnimation(pages[pages.length - 1], function() {
+    updatePageNumbers();
+    updatePhotoBadge();
+  });
   showToast('Last page removed', 'ok');
 });
 
@@ -2621,8 +2724,9 @@ document.getElementById('clearForm').addEventListener('click', function() {
     var pages = pagesContainer.querySelectorAll('.page-block');
     if (pages.length <= 1) { showToast('Cannot remove the last page', 'err'); return; }
     if (!confirm('Remove the last page and its photos?')) return;
-    pages[pages.length - 1].remove();
-    updatePageNumbers(); updatePhotoBadge();
+    removePageWithAnimation(pages[pages.length - 1], function() {
+      updatePageNumbers(); updatePhotoBadge();
+    });
     showToast('Last page removed', 'ok');
   });
 
@@ -2680,8 +2784,45 @@ renderRecent(); // prime the counter badge on page load
       e.preventDefault();
       try { sessionStorage.setItem('ft_returning_to_hub', '1'); } catch(_){}
       document.documentElement.classList.add('exiting-to-hub');
-      setTimeout(function() { window.location.href = link.href; }, 290);
+      setTimeout(function() { window.location.href = link.href; }, 480);
     });
+  })();
+
+
+  // Smart header hide on scroll-down (after 1s), reveal on scroll-up
+  (function() {
+    var topbar = document.querySelector('#topbar, .topbar');
+    if (!topbar) return;
+    if (!('IntersectionObserver' in window)) return; // skip on very old browsers
+    var lastY = window.scrollY;
+    var lastDir = 'up';
+    var hideTimeout = null;
+    var HIDE_DELAY = 1000;
+    var THRESHOLD = 80;
+    function onScroll() {
+      var y = window.scrollY;
+      var dy = y - lastY;
+      if (Math.abs(dy) < 4) return;
+      var dir = dy > 0 ? 'down' : 'up';
+      if (dir !== lastDir) {
+        lastDir = dir;
+        if (dir === 'up') {
+          topbar.classList.remove('header-hidden');
+          if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
+        }
+      }
+      if (y < THRESHOLD) {
+        topbar.classList.remove('header-hidden');
+        if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
+      } else if (dir === 'down' && !hideTimeout && !topbar.classList.contains('header-hidden')) {
+        hideTimeout = setTimeout(function() {
+          if (lastDir === 'down') topbar.classList.add('header-hidden');
+          hideTimeout = null;
+        }, HIDE_DELAY);
+      }
+      lastY = y;
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
   })();
 
 </script>
