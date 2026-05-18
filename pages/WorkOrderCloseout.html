@@ -612,6 +612,25 @@ textarea.notes-field {
   text-transform: uppercase; color: var(--muted); position: sticky; top: 0;
   background: var(--surface); z-index: 1;
 }
+.recent-header-left { display: flex; align-items: center; gap: 7px; }
+.recent-count {
+  font-size: 10px; font-weight: 700; color: #fff;
+  background: #374151; border-radius: 10px; padding: 1px 7px;
+  letter-spacing: 0.03em; text-transform: none;
+}
+.recent-count.warn  { background: #92400e; color: #fde68a; }
+.recent-count.full  { background: #7f1d1d; color: #fca5a5; }
+.recent-storage-note {
+  font-size: 11px; padding: 6px 16px; border-bottom: 1px solid var(--border);
+  background: rgba(245,158,11,0.08); color: #b45309;
+}
+html[data-dark] .recent-storage-note { background: rgba(245,158,11,0.07); color: #fbbf24; }
+.recent-storage-note.full { background: rgba(220,38,38,0.08); color: #dc2626; }
+html[data-dark] .recent-storage-note.full { background: rgba(220,38,38,0.07); color: #fca5a5; }
+.recent-photo-note {
+  font-size: 10px; padding: 5px 16px; border-bottom: 1px solid var(--border);
+  color: var(--muted); font-style: italic; background: transparent;
+}
 .recent-close {
   background: none; border: none; cursor: pointer;
   color: var(--muted); font-size: 18px; line-height: 1; padding: 0 2px;
@@ -772,9 +791,14 @@ html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
   <div id="recentOverlay" class="recent-overlay" role="dialog" aria-modal="true" aria-label="Recent Sessions">
     <div class="recent-panel" id="recentPanel">
       <div class="recent-panel-header">
-        <span>Recent Sessions</span>
+        <div class="recent-header-left">
+          <span>Recent Sessions</span>
+          <span id="recentCount" class="recent-count">0 / 5</span>
+        </div>
         <button id="recentClose" class="recent-close" title="Close" aria-label="Close">&times;</button>
       </div>
+      <div id="recentStorageNote" class="recent-storage-note" style="display:none;"></div>
+      <div class="recent-photo-note">&#128247; Photos saved in downloaded file only — re-upload after loading.</div>
       <div class="recent-panel-body" id="recentList">
         <span class="recent-empty">No recent sessions yet.</span>
       </div>
@@ -922,13 +946,42 @@ function saveRecentList(arr) {
   try { localStorage.setItem(WO_RECENT_KEY, JSON.stringify(arr)); } catch(e) {}
 }
 function renderRecent() {
-  var list = document.getElementById('recentList');
+  var MAX_SESSIONS = 5;
+  var list         = document.getElementById('recentList');
+  var countEl      = document.getElementById('recentCount');
+  var noteEl       = document.getElementById('recentStorageNote');
   if (!list) return;
   var items = loadRecent();
+
+  // ── Counter badge ─────────────────────────────
+  if (countEl) {
+    countEl.textContent = items.length + ' / ' + MAX_SESSIONS;
+    countEl.className = 'recent-count' +
+      (items.length >= MAX_SESSIONS ? ' full' : items.length >= MAX_SESSIONS - 1 ? ' warn' : '');
+  }
+
+  // ── Storage warning ───────────────────────────
+  if (noteEl) {
+    if (items.length >= MAX_SESSIONS) {
+      noteEl.textContent = '⚠ Storage full — oldest session will be replaced on next save.';
+      noteEl.className = 'recent-storage-note full';
+      noteEl.style.display = '';
+    } else if (items.length >= MAX_SESSIONS - 1) {
+      noteEl.textContent = '⚠ 1 slot remaining before oldest session is replaced.';
+      noteEl.className = 'recent-storage-note';
+      noteEl.style.display = '';
+    } else {
+      noteEl.style.display = 'none';
+    }
+  }
+
+  // ── Empty state ───────────────────────────────
   if (!items.length) {
     list.innerHTML = '<span class="recent-empty">No recent sessions yet — save a session to see it here.</span>';
     return;
   }
+
+  // ── Build chips ───────────────────────────────
   list.innerHTML = items.map(function(r, i) {
     var woLine  = r.wo ? 'WO ' + r.wo : 'Untitled';
     var subLine = [r.str, r.date].filter(Boolean).join(' · ');
@@ -941,7 +994,7 @@ function renderRecent() {
     '</div>';
   }).join('');
 
-  // Click chip body → load fields
+  // ── Click chip → load header fields + clear photos ───
   list.querySelectorAll('.recent-chip').forEach(function(chip) {
     chip.addEventListener('click', function(e) {
       if (e.target.classList.contains('recent-chip-remove')) return;
@@ -949,8 +1002,9 @@ function renderRecent() {
       var items2 = loadRecent();
       var r = items2[idx];
       if (!r) return;
-      // Populate top header fields
-      var fields = {
+
+      // 1. Populate top header fields
+      var headerFields = {
         workorder:  r.wo        || '',
         structure:  r.str       || '',
         route:      r.route     || '',
@@ -959,11 +1013,12 @@ function renderRecent() {
         startDate:  r.startDate || '',
         endDate:    r.endDate   || ''
       };
-      Object.keys(fields).forEach(function(id) {
+      Object.keys(headerFields).forEach(function(id) {
         var el = document.getElementById(id);
-        if (el) el.value = fields[id];
+        if (el) el.value = headerFields[id];
       });
-      // Restore priority
+
+      // 2. Restore priority select
       if (r.priority) {
         var sel   = document.getElementById('prioritySelect');
         var input = document.getElementById('priority');
@@ -978,16 +1033,30 @@ function renderRecent() {
           }
         }
       }
-      // Close overlay and show confirmation
+
+      // 3. Clear all photos from every page so stale photos from a
+      //    different work order don't carry over into this session.
+      pagesContainer.querySelectorAll('.drop-preview').forEach(function(pr) {
+        var img = pr.querySelector('img');
+        if (img) img.src = '';
+        pr.classList.remove('active');
+      });
+      pagesContainer.querySelectorAll('input[type="file"]').forEach(function(el) {
+        el.value = '';
+      });
+      updatePhotoBadge();
+
+      // 4. Close overlay
       var ov = document.getElementById('recentOverlay');
       var rb = document.getElementById('recentBtn');
       if (ov) ov.classList.remove('open');
       if (rb) rb.classList.remove('btn-active');
-      showToast('Loaded: WO ' + (r.wo || '—'), 'ok');
+
+      showToast('Loaded WO ' + (r.wo || '—') + ' — re-upload photos', 'ok', 3500);
     });
   });
 
-  // Remove button
+  // ── Remove button ─────────────────────────────
   list.querySelectorAll('.recent-chip-remove').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
       e.stopPropagation();
@@ -2187,6 +2256,7 @@ try { localStorage.setItem('ft_last', 'closeout'); } catch(e) {}
 buildPage();
 if (typeof window.attachDragToAllCards === 'function') window.attachDragToAllCards();
 updatePhotoBadge();
+renderRecent(); // prime the counter badge on page load
 
   </script>
 </body>
