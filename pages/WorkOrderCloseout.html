@@ -799,7 +799,7 @@ html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
         <button id="recentClose" class="recent-close" title="Close" aria-label="Close">&times;</button>
       </div>
       <div id="recentStorageNote" class="recent-storage-note" style="display:none;"></div>
-      <div class="recent-photo-note">&#128247; Photos saved in downloaded file only — re-upload after loading.</div>
+      <div class="recent-photo-note">&#128247; Photos are stored with each saved session.</div>
       <div class="recent-panel-body" id="recentList">
         <span class="recent-empty">No recent sessions yet.</span>
       </div>
@@ -947,21 +947,24 @@ function loadRecent() {
   try { return JSON.parse(localStorage.getItem(WO_RECENT_KEY) || '[]'); } catch(e) { return []; }
 }
 function saveRecentList(arr) {
-  try { localStorage.setItem(WO_RECENT_KEY, JSON.stringify(arr)); } catch(e) {}
+  try {
+    localStorage.setItem(WO_RECENT_KEY, JSON.stringify(arr));
+  } catch(e) {
+    // Quota exceeded — strip photos and retry so at least metadata is saved
+    try {
+      var slim = arr.map(function(r) {
+        var c = {}; Object.keys(r).forEach(function(k){ if (k !== 'photos') c[k] = r[k]; });
+        return c;
+      });
+      localStorage.setItem(WO_RECENT_KEY, JSON.stringify(slim));
+      if (typeof showToast === 'function') showToast('Storage full — photos not saved to session list', 'err', 4000);
+    } catch(e2) {}
+  }
 }
 
-// ── PHOTO CACHE ───────────────────────────────
-// Photos are stored per-session in localStorage so switching sessions
-// restores the right photos. Key = "wo_pcache_<WO#>__<structure>".
-var WO_PHOTO_CACHE_PREFIX = 'wo_pcache_';
-
-function photoCacheKey(wo, str) {
-  return WO_PHOTO_CACHE_PREFIX + (wo || '').trim() + '__' + (str || '').trim();
-}
-
-function savePhotosToCache() {
-  var wo  = ((document.getElementById('workorder')||{}).value||'').trim();
-  var str = ((document.getElementById('structure')||{}).value||'').trim();
+// ── PHOTO HELPERS ─────────────────────────────
+// Collect all photo data URLs from every page into a 2-D array.
+function collectPhotos() {
   var photos = [];
   pagesContainer.querySelectorAll('.page-block').forEach(function(block) {
     var row = [];
@@ -971,39 +974,29 @@ function savePhotosToCache() {
     });
     photos.push(row);
   });
-  try { localStorage.setItem(photoCacheKey(wo, str), JSON.stringify(photos)); } catch(e) {}
+  return photos;
 }
 
-function loadPhotosFromCache(wo, str) {
-  try {
-    var raw = localStorage.getItem(photoCacheKey(wo, str));
-    return raw ? JSON.parse(raw) : null;
-  } catch(e) { return null; }
-}
-
-function applyPhotoCacheToPage(photos) {
-  // Clear all first
+// Apply a 2-D photos array back to the current pages.
+function applyPhotos(photos) {
   pagesContainer.querySelectorAll('.drop-preview').forEach(function(pr) {
     var img = pr.querySelector('img');
     if (img) img.src = '';
     pr.classList.remove('active');
   });
   pagesContainer.querySelectorAll('input[type="file"]').forEach(function(el) { el.value = ''; });
-  if (!photos) { updatePhotoBadge(); return; }
-  pagesContainer.querySelectorAll('.page-block').forEach(function(block, pi) {
-    var row = photos[pi] || [];
-    block.querySelectorAll('.drop-preview').forEach(function(pr, ci) {
-      var src = row[ci] || '';
-      var img = pr.querySelector('img');
-      if (img) img.src = src;
-      if (src) pr.classList.add('active');
+  if (photos && photos.length) {
+    pagesContainer.querySelectorAll('.page-block').forEach(function(block, pi) {
+      var row = photos[pi] || [];
+      block.querySelectorAll('.drop-preview').forEach(function(pr, ci) {
+        var src = row[ci] || '';
+        var img = pr.querySelector('img');
+        if (img) img.src = src;
+        if (src) pr.classList.add('active');
+      });
     });
-  });
+  }
   updatePhotoBadge();
-}
-
-function deletePhotoCache(wo, str) {
-  try { localStorage.removeItem(photoCacheKey(wo, str)); } catch(e) {}
 }
 
 function renderRecent() {
@@ -1095,10 +1088,8 @@ function renderRecent() {
         }
       }
 
-      // 3. Save current photos before switching, then load the target session's cached photos.
-      //    This keeps each session's photos alive in localStorage while you move between them.
-      savePhotosToCache();
-      applyPhotoCacheToPage(loadPhotosFromCache(r.wo, r.str));
+      // 3. Restore photos saved with this session record
+      applyPhotos(r.photos || null);
 
       // 4. Close overlay
       var ov = document.getElementById('recentOverlay');
@@ -1106,8 +1097,7 @@ function renderRecent() {
       if (ov) ov.classList.remove('open');
       if (rb) rb.classList.remove('btn-active');
 
-      var hadPhotos = loadPhotosFromCache(r.wo, r.str);
-      showToast('Loaded WO ' + (r.wo || '—') + (hadPhotos ? '' : ' — re-upload photos'), 'ok', 3000);
+      showToast('Loaded: WO ' + (r.wo || '—'), 'ok', 2500);
     });
   });
 
@@ -1116,8 +1106,7 @@ function renderRecent() {
     btn.addEventListener('click', function(e) {
       e.stopPropagation();
       var items2 = loadRecent();
-      var removed = items2.splice(parseInt(this.getAttribute('data-idx')), 1)[0];
-      if (removed) deletePhotoCache(removed.wo, removed.str);
+      items2.splice(parseInt(this.getAttribute('data-idx')), 1);
       saveRecentList(items2);
       renderRecent();
     });
@@ -1256,7 +1245,6 @@ function setupDropZone(photoCard) {
       if (camInput) camInput.value = '';
       if (galInput) galInput.value = '';
       if (typeof updatePhotoBadge === 'function') updatePhotoBadge();
-      if (typeof savePhotosToCache === 'function') savePhotosToCache();
     });
   }
 }
@@ -1320,7 +1308,6 @@ function showPreview(file, previewEl) {
       img.src = dataUrl;
       previewEl.classList.add('active');
       if (typeof updatePhotoBadge === 'function') updatePhotoBadge();
-      if (typeof savePhotosToCache === 'function') savePhotosToCache();
     }
   };
 
@@ -1433,7 +1420,6 @@ function buildPage() {
 // ── SAVE DRAFT ────────────────────────────────
 saveDraftBtn.addEventListener('click', function() {
   try {
-    savePhotosToCache(); // keep cache in sync whenever a session is saved
     // Collect all field values including photos
     var data = { top: {}, pages: [] };
     ['workorder','structure','route','direction','mp','startDate','endDate'].forEach(function(id) {
@@ -1562,7 +1548,8 @@ saveDraftBtn.addEventListener('click', function() {
         priority:  (function(){
           var s=document.getElementById('prioritySelect'),i=document.getElementById('priority');
           return (i&&i.style.display!=='none'&&i.value)?i.value:(s?s.value:'');
-        })()
+        })(),
+        photos:    collectPhotos()
       };
       var recentArr = loadRecent();
       // Remove exact duplicate (same WO + structure)
