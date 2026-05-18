@@ -856,8 +856,16 @@ html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
           <input id="route" name="route" type="text" placeholder="US-1" maxlength="8" />
         </div>
         <div class="field-group">
-          <label class="field-label" for="direction">Direction:</label>
-          <input id="direction" name="direction" type="text" placeholder="NB / SB / EB / WB" maxlength="7" />
+          <label class="field-label" for="directionSelect">Direction:</label>
+          <select id="directionSelect" name="directionSelect">
+            <option value="" disabled selected>-- Select --</option>
+            <option value="NB">NB</option>
+            <option value="SB">SB</option>
+            <option value="EB">EB</option>
+            <option value="WB">WB</option>
+            <option value="custom">Other...</option>
+          </select>
+          <input id="direction" name="direction" type="text" placeholder="Custom direction" maxlength="20" style="display:none;margin-top:4px;" />
         </div>
         <div class="field-group">
           <label class="field-label" for="mp">MP #:</label>
@@ -921,6 +929,28 @@ const toggleInput    = document.getElementById('isCloseout');
 (function() {
   var sel   = document.getElementById('prioritySelect');
   var input = document.getElementById('priority');
+  if (!sel || !input) return;
+
+  // Initialise: set input value to match select
+  input.value = sel.value;
+
+  sel.addEventListener('change', function() {
+    if (sel.value === 'custom') {
+      input.style.display = 'block';
+      input.value = '';
+      input.focus();
+    } else {
+      input.style.display = 'none';
+      input.value = sel.value;
+    }
+  });
+
+})();
+
+// ── DIRECTION SELECT + CUSTOM INPUT ──────────
+(function() {
+  var sel   = document.getElementById('directionSelect');
+  var input = document.getElementById('direction');
   if (!sel || !input) return;
 
   // Initialise: set input value to match select
@@ -1181,6 +1211,27 @@ function renderRecent() {
           }
         }
       }
+
+      // 2b. Restore direction select
+      (function() {
+        var dSel = document.getElementById('directionSelect');
+        var dInp = document.getElementById('direction');
+        if (!dSel || !dInp) return;
+        var dir = r.direction || '';
+        if (dir === 'NB' || dir === 'SB' || dir === 'EB' || dir === 'WB') {
+          dSel.value = dir;
+          dInp.style.display = 'none';
+          dInp.value = dir;
+        } else if (dir) {
+          dSel.value = 'custom';
+          dInp.style.display = 'block';
+          dInp.value = dir;
+        } else {
+          dSel.value = '';
+          dInp.style.display = 'none';
+          dInp.value = '';
+        }
+      })();
 
       // 3. Restore full session from IndexedDB: page count, text fields, photos
       var ov = document.getElementById('recentOverlay');
@@ -1562,6 +1613,7 @@ saveDraftBtn.addEventListener('click', function() {
     var co = document.getElementById('isCloseout'); if (co) data.top.isCloseout = co.checked;
     var sel = document.getElementById('prioritySelect'); if (sel) data.top.prioritySelect = sel.value || '';
     var pri = document.getElementById('priority'); if (pri) data.top.priority = pri.value || '';
+    var dSel = document.getElementById('directionSelect'); if (dSel) data.top.directionSelect = dSel.value || '';
 
     pagesContainer.querySelectorAll('.page-block').forEach(function(p) {
       var obj = {};
@@ -1607,6 +1659,13 @@ saveDraftBtn.addEventListener('click', function() {
       '      sel.value=S.top.prioritySelect;',
       '      if(S.top.prioritySelect==="custom"&&pri){ pri.style.display="block"; pri.value=S.top.priority||""; }',
       '      else if(pri){ pri.style.display="none"; pri.value=S.top.prioritySelect||""; }',
+      '    }',
+      '    var dSel=document.getElementById("directionSelect");',
+      '    var dInp=document.getElementById("direction");',
+      '    if(dSel&&S.top.directionSelect!==undefined){',
+      '      dSel.value=S.top.directionSelect;',
+      '      if(S.top.directionSelect==="custom"&&dInp){ dInp.style.display="block"; dInp.value=S.top.direction||""; }',
+      '      else if(dInp){ dInp.style.display="none"; dInp.value=S.top.directionSelect||""; }',
       '    }',
       '    var pages=S.pages||[];',
       '    var container=document.getElementById("pagesContainer");',
@@ -1740,6 +1799,20 @@ saveDraftBtn.addEventListener('click', function() {
         sel.value = 'custom';
         input.style.display = 'block';
         input.value = val;
+      }
+    })();
+    // Restore direction select UI state
+    (function() {
+      var dSel = document.getElementById('directionSelect');
+      var dInp = document.getElementById('direction');
+      if (!dSel || !dInp) return;
+      var dir = (data.top.directionSelect !== undefined) ? data.top.directionSelect : (data.top.direction || '');
+      if (dir === 'NB' || dir === 'SB' || dir === 'EB' || dir === 'WB') {
+        dSel.value = dir; dInp.style.display = 'none'; dInp.value = dir;
+      } else if (dir === 'custom' || (dir && dir !== '')) {
+        dSel.value = 'custom'; dInp.style.display = 'block'; dInp.value = data.top.direction || '';
+      } else {
+        dSel.value = ''; dInp.style.display = 'none'; dInp.value = '';
       }
     })();
     var co = document.getElementById('isCloseout');
@@ -2365,6 +2438,10 @@ document.getElementById('clearForm').addEventListener('click', function() {
   if (sel) sel.value = '';
   var pri = document.getElementById('priority');
   if (pri) { pri.value = ''; pri.style.display = 'none'; }
+  var dSel = document.getElementById('directionSelect');
+  if (dSel) dSel.value = '';
+  var dInp = document.getElementById('direction');
+  if (dInp) { dInp.value = ''; dInp.style.display = 'none'; }
 
   // Remove all pages except first, then wipe first page
   var pages = pagesContainer.querySelectorAll('.page-block');
@@ -2442,6 +2519,12 @@ if ('serviceWorker' in navigator) {
 (function() {
   var sel   = document.getElementById('prioritySelect');
   var input = document.getElementById('priority');
+  if (sel && input) input.value = sel.value;
+})();
+// Sync direction input on page load
+(function() {
+  var sel   = document.getElementById('directionSelect');
+  var input = document.getElementById('direction');
   if (sel && input) input.value = sel.value;
 })();
 document.getElementById('topbar-logo').src = LOGO_SRC_VAR;
