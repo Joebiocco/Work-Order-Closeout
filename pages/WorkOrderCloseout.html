@@ -231,6 +231,7 @@ body {
 .fields-row--top .field-group { flex: 0 0 auto; }
 .fields-row--top .field-group--grow { flex: 1 1 120px; }
 .fields-row--dates .field-group { flex: 1 1 0; min-width: 130px; }
+.fields-row--equal .field-group { flex: 1 1 0; min-width: 0; }
 
 .field-group { display: flex; flex-direction: column; gap: 4px; min-width: 90px; }
 
@@ -841,7 +842,7 @@ html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
         </div>
       </div>
 
-      <div class="fields-row">
+      <div class="fields-row fields-row--equal">
         <div class="field-group">
           <label class="field-label" for="route">Route #:</label>
           <input id="route" name="route" type="text" placeholder="US-1" maxlength="8" />
@@ -946,20 +947,60 @@ var WO_RECENT_KEY = 'wo_recent';
 function loadRecent() {
   try { return JSON.parse(localStorage.getItem(WO_RECENT_KEY) || '[]'); } catch(e) { return []; }
 }
+// Photos are stored in IndexedDB (no size ceiling) keyed by a per-session
+// photoKey stored in the wo_recent record. localStorage only holds metadata.
 function saveRecentList(arr) {
-  try {
-    localStorage.setItem(WO_RECENT_KEY, JSON.stringify(arr));
-  } catch(e) {
-    // Quota exceeded — strip photos and retry so at least metadata is saved
-    try {
-      var slim = arr.map(function(r) {
-        var c = {}; Object.keys(r).forEach(function(k){ if (k !== 'photos') c[k] = r[k]; });
-        return c;
-      });
-      localStorage.setItem(WO_RECENT_KEY, JSON.stringify(slim));
-      if (typeof showToast === 'function') showToast('Storage full — photos not saved to session list', 'err', 4000);
-    } catch(e2) {}
-  }
+  // Strip any legacy embedded photos before writing to localStorage
+  var slim = arr.map(function(r) {
+    var c = {}; Object.keys(r).forEach(function(k) { if (k !== 'photos') c[k] = r[k]; });
+    return c;
+  });
+  try { localStorage.setItem(WO_RECENT_KEY, JSON.stringify(slim)); } catch(e) {}
+}
+
+// ── INDEXEDDB PHOTO STORE ─────────────────────
+var _photoDB = null;
+var PHOTO_DB_NAME  = 'ft_photos';
+var PHOTO_DB_VER   = 1;
+var PHOTO_STORE    = 'session_photos';
+
+function openPhotoDB() {
+  return new Promise(function(resolve, reject) {
+    if (_photoDB) { resolve(_photoDB); return; }
+    var req = indexedDB.open(PHOTO_DB_NAME, PHOTO_DB_VER);
+    req.onupgradeneeded = function(e) {
+      e.target.result.createObjectStore(PHOTO_STORE);
+    };
+    req.onsuccess = function(e) { _photoDB = e.target.result; resolve(_photoDB); };
+    req.onerror   = function()  { reject(new Error('IDB open failed')); };
+  });
+}
+function dbPutPhotos(key, data) {
+  return openPhotoDB().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx = db.transaction(PHOTO_STORE, 'readwrite');
+      tx.objectStore(PHOTO_STORE).put(data, key);
+      tx.oncomplete = resolve;
+      tx.onerror    = reject;
+    });
+  });
+}
+function dbGetPhotos(key) {
+  return openPhotoDB().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx  = db.transaction(PHOTO_STORE, 'readonly');
+      var req = tx.objectStore(PHOTO_STORE).get(key);
+      req.onsuccess = function() { resolve(req.result || null); };
+      req.onerror   = reject;
+    });
+  });
+}
+function dbDeletePhotos(key) {
+  if (!key) return;
+  openPhotoDB().then(function(db) {
+    var tx = db.transaction(PHOTO_STORE, 'readwrite');
+    tx.objectStore(PHOTO_STORE).delete(key);
+  }).catch(function() {});
 }
 
 // ── PHOTO HELPERS ─────────────────────────────
@@ -1088,16 +1129,24 @@ function renderRecent() {
         }
       }
 
-      // 3. Restore photos saved with this session record
-      applyPhotos(r.photos || null);
-
-      // 4. Close overlay
+      // 3. Restore photos from IndexedDB (or legacy embedded field)
       var ov = document.getElementById('recentOverlay');
       var rb = document.getElementById('recentBtn');
-      if (ov) ov.classList.remove('open');
-      if (rb) rb.classList.remove('btn-active');
-
-      showToast('Loaded: WO ' + (r.wo || '—'), 'ok', 2500);
+      var finish = function(photos) {
+        applyPhotos(photos);
+        if (ov) ov.classList.remove('open');
+        if (rb) rb.classList.remove('btn-active');
+        showToast('Loaded: WO ' + (r.wo || '—'), 'ok', 2500);
+      };
+      if (r.photoKey) {
+        dbGetPhotos(r.photoKey).then(finish).catch(function() { finish(null); });
+      } else if (r.photos) {
+        // legacy: photos were embedded directly in localStorage record
+        finish(r.photos);
+      } else {
+        finish(null);
+      }
+      return; // handler exits; finish() closes overlay async
     });
   });
 
@@ -1106,7 +1155,8 @@ function renderRecent() {
     btn.addEventListener('click', function(e) {
       e.stopPropagation();
       var items2 = loadRecent();
-      items2.splice(parseInt(this.getAttribute('data-idx')), 1);
+      var removed = items2.splice(parseInt(this.getAttribute('data-idx')), 1)[0];
+      if (removed) dbDeletePhotos(removed.photoKey);
       saveRecentList(items2);
       renderRecent();
     });
@@ -1549,14 +1599,22 @@ saveDraftBtn.addEventListener('click', function() {
           var s=document.getElementById('prioritySelect'),i=document.getElementById('priority');
           return (i&&i.style.display!=='none'&&i.value)?i.value:(s?s.value:'');
         })(),
-        photos:    collectPhotos()
+        photoKey:  'pk_' + Date.now()
       };
       var recentArr = loadRecent();
-      // Remove exact duplicate (same WO + structure)
+      // Delete IndexedDB photos for any session being replaced
+      recentArr.filter(function(r) { return r.wo === rec.wo && r.str === rec.str; })
+               .forEach(function(r) { dbDeletePhotos(r.photoKey); });
       recentArr = recentArr.filter(function(r) { return !(r.wo === rec.wo && r.str === rec.str); });
       recentArr.unshift(rec);
-      if (recentArr.length > 5) recentArr.length = 5;
+      if (recentArr.length > 5) {
+        recentArr.splice(5).forEach(function(r) { dbDeletePhotos(r.photoKey); });
+      }
       saveRecentList(recentArr);
+      // Save photos to IndexedDB (no size limit — handles 20+ photos easily)
+      dbPutPhotos(rec.photoKey, collectPhotos()).catch(function() {
+        showToast('Photos may not have saved — try again', 'err', 4000);
+      });
       renderRecent();
     } catch(re) {}
 
