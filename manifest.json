@@ -1,0 +1,11 @@
+{
+  "name": "NJDOT Field Tools Hub",
+  "short_name": "Field Tools",
+  "description": "NJ DOT field worker tools — bridge navigator, work orders, fuel finder",
+  "start_url": "/NJDOT-Field-Tools-Hub/",
+  "scope": "/NJDOT-Field-Tools-Hub/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1e2939",
+  "theme_color": "#f59e0b"
+}
