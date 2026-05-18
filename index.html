@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Field Tools Hub</title>
+  <title>Field Tools</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#d4af37">
+  <meta name="theme-color" content="#E5B33B">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -23,8 +23,8 @@
     html[data-dark] { background: #0f1117; }
     html[data-dark] {
       --bg: #0f1117; --surface: #1c1e26; --border: #2d3748;
-      --border-lo: #1f2937; --text: #f1f5f9; --muted: #94a3b8;
-      --muted2: #cbd5e1; --accent-lo: rgba(26,86,219,0.15);
+      --border-lo: #1f2937; --text: #FEE9A1; --muted: #C9971A;
+      --muted2: #E5B33B; --accent-lo: rgba(26,86,219,0.15);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -40,7 +40,7 @@
     #topbar {
       height: 58px;
       background: #1e2939;
-      border-bottom: 2px solid #d4af37;
+      border-bottom: 2px solid #E5B33B;
       display: flex;
       align-items: center;
       padding: 0 24px;
@@ -137,7 +137,7 @@
       overflow: visible;
     }
     .card-icon-blue { background: var(--accent-lo); color: var(--accent); }
-    .card-icon-amber { background: rgba(212,175,55,0.1); color: #a3760a; }
+    .card-icon-amber { background: rgba(229,179,59,0.1); color: #A07118; }
     .card-icon-green { background: rgba(16,185,129,0.1); color: #059669; }
     .card-icon-slate { background: rgba(100,116,139,0.1); color: #475569; }
     .card-icon-purple { background: rgba(139,92,246,0.1); color: #7c3aed; }
@@ -163,7 +163,7 @@
     }
     .tag-nj { background: rgba(124,58,237,0.10); color: #7c3aed; }
     html[data-dark] .tag-nj { background: rgba(167,139,250,0.18); color: #a78bfa; }
-    .tag-md { background: rgba(212,175,55,0.1); color: #92400e; }
+    .tag-md { background: rgba(229,179,59,0.1); color: #855E0F; }
     .tag-fuel { background: rgba(16,185,129,0.1); color: #065f46; }
     .tag-doc { background: rgba(100,116,139,0.1); color: #334155; }
 
@@ -197,15 +197,15 @@
     .tool-card.is-soon::after {
       content: "COMING SOON";
       position: absolute; top: 10px; right: 10px;
-      background: rgba(212,175,55,0.12);
-      color: #92400e;
-      border: 1px solid rgba(212,175,55,0.35);
+      background: rgba(229,179,59,0.12);
+      color: #855E0F;
+      border: 1px solid rgba(229,179,59,0.35);
       font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
       padding: 3px 8px; border-radius: 100px;
       animation: comingPulse 2.6s ease-in-out infinite;
     }
     html[data-dark] .tool-card.is-soon::after {
-      background: rgba(212,175,55,0.16); color: #e6c558; border-color: rgba(212,175,55,0.45);
+      background: rgba(229,179,59,0.16); color: #F4D78A; border-color: rgba(229,179,59,0.45);
     }
     @keyframes comingPulse {
       0%, 100% { opacity: 0.85; }
@@ -219,25 +219,25 @@
     /* Dark mode toggle button + install trigger */
     .dark-toggle {
       margin-left: auto;
-      background: rgba(212,175,55,0.10);
-      border: 1px solid rgba(212,175,55,0.32);
+      background: rgba(229,179,59,0.10);
+      border: 1px solid rgba(229,179,59,0.32);
       border-radius: 8px;
       width: 34px; height: 34px;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: #d4af37; flex-shrink: 0;
+      cursor: pointer; color: #E5B33B; flex-shrink: 0;
       transition: background 200ms ease-out, color 200ms ease-out, border-color 200ms ease-out;
     }
-    .dark-toggle:hover { background: rgba(212,175,55,0.20); border-color: #d4af37; }
+    .dark-toggle:hover { background: rgba(229,179,59,0.20); border-color: #E5B33B; }
     .dark-toggle svg { transition: opacity 180ms ease-out, transform 240ms ease-out; }
     html[data-dark] .dark-toggle {
-      background: rgba(203,213,225,0.10);
-      border-color: rgba(203,213,225,0.32);
-      color: #cbd5e1;
+      background: rgba(229,179,59,0.10);
+      border-color: rgba(229,179,59,0.32);
+      color: #E5B33B;
     }
     html[data-dark] .dark-toggle:hover {
-      background: rgba(203,213,225,0.22);
-      border-color: #cbd5e1;
-      color: #f1f5f9;
+      background: rgba(229,179,59,0.22);
+      border-color: #E5B33B;
+      color: #FEE9A1;
     }
     .dark-toggle.icon-swapping svg { opacity: 0; transform: rotate(-25deg) scale(0.85); }
     .install-trigger {
@@ -249,8 +249,8 @@
       cursor: pointer; color: #9ca3af; flex-shrink: 0;
       transition: background 0.14s, color 0.14s;
     }
-    .install-trigger:hover { background: rgba(255,255,255,0.14); color: #d4af37; }
-    .install-trigger.open { background: rgba(212,175,55,0.20); color: #d4af37; border-color: rgba(212,175,55,0.5); }
+    .install-trigger:hover { background: rgba(255,255,255,0.14); color: #E5B33B; }
+    .install-trigger.open { background: rgba(229,179,59,0.20); color: #E5B33B; border-color: rgba(229,179,59,0.5); }
 
     /* Bookmark dropdown — desktop only, anchored under the icon */
     .install-dropdown {
@@ -333,7 +333,7 @@
     .install-banner {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
       background: #1e2939;
-      border-top: 2px solid #d4af37;
+      border-top: 2px solid #E5B33B;
       padding: 14px 20px 18px;
       display: flex; align-items: flex-start; gap: 14px;
       box-shadow: 0 -4px 24px rgba(0,0,0,0.28);
@@ -346,12 +346,12 @@
     }
     .install-banner-text { flex: 1; }
     .install-banner-title {
-      font-size: 14px; font-weight: 700; color: #f1f5f9; margin-bottom: 3px;
+      font-size: 14px; font-weight: 700; color: #FEE9A1; margin-bottom: 3px;
     }
     .install-banner-desc {
-      font-size: 12px; color: #94a3b8; line-height: 1.5;
+      font-size: 12px; color: #C9971A; line-height: 1.5;
     }
-    .install-banner-desc strong { color: #d4af37; }
+    .install-banner-desc strong { color: #E5B33B; }
     .install-banner-actions {
       display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;
     }
@@ -361,8 +361,8 @@
       cursor: pointer; border: none; transition: opacity 0.15s;
     }
     .install-btn:hover { opacity: 0.85; }
-    .install-btn-primary { background: #d4af37; color: #000; }
-    .install-btn-dismiss { background: rgba(255,255,255,0.08); color: #94a3b8; }
+    .install-btn-primary { background: #E5B33B; color: #000; }
+    .install-btn-dismiss { background: rgba(255,255,255,0.08); color: #C9971A; }
     @media (min-width: 540px) {
       .install-banner { flex-direction: row; align-items: center; padding: 14px 28px; }
       .install-banner-actions { margin-top: 0; margin-left: auto; flex-shrink: 0; }
@@ -424,12 +424,17 @@
       0%   { opacity: 0; transform: translate3d(20vw, 0, 0) scale(0.98); }
       100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
     }
+    /* Lock the start state via direct CSS so there's no flicker before animation runs */
     html.returning-from-tool body {
+      opacity: 0;
+      transform: translate3d(20vw, 0, 0) scale(0.98);
       animation: slideInFromRight 460ms cubic-bezier(0.22, 1, 0.36, 1) both !important;
       will-change: transform, opacity;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
+      contain: layout paint style;
     }
+    html.returning-from-tool { background: var(--bg); }
 
   
     /* Hub exit — quick fade + small slide so transition feels snappy and never exposes blank */
@@ -452,9 +457,9 @@
   
     /* Button click glow — soft outer pulse without changing button colors */
     @keyframes btnGlow {
-      0%   { box-shadow: 0 0 0 0 rgba(212,175,55,0.35); }
-      55%  { box-shadow: 0 0 0 7px rgba(212,175,55,0); }
-      100% { box-shadow: 0 0 0 0 rgba(212,175,55,0); }
+      0%   { box-shadow: 0 0 0 0 rgba(229,179,59,0.35); }
+      55%  { box-shadow: 0 0 0 7px rgba(229,179,59,0); }
+      100% { box-shadow: 0 0 0 0 rgba(229,179,59,0); }
     }
     @keyframes btnGlowAccent {
       0%   { box-shadow: 0 0 0 0 rgba(26,86,219,0.32); }
@@ -538,7 +543,7 @@
 
 <div id="topbar">
   <div class="topbar-icon"><img id="hub-logo" alt="" /></div>
-  <h1>Field Tools Hub</h1>
+  <h1>Field Tools</h1>
   <span class="topbar-sub">— Select a tool to get started</span>
   <button id="dark-toggle" class="dark-toggle" title="Toggle dark mode" aria-label="Toggle dark mode">
     <svg id="dark-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -549,7 +554,7 @@
     </svg>
   </button>
   <div id="install-dropdown" class="install-dropdown" role="dialog" aria-label="Bookmark this page">
-    <div class="install-dropdown-title">Bookmark Field Tools Hub</div>
+    <div class="install-dropdown-title">Bookmark Field Tools</div>
     <div class="install-dropdown-desc" id="install-dropdown-desc">
       Press <strong id="install-shortcut">Ctrl+D</strong> to save this page to your browser bookmarks for quick access later.
     </div>
@@ -663,13 +668,13 @@
 
 </div>
 
-<div class="page-footer">Field Tools Hub &mdash; Internal Use &middot; <span class="version-stamp" title="Build version — if you spot a user with an older version, ask them to refresh">v2.0 &middot; 2026-05-18</span></div>
+<div class="page-footer">Field Tools &mdash; Internal Use &middot; <span class="version-stamp" title="Build version — if you spot a user with an older version, ask them to refresh">v1.0 &middot; 2026-05-18</span></div>
 
 <!-- Install App Banner -->
 <div id="install-banner" class="install-banner" role="banner" aria-live="polite">
   <div class="install-banner-icon">📲</div>
   <div class="install-banner-text">
-    <div class="install-banner-title" id="install-banner-title">Install Field Tools Hub</div>
+    <div class="install-banner-title" id="install-banner-title">Install Field Tools</div>
     <div class="install-banner-desc" id="install-banner-desc">Add to your home screen for quick access and offline use.<br><span style="font-size:11px;opacity:0.7;">This prompt shows twice. Use the 📲 button in the top corner anytime to bring it back.</span></div>
     <div class="install-banner-actions">
       <button id="install-btn-dismiss" class="install-btn install-btn-dismiss">Not now</button>
@@ -724,7 +729,7 @@
           var footer=card.querySelector('.card-footer');
           if(footer){
             var badge=document.createElement('span');
-            badge.style.cssText='font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 8px;border-radius:100px;background:rgba(212,175,55,0.14);color:#92400e;white-space:nowrap;';
+            badge.style.cssText='font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 8px;border-radius:100px;background:rgba(229,179,59,0.14);color:#855E0F;white-space:nowrap;';
             badge.textContent='RECENT';
             footer.insertBefore(badge,footer.children[footer.children.length-1]);
           }
@@ -856,7 +861,7 @@
 
     if (descEl && titleEl) {
       if (isDesktop) {
-        titleEl.textContent = 'Bookmark Field Tools Hub';
+        titleEl.textContent = 'Bookmark Field Tools';
         descEl.innerHTML = 'Press <strong>' + (isMac ? '⌘D' : 'Ctrl+D') + '</strong> to save this page to your browser bookmarks for quick access later.';
         if (noteEl) noteEl.textContent = 'You can also pin the tab or drag the address bar into your bookmarks bar.';
       } else if (isIOS) {
@@ -988,7 +993,7 @@
     // Desktop: show a bookmark tip instead of install banner
     if (isDesktop) {
       var isMacInner = /mac/i.test(navigator.platform);
-      titleEl.textContent = 'Bookmark Field Tools Hub';
+      titleEl.textContent = 'Bookmark Field Tools';
       descEl.innerHTML = 'Press <strong>' + (isMacInner ? '⌘D' : 'Ctrl+D') + '</strong> to save this page for quick access.' +
         '<br><span style="font-size:11px;opacity:0.7;">This prompt shows twice — use the 📲 button in the top corner anytime to bring it back.</span>';
       btnGo.textContent = 'Got it';
@@ -1013,22 +1018,31 @@
       if (t && t.clientY <= 30) topbar.classList.remove('header-hidden');
     }, { passive: true });
   
-  // Clean up stale transition classes and trigger entrance animation on bfcache restore
+  // Clean up stale classes and trigger entrance via inline transitions (Firefox-friendly)
   window.addEventListener('pageshow', function(e) {
-    document.documentElement.classList.remove('exiting-to-tool', 'exiting-to-hub', 'entering-from-hub');
+    document.documentElement.classList.remove('exiting-to-tool', 'exiting-to-hub', 'entering-from-hub', 'returning-from-tool');
     try {
-      // Trigger slide-in-from-right when returning from any tool
-      if (sessionStorage.getItem('ft_returning_to_hub') === '1' || e.persisted) {
-        sessionStorage.removeItem('ft_returning_to_hub');
-        // Re-apply class to restart animation (needed for bfcache)
-        document.documentElement.classList.remove('returning-from-tool');
-        // Force reflow so animation re-runs
-        void document.body.offsetWidth;
-        document.documentElement.classList.add('returning-from-tool');
-        setTimeout(function() {
-          document.documentElement.classList.remove('returning-from-tool');
-        }, 500);
-      }
+      var hasFlag = sessionStorage.getItem('ft_returning_to_hub') === '1';
+      if (!hasFlag && !e.persisted) return;
+      if (hasFlag) sessionStorage.removeItem('ft_returning_to_hub');
+      var body = document.body;
+      if (!body) return;
+      body.style.transition = 'none';
+      body.style.opacity = '0';
+      body.style.transform = 'translate3d(20vw, 0, 0) scale(0.98)';
+      body.style.willChange = 'transform, opacity';
+      body.style.backfaceVisibility = 'hidden';
+      void body.offsetWidth;
+      body.style.transition = 'opacity 420ms cubic-bezier(0.22, 1, 0.36, 1), transform 420ms cubic-bezier(0.22, 1, 0.36, 1)';
+      body.style.opacity = '1';
+      body.style.transform = 'translate3d(0, 0, 0) scale(1)';
+      setTimeout(function() {
+        body.style.transition = '';
+        body.style.opacity = '';
+        body.style.transform = '';
+        body.style.willChange = '';
+        body.style.backfaceVisibility = '';
+      }, 460);
     } catch(_){}
   });
 
