@@ -41,7 +41,7 @@
     #topbar {
       height: 58px;
       background: #1e2939;
-      border-bottom: 2px solid #38bdf8;
+      border-bottom: 2px solid #d4af37;
       display: flex;
       align-items: center;
       padding: 0 20px;
@@ -51,21 +51,21 @@
     .topbar-back {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 5px 12px 5px 9px;
-      background: rgba(56,189,248,0.08);
-      border: 1px solid rgba(56,189,248,0.30);
+      background: rgba(212,175,55,0.08);
+      border: 1px solid rgba(212,175,55,0.30);
       border-radius: 999px;
-      color: #38bdf8; text-decoration: none;
+      color: #d4af37; text-decoration: none;
       font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
       transition: background 0.15s, border-color 0.15s, color 0.15s;
       flex-shrink: 0; white-space: nowrap;
     }
-    .topbar-back:hover { background: #0ea5e9; border-color: #0ea5e9; color: #fff; }
+    .topbar-back:hover { background: #b8860b; border-color: #b8860b; color: #fff; }
     .topbar-div { width: 1px; height: 22px; background: #374557; }
     #topbar h1 { color: #fff; font-size: 16px; font-weight: 600; }
     .state-badge {
-      background: rgba(56,189,248,0.15);
-      border: 1px solid rgba(56,189,248,0.3);
-      color: #38bdf8;
+      background: rgba(212,175,55,0.15);
+      border: 1px solid rgba(212,175,55,0.3);
+      color: #d4af37;
       font-size: 10px;
       font-weight: 700;
       padding: 2px 9px;
@@ -316,7 +316,7 @@
     }
     .unknown-badge {
       display: inline-flex; align-items: center; gap: 4px;
-      background: #f0f9ff; border: 1px solid #bae6fd; color: #075985;
+      background: #fefae0; border: 1px solid #f4dd9b; color: #92400e;
       font-size: 10px; font-weight: 700; padding: 2px 7px;
       border-radius: 100px; letter-spacing: 0.04em; white-space: nowrap;
     }
@@ -461,9 +461,9 @@
   
     /* Button click glow — soft outer pulse without changing button colors */
     @keyframes btnGlow {
-      0%   { box-shadow: 0 0 0 0 rgba(56,189,248,0.35); }
-      55%  { box-shadow: 0 0 0 7px rgba(56,189,248,0); }
-      100% { box-shadow: 0 0 0 0 rgba(56,189,248,0); }
+      0%   { box-shadow: 0 0 0 0 rgba(212,175,55,0.35); }
+      55%  { box-shadow: 0 0 0 7px rgba(212,175,55,0); }
+      100% { box-shadow: 0 0 0 0 rgba(212,175,55,0); }
     }
     @keyframes btnGlowAccent {
       0%   { box-shadow: 0 0 0 0 rgba(26,86,219,0.32); }
@@ -528,7 +528,7 @@
       pointer-events: none !important;
       background: rgba(30, 41, 57, 0.95) !important;
       color: #f9fafb !important;
-      border: 1px solid rgba(56, 189, 248, 0.55) !important;
+      border: 1px solid rgba(212, 175, 55, 0.55) !important;
       border-radius: 5px !important;
       padding: 2px 7px !important;
       font-size: 10.5px !important;
@@ -839,7 +839,7 @@
   function highlightStation(idx) {
     stationMarkers.forEach(function(m, i) {
       if (!m) return;
-      m.setIcon(makePinIcon(i === idx ? '#38bdf8' : '#1a56db', i === idx));
+      m.setIcon(makePinIcon(i === idx ? '#d4af37' : '#1a56db', i === idx));
       if (i === idx) m.openTooltip();
       else m.closeTooltip();
     });
@@ -922,7 +922,7 @@
     var dot = '<svg width="7" height="7" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="';
     if (state === true) return '<span class="open-badge">' + dot + '#16a34a"/></svg>Open Now</span>';
     if (state === false) return '<span class="closed-badge">' + dot + '#9ca3af"/></svg>Closed</span>';
-    return '<span class="unknown-badge">' + dot + '#0284c7"/></svg>Hours Vary</span>';
+    return '<span class="unknown-badge">' + dot + '#a3760a"/></svg>Hours Vary</span>';
   }
 
   function applyClosedFilter() {
@@ -1047,9 +1047,16 @@
         .bindTooltip('Your location', { permanent: false, direction: 'top', offset: [0, -36] })
         .addTo(fuelMap);
       fuelMap.setView([userLat, userLng], 10, { animate: false });
-      // Hide the locate button now that we've successfully found the location
+      // Re-enable the locate button so the user can re-search if they've moved
       var lbtn = document.getElementById('locate-btn');
-      if (lbtn) { lbtn.disabled = false; lbtn.style.display = 'none'; }
+      if (lbtn) {
+        lbtn.disabled = false;
+        lbtn.style.display = '';
+        if (!lbtn._relabeled) {
+          lbtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" opacity=".3"/></svg> Update My Location';
+          lbtn._relabeled = true;
+        }
+      }
       // Force Leaflet to recalculate map size (mobile layout shift can collapse it)
       setTimeout(function() { if (fuelMap) fuelMap.invalidateSize(true); }, 50);
       setTimeout(function() { if (fuelMap) fuelMap.invalidateSize(true); }, 350);
@@ -1134,11 +1141,26 @@
     }).join('');
 
     section.classList.add('visible');
-    // Scroll to bookmarks card first so the user sees their saved stations
+    applyClosedFilter();
+    // Delay scroll until layout has settled after results-section became visible
     var bmCard = document.querySelector('.bookmark-card');
     var scrollTarget = bmCard || section;
-    scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    applyClosedFilter();
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        var rect = scrollTarget.getBoundingClientRect();
+        var topOffset = 70;
+        // On desktop the left-panel scrolls; on mobile the body scrolls
+        var leftPanel = document.querySelector('.left-panel');
+        if (leftPanel && getComputedStyle(leftPanel).overflowY === 'auto' && leftPanel.scrollHeight > leftPanel.clientHeight) {
+          var lpRect = leftPanel.getBoundingClientRect();
+          var newTop = leftPanel.scrollTop + (rect.top - lpRect.top) - topOffset;
+          leftPanel.scrollTo({ top: Math.max(0, newTop), behavior: 'smooth' });
+        } else {
+          var newTop2 = window.scrollY + rect.top - topOffset;
+          window.scrollTo({ top: Math.max(0, newTop2), behavior: 'smooth' });
+        }
+      });
+    });
   }
   // Initialize bookmark count display on load
   document.addEventListener('DOMContentLoaded', function() { updateFuelBookmarkCount(); });

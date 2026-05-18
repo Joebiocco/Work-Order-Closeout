@@ -1,9 +1,17 @@
 /* ============================================================
    service-worker.js  —  Field Tools Hub offline cache
-   Cache-first for local assets; network-first for CDN libs.
+
+   Caching strategy:
+   - HTML pages:   NETWORK-FIRST  (always try latest, fall back to cache when offline)
+   - Static files: CACHE-FIRST    (icons, JSON, manifest — rarely change)
+   - CDN libs:     NETWORK-FIRST  (Leaflet, html2canvas, jsPDF, fonts)
+
+   Storage NOT touched by this worker (safe across updates):
+   - localStorage: bookmarks, recent sessions, dark mode, install state
+   - IndexedDB: work-order photos + per-session data (ft_photos DB)
    ============================================================ */
 
-const CACHE = 'ft-v1';
+const CACHE = 'ft-v2-2026-05-18';
 
 // Local assets to pre-cache on install
 const LOCAL_ASSETS = [
@@ -44,29 +52,57 @@ self.addEventListener('activate', function(e) {
   self.clients.claim();
 });
 
+// Heuristic: is this an HTML/document request?
+function isHTML(request, url) {
+  if (request.mode === 'navigate') return true;
+  var accept = request.headers.get('accept') || '';
+  if (accept.indexOf('text/html') !== -1) return true;
+  // Filename-based fallback
+  return /\.html?$/.test(url) || url.endsWith('/');
+}
+
 self.addEventListener('fetch', function(e) {
   if (e.request.method !== 'GET') return;
   var url = e.request.url;
-
-  // For local pages and data: cache-first (works fully offline)
   var isLocal = url.startsWith(self.location.origin);
+
   if (isLocal) {
-    e.respondWith(
-      caches.match(e.request).then(function(cached) {
-        if (cached) return cached;
-        return fetch(e.request).then(function(resp) {
+    if (isHTML(e.request, url)) {
+      // HTML pages: network-first so users always see the latest UI.
+      // Cache fallback only when network fails (true offline).
+      e.respondWith(
+        fetch(e.request).then(function(resp) {
           if (resp && resp.ok) {
             var clone = resp.clone();
             caches.open(CACHE).then(function(c) { c.put(e.request, clone); });
           }
           return resp;
-        }).catch(function() { return cached; });
-      })
-    );
+        }).catch(function() {
+          return caches.match(e.request).then(function(cached) {
+            return cached || caches.match('./index.html');
+          });
+        })
+      );
+    } else {
+      // Non-HTML local assets (icons, JSON, manifest): cache-first.
+      // These rarely change; bumping CACHE name above forces a refresh.
+      e.respondWith(
+        caches.match(e.request).then(function(cached) {
+          if (cached) return cached;
+          return fetch(e.request).then(function(resp) {
+            if (resp && resp.ok) {
+              var clone = resp.clone();
+              caches.open(CACHE).then(function(c) { c.put(e.request, clone); });
+            }
+            return resp;
+          }).catch(function() { return cached; });
+        })
+      );
+    }
     return;
   }
 
-  // For CDN resources (Leaflet, html2canvas, jsPDF, fonts): network-first,
+  // CDN resources (Leaflet, html2canvas, jsPDF, fonts): network-first,
   // fall back to cache so offline use still works after first load.
   var isCDN = url.includes('unpkg.com') || url.includes('cdnjs.cloudflare.com') ||
               url.includes('fonts.googleapis.com') || url.includes('fonts.gstatic.com');
