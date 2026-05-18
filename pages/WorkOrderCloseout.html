@@ -816,6 +816,17 @@ html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
       }
     }
 
+  
+    /* Slide-left exit animation when returning to Hub */
+    @keyframes slideOutLeft {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(-100vw); }
+    }
+    html.exiting-to-hub body {
+      animation: slideOutLeft 300ms ease-in-out forwards;
+      overflow: hidden;
+    }
+
   </style>
   <script>if(localStorage.getItem("field_dark_mode")==="1")document.documentElement.setAttribute("data-dark","");</script>
   <!-- Google Analytics 4 -->
@@ -1952,9 +1963,25 @@ saveDraftBtn.addEventListener('click', function() {
   showToast('Draft loaded', 'ok');
 })();
 
+// Smoothly scroll to the most recently added page block
+function scrollToLastPage() {
+  var pages = pagesContainer.querySelectorAll('.page-block');
+  var last = pages[pages.length - 1];
+  if (!last) return;
+  // Wait one frame so the new block is rendered & sized before measuring
+  requestAnimationFrame(function() {
+    var rect = last.getBoundingClientRect();
+    var topPad = 80; // leave room for sticky topbar / page header
+    var targetY = window.scrollY + rect.top - topPad;
+    if (targetY < 0) targetY = 0;
+    window.scrollTo({ top: targetY, behavior: 'smooth' });
+  });
+}
+
 // ── ADD / REMOVE PAGE ─────────────────────────
 addPageBtn.addEventListener('click', function() {
   buildPage();
+  scrollToLastPage();
   showToast('Page added', 'ok');
 });
 
@@ -2527,6 +2554,7 @@ document.getElementById('addPageTop').addEventListener('click', function() {
   btn.addEventListener('animationend', function() { btn.classList.remove('btn-flash-green'); }, { once: true });
   buildPage();
   updatePhotoBadge();
+  scrollToLastPage();
   showToast('Page added', 'ok');
 });
 
@@ -2584,7 +2612,7 @@ document.getElementById('clearForm').addEventListener('click', function() {
   // Add Page FAB
   var fabAdd = document.getElementById('fabAddPage');
   if (fabAdd) fabAdd.addEventListener('click', function() {
-    buildPage(); updatePhotoBadge(); showToast('Page added', 'ok');
+    buildPage(); updatePhotoBadge(); scrollToLastPage(); showToast('Page added', 'ok');
   });
 
   // Remove Page FAB
@@ -2642,6 +2670,20 @@ if (typeof window.attachDragToAllCards === 'function') window.attachDragToAllCar
 updatePhotoBadge();
 renderRecent(); // prime the counter badge on page load
 
-  </script>
+  
+  // Hub-back slide-left transition
+  (function() {
+    var link = document.querySelector('.hub-back, .topbar-back');
+    if (!link) return;
+    link.addEventListener('click', function(e) {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return; // new tab — skip
+      e.preventDefault();
+      try { sessionStorage.setItem('ft_returning_to_hub', '1'); } catch(_){}
+      document.documentElement.classList.add('exiting-to-hub');
+      setTimeout(function() { window.location.href = link.href; }, 290);
+    });
+  })();
+
+</script>
 </body>
 </html>

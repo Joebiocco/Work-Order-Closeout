@@ -394,6 +394,17 @@
       }
     }
 
+  
+    /* Slide-left exit animation when returning to Hub */
+    @keyframes slideOutLeft {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(-100vw); }
+    }
+    html.exiting-to-hub body {
+      animation: slideOutLeft 300ms ease-in-out forwards;
+      overflow: hidden;
+    }
+
   </style>
   <script>if(localStorage.getItem("field_dark_mode")==="1")document.documentElement.setAttribute("data-dark","");</script>
   <!-- Google Analytics 4 -->
@@ -807,6 +818,20 @@
   try { localStorage.setItem('ft_last', 'njfuel'); } catch(e) {}
   // Service worker
   if ('serviceWorker' in navigator) { navigator.serviceWorker.register('../service-worker.js').catch(function(){}); }
+
+  // Hub-back slide-left transition
+  (function() {
+    var link = document.querySelector('.hub-back, .topbar-back');
+    if (!link) return;
+    link.addEventListener('click', function(e) {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return; // new tab — skip
+      e.preventDefault();
+      try { sessionStorage.setItem('ft_returning_to_hub', '1'); } catch(_){}
+      document.documentElement.classList.add('exiting-to-hub');
+      setTimeout(function() { window.location.href = link.href; }, 290);
+    });
+  })();
+
 </script>
 </body>
 </html>
