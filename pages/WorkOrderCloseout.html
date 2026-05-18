@@ -1130,6 +1130,7 @@ function setupDropZone(photoCard) {
       preview.classList.remove('active');
       if (camInput) camInput.value = '';
       if (galInput) galInput.value = '';
+      if (typeof updatePhotoBadge === 'function') updatePhotoBadge();
     });
   }
 }
@@ -1192,6 +1193,7 @@ function showPreview(file, previewEl) {
     if (img && dataUrl) {
       img.src = dataUrl;
       previewEl.classList.add('active');
+      if (typeof updatePhotoBadge === 'function') updatePhotoBadge();
     }
   };
 
@@ -1284,6 +1286,7 @@ function buildPage() {
   block.querySelector('.page-remove-btn').addEventListener('click', function() {
     var all = pagesContainer.querySelectorAll('.page-block');
     if (all.length <= 1) { showToast('Cannot remove the last page', 'err'); return; }
+    if (!confirm('Remove this page and all its photos? This cannot be undone.')) return;
     block.remove();
     updatePageNumbers();
     updatePhotoBadge();
@@ -1360,6 +1363,9 @@ saveDraftBtn.addEventListener('click', function() {
       '    var pages=S.pages||[];',
       '    var container=document.getElementById("pagesContainer");',
       '    if(!container) return;',
+      '    // Clear any pages that loaded from the snapshot + the one buildPage() added at boot',
+      '    Array.from(container.querySelectorAll(".page-block")).forEach(function(b){b.remove();});',
+      '    if(typeof pageCounter!=="undefined") pageCounter=0;',
       '    while(container.querySelectorAll(".page-block").length < pages.length) buildPage();',
       '    container.querySelectorAll(".page-block").forEach(function(block,idx){',
       '      var pd=pages[idx]||{};',
@@ -1381,6 +1387,7 @@ saveDraftBtn.addEventListener('click', function() {
       '    });',
       '    if(typeof updatePageNumbers==="function") updatePageNumbers();',
       '    if(typeof attachAutosize==="function") attachAutosize();',
+      '    if(typeof updatePhotoBadge==="function") updatePhotoBadge();',
       '  }',
       '  if(document.readyState==="loading"){',
       '    document.addEventListener("DOMContentLoaded",function(){ setTimeout(restore,400); });',
@@ -1918,20 +1925,17 @@ exportPdfBtn.addEventListener('click', async function() {
     return el && el.closest('.photo-card');
   }
 
-  function reorder(cards, srcCard, targetCard, clientY) {
+  function reorder(cards, srcCard, targetCard) {
     var srcIdx = cards.indexOf(srcCard);
     var tgtIdx = cards.indexOf(targetCard);
     if (srcIdx === -1 || tgtIdx === -1 || srcIdx === tgtIdx) return;
-    var allData  = cards.map(getCardData);
-    var moved    = allData.splice(srcIdx, 1)[0];
-    var rect     = targetCard.getBoundingClientRect();
-    var below    = clientY > rect.top + rect.height / 2;
-    var insertAt = tgtIdx < srcIdx
-      ? (below ? tgtIdx + 1 : tgtIdx)
-      : (below ? tgtIdx     : tgtIdx - 1);
-    allData.splice(insertAt, 0, moved);
+    var allData = cards.map(getCardData);
+    var moved   = allData.splice(srcIdx, 1)[0];
+    // Always insert at the target's original index — gives a clean swap in both directions
+    allData.splice(tgtIdx, 0, moved);
     getAllCards().forEach(function(card, i) { setCardData(card, allData[i]); });
     updatePageNumbers();
+    if (typeof updatePhotoBadge === 'function') updatePhotoBadge();
   }
 
   // ── MOUSE DRAG ────────────────────────────
@@ -1968,7 +1972,7 @@ exportPdfBtn.addEventListener('click', async function() {
     cancelAutoScroll();
     var target = getTargetCard(e.target);
     if (target && target !== dragSrc) {
-      reorder(getAllCards(), dragSrc, target, e.clientY);
+      reorder(getAllCards(), dragSrc, target);
     }
     clearDragIndicators();
   }
@@ -2038,7 +2042,7 @@ exportPdfBtn.addEventListener('click', async function() {
     if (touchClone) touchClone.style.display = '';
     var target = getTargetCard(el);
     if (target && target !== touchSrc) {
-      reorder(getAllCards(), touchSrc, target, t.clientY);
+      reorder(getAllCards(), touchSrc, target);
     }
     touchSrc.classList.remove('dragging');
     document.getElementById('pagesContainer').classList.remove('dragging-active');
