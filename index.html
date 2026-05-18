@@ -138,6 +138,8 @@
     .card-icon-amber { background: rgba(245,158,11,0.1); color: #d97706; }
     .card-icon-green { background: rgba(16,185,129,0.1); color: #059669; }
     .card-icon-slate { background: rgba(100,116,139,0.1); color: #475569; }
+    .card-icon-teal { background: rgba(13,148,136,0.1); color: #0d9488; }
+    html[data-dark] .card-icon-teal { background: rgba(45,212,191,0.15); color: #2dd4bf; }
 
     .card-body { flex: 1; }
     .card-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
@@ -168,6 +170,7 @@
     .card-border-blue  { border-top-color: var(--accent); }
     .card-border-green { border-top-color: #10b981; }
     .card-border-slate { border-top-color: #64748b; }
+    .card-border-teal  { border-top-color: #0d9488; }
 
     /* Dark mode toggle button + install trigger */
     .dark-toggle {
@@ -257,6 +260,57 @@
       .install-banner { flex-direction: row; align-items: center; padding: 14px 28px; }
       .install-banner-actions { margin-top: 0; margin-left: auto; flex-shrink: 0; }
     }
+  
+    /* ── UI ANIMATIONS ──────────────────────── */
+    /* Dark mode crossfade (only during toggle, removed after) */
+    html.theme-transitioning,
+    html.theme-transitioning *,
+    html.theme-transitioning *::before,
+    html.theme-transitioning *::after {
+      transition: background-color 280ms ease-in-out,
+                  color 280ms ease-in-out,
+                  border-color 280ms ease-in-out,
+                  fill 280ms ease-in-out,
+                  stroke 280ms ease-in-out,
+                  box-shadow 280ms ease-in-out !important;
+    }
+    /* Page fade-in on load */
+    @keyframes pageFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    body { animation: pageFadeIn 220ms ease-out; }
+    /* Button tap scale (works on real buttons + anchor buttons) */
+    button:active,
+    .btn:active,
+    a.btn:active,
+    .tool-card:active,
+    .install-btn:active,
+    .filter-toggle:active,
+    .drop-btn-cam:active,
+    .drop-btn-gal:active,
+    .btn-sm:active,
+    .hub-back:active,
+    .topbar-back:active,
+    .locate-pill:active,
+    .clear-btn:active {
+      transform: scale(0.96) !important;
+      transition: transform 80ms ease-out !important;
+    }
+
+    /* Tool card stagger */
+    @keyframes cardSlide { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .tool-card { animation: cardSlide 300ms ease-out backwards; }
+    .tool-grid .tool-card:nth-child(1) { animation-delay: 0ms; }
+    .tool-grid .tool-card:nth-child(2) { animation-delay: 70ms; }
+    .tool-grid .tool-card:nth-child(3) { animation-delay: 140ms; }
+
+    /* Respect reduced-motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
   </style>
   <script>if(localStorage.getItem('field_dark_mode')==='1')document.documentElement.setAttribute('data-dark','');</script>
   <!-- Google Analytics 4 -->
@@ -296,8 +350,8 @@
   <div class="section-label">Navigation</div>
   <div class="tool-grid">
 
-    <a href="pages/njsearch.html" class="tool-card card-border-blue">
-      <div class="card-icon card-icon-blue">
+    <a href="pages/njsearch.html" class="tool-card card-border-teal">
+      <div class="card-icon card-icon-teal">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h18"/><path d="M3 17V9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8"/><path d="M9 17V9"/><path d="M15 17V9"/></svg>
       </div>
       <div class="card-body">
@@ -374,9 +428,11 @@
   updateDarkIcon();
   if(btn){btn.addEventListener('click',function(){
     var d=document.documentElement;
+    d.classList.add('theme-transitioning');
     if(d.hasAttribute('data-dark')){d.removeAttribute('data-dark');localStorage.removeItem('field_dark_mode');}
     else{d.setAttribute('data-dark','');localStorage.setItem('field_dark_mode','1');}
     updateDarkIcon();
+    setTimeout(function(){d.classList.remove('theme-transitioning');},320);
   });}
   // Last used badge
   try{

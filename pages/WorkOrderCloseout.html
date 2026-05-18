@@ -52,6 +52,18 @@ html[data-dark] .header-card { box-shadow: none; }
 html[data-dark] .recent-section { border-color: #2d3748; }
 html[data-dark] .recent-chip { background: #1c1e26; border-color: #2d3748; color: #cbd5e1; }
 html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
+html[data-dark] .photo-card { background: #15181f; border-color: #2d3748; }
+html[data-dark] .toggle-track { background: #2d3748; }
+html[data-dark] .toggle-thumb { background: #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+html[data-dark] .toggle-input:checked ~ .toggle-track { background: var(--accent); }
+html[data-dark] .toggle-input:checked ~ .toggle-track .toggle-thumb { background: #fff; }
+html[data-dark] .header-card { background: var(--surface); border-color: #2d3748; }
+html[data-dark] .page-block { background: var(--surface); border-color: #2d3748; }
+html[data-dark] .page-body { background: var(--surface); }
+html[data-dark] .photo-card-body { background: var(--surface); }
+html[data-dark] .photo-input-wrap label,
+html[data-dark] .field-label,
+html[data-dark] .notes-label { color: var(--muted); }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: auto !important; }
@@ -750,6 +762,60 @@ html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
   .fields-row .field-group { flex: 1 1 120px; }
 }
 
+  
+    /* ── UI ANIMATIONS ──────────────────────── */
+    /* Dark mode crossfade (only during toggle, removed after) */
+    html.theme-transitioning,
+    html.theme-transitioning *,
+    html.theme-transitioning *::before,
+    html.theme-transitioning *::after {
+      transition: background-color 280ms ease-in-out,
+                  color 280ms ease-in-out,
+                  border-color 280ms ease-in-out,
+                  fill 280ms ease-in-out,
+                  stroke 280ms ease-in-out,
+                  box-shadow 280ms ease-in-out !important;
+    }
+    /* Page fade-in on load */
+    @keyframes pageFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    body { animation: pageFadeIn 220ms ease-out; }
+    /* Button tap scale (works on real buttons + anchor buttons) */
+    button:active,
+    .btn:active,
+    a.btn:active,
+    .tool-card:active,
+    .install-btn:active,
+    .filter-toggle:active,
+    .drop-btn-cam:active,
+    .drop-btn-gal:active,
+    .btn-sm:active,
+    .hub-back:active,
+    .topbar-back:active,
+    .locate-pill:active,
+    .clear-btn:active {
+      transform: scale(0.96) !important;
+      transition: transform 80ms ease-out !important;
+    }
+
+    /* Photo preview fade-in when uploaded */
+    @keyframes photoPop { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+    .drop-preview.active { animation: photoPop 220ms ease-out; }
+    /* Recent chip slide-in */
+    @keyframes chipSlide { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
+    .recent-chip { animation: chipSlide 220ms ease-out backwards; }
+    /* Page block fade-in when added */
+    @keyframes blockFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .page-block { animation: blockFadeIn 260ms ease-out; }
+
+    /* Respect reduced-motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
   </style>
   <script>if(localStorage.getItem("field_dark_mode")==="1")document.documentElement.setAttribute("data-dark","");</script>
   <!-- Google Analytics 4 -->
@@ -1426,7 +1492,15 @@ function setupDropZone(photoCard) {
     if (document.getElementById('pagesContainer').classList.contains('dragging-active')) return;
     e.preventDefault(); zone.classList.remove('drag-over');
     var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-    if (f && f.type.startsWith('image/')) showPreview(f, preview);
+    if (!f) return;
+    // Accept by MIME or by file extension — Windows drag-drop sometimes has empty MIME
+    var nameExt = (f.name || '').toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp|heic|heif)$/);
+    var looksLikeImage = (f.type && f.type.indexOf('image/') === 0) || !!nameExt;
+    if (looksLikeImage) {
+      showPreview(f, preview);
+    } else {
+      showToast('Only image files can be uploaded', 'err', 3500);
+    }
   });
 
   if (clearBtn) {
@@ -1447,8 +1521,29 @@ function showPreview(file, previewEl) {
   // Avoids the ~13MB base64 string spike per upload. Outputs ~150KB JPEGs.
   var MAX_DIMENSION = 1024;
   var JPEG_QUALITY  = 0.75;
+  var MAX_FILE_MB   = 50;
 
-  var blobUrl = URL.createObjectURL(file);
+  // Pre-flight: catch known unsupported formats with a clear message
+  var fileName = (file.name || '').toLowerCase();
+  var isHEIC = /\.(heic|heif)$/.test(fileName) || /heif|heic/i.test(file.type || '');
+  if (isHEIC) {
+    showToast('HEIC photos are not supported in this browser. Change iPhone camera format to JPEG (Settings > Camera > Formats > Most Compatible), or convert the photo first.', 'err', 7000);
+    return;
+  }
+
+  // Size guard
+  if (file.size && file.size > MAX_FILE_MB * 1024 * 1024) {
+    showToast('Photo is too large (' + Math.round(file.size/1048576) + ' MB). Maximum ' + MAX_FILE_MB + ' MB.', 'err', 5000);
+    return;
+  }
+
+  var blobUrl;
+  try {
+    blobUrl = URL.createObjectURL(file);
+  } catch (e) {
+    showToast('Could not read photo file. Try a different file.', 'err', 4000);
+    return;
+  }
   var sourceImg = new Image();
 
   // Clean up everything on completion or failure
@@ -1456,7 +1551,7 @@ function showPreview(file, previewEl) {
   function cleanup() {
     if (cleanedUp) return;
     cleanedUp = true;
-    URL.revokeObjectURL(blobUrl);
+    try { URL.revokeObjectURL(blobUrl); } catch(e) {}
     sourceImg.onload = null;
     sourceImg.onerror = null;
     sourceImg.src = '';
@@ -1488,6 +1583,7 @@ function showPreview(file, previewEl) {
       dataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
     } catch (e) {
       dataUrl = '';
+      showToast('Could not process photo. Try a smaller image.', 'err', 4000);
     }
 
     // Free the canvas immediately after extracting the data URL
@@ -1501,12 +1597,14 @@ function showPreview(file, previewEl) {
       img.src = dataUrl;
       previewEl.classList.add('active');
       if (typeof updatePhotoBadge === 'function') updatePhotoBadge();
+    } else if (img && !dataUrl) {
+      showToast('Photo could not be processed', 'err', 4000);
     }
   };
 
   sourceImg.onerror = function() {
     cleanup();
-    showToast('Could not load photo', 'err');
+    showToast('Could not load photo — file may be corrupted or an unsupported format', 'err', 5000);
   };
 
   sourceImg.src = blobUrl;
