@@ -41,7 +41,7 @@
     #topbar {
       height: 58px;
       background: #1e2939;
-      border-bottom: 2px solid #f59e0b;
+      border-bottom: 2px solid #38bdf8;
       display: flex;
       align-items: center;
       padding: 0 20px;
@@ -51,21 +51,21 @@
     .topbar-back {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 5px 12px 5px 9px;
-      background: rgba(245,158,11,0.08);
-      border: 1px solid rgba(245,158,11,0.30);
+      background: rgba(56,189,248,0.08);
+      border: 1px solid rgba(56,189,248,0.30);
       border-radius: 999px;
-      color: #f59e0b; text-decoration: none;
+      color: #38bdf8; text-decoration: none;
       font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
       transition: background 0.15s, border-color 0.15s, color 0.15s;
       flex-shrink: 0; white-space: nowrap;
     }
-    .topbar-back:hover { background: #f59e0b; border-color: #f59e0b; color: #000; }
+    .topbar-back:hover { background: #38bdf8; border-color: #38bdf8; color: #000; }
     .topbar-div { width: 1px; height: 22px; background: #374557; }
     #topbar h1 { color: #fff; font-size: 16px; font-weight: 600; }
     .state-badge {
-      background: rgba(245,158,11,0.15);
-      border: 1px solid rgba(245,158,11,0.3);
-      color: #f59e0b;
+      background: rgba(56,189,248,0.15);
+      border: 1px solid rgba(56,189,248,0.3);
+      color: #38bdf8;
       font-size: 10px;
       font-weight: 700;
       padding: 2px 9px;
@@ -99,7 +99,8 @@
       body { overflow: auto; height: auto; }
       .main-layout { flex-direction: column; overflow: visible; }
       .left-panel { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
-      .map-panel { min-height: 300px; }
+      .map-panel { min-height: 360px; height: 360px; }
+      #map { height: 360px !important; min-height: 360px; }
     }
     @media (max-width: 520px) {
       #topbar { padding: 0 12px; gap: 10px; }
@@ -315,7 +316,7 @@
     }
     .unknown-badge {
       display: inline-flex; align-items: center; gap: 4px;
-      background: #fffbeb; border: 1px solid #fde68a; color: #92400e;
+      background: #f0f9ff; border: 1px solid #bae6fd; color: #075985;
       font-size: 10px; font-weight: 700; padding: 2px 7px;
       border-radius: 100px; letter-spacing: 0.04em; white-space: nowrap;
     }
@@ -427,10 +428,10 @@
       transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
       flex-shrink: 0;
     }
-    .fuel-bookmark-btn:hover { border-color: #f59e0b; color: #f59e0b; }
+    .fuel-bookmark-btn:hover { border-color: #38bdf8; color: #38bdf8; }
     .fuel-bookmark-btn.bookmarked {
-      background: rgba(245,158,11,0.12); color: #f59e0b;
-      border-color: rgba(245,158,11,0.5);
+      background: rgba(56,189,248,0.12); color: #38bdf8;
+      border-color: rgba(56,189,248,0.5);
     }
     .fuel-bookmark-btn svg { width: 11px; height: 11px; }
     @keyframes fuelBookmarkPop {
@@ -447,22 +448,22 @@
       transition: background 0.15s, color 0.15s, border-color 0.15s;
       flex-shrink: 0;
     }
-    .fuel-bookmark-filter:hover { border-color: #f59e0b; color: #f59e0b; }
+    .fuel-bookmark-filter:hover { border-color: #38bdf8; color: #38bdf8; }
     .fuel-bookmark-filter.active {
-      background: rgba(245,158,11,0.12); color: #f59e0b;
-      border-color: rgba(245,158,11,0.5);
+      background: rgba(56,189,248,0.12); color: #38bdf8;
+      border-color: rgba(56,189,248,0.5);
     }
     .fuel-bookmark-filter svg { width: 11px; height: 11px; }
     .station-card.is-bookmarked .station-name::after {
-      content: ' ★'; color: #f59e0b;
+      content: ' ★'; color: #38bdf8;
     }
 
   
     /* Button click glow — soft outer pulse without changing button colors */
     @keyframes btnGlow {
-      0%   { box-shadow: 0 0 0 0 rgba(245,158,11,0.35); }
-      55%  { box-shadow: 0 0 0 7px rgba(245,158,11,0); }
-      100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
+      0%   { box-shadow: 0 0 0 0 rgba(56,189,248,0.35); }
+      55%  { box-shadow: 0 0 0 7px rgba(56,189,248,0); }
+      100% { box-shadow: 0 0 0 0 rgba(56,189,248,0); }
     }
     @keyframes btnGlowAccent {
       0%   { box-shadow: 0 0 0 0 rgba(26,86,219,0.32); }
@@ -509,13 +510,16 @@
   
     /* Hub-to-tool entrance: slide in from the LEFT with depth scale */
     @keyframes slideInFromLeft {
-      0%   { opacity: 0; transform: translateX(-28vw) scale(0.97); }
-      45%  { opacity: 1; transform: translateX(-12vw) scale(0.99); }
-      100% { opacity: 1; transform: translateX(0) scale(1); }
+      0%   { opacity: 0; transform: translate3d(-18vw, 0, 0) scale(0.98); }
+      45%  { opacity: 1; transform: translate3d(-7vw, 0, 0) scale(0.995); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
     }
     html.entering-from-hub body {
-      animation: slideInFromLeft 460ms cubic-bezier(0.22, 1, 0.36, 1) both !important;
+      animation: slideInFromLeft 380ms cubic-bezier(0.22, 1, 0.36, 1) both !important;
       will-change: transform, opacity;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      -webkit-transform: translateZ(0);
     }
 
   
@@ -524,7 +528,7 @@
       pointer-events: none !important;
       background: rgba(30, 41, 57, 0.95) !important;
       color: #f9fafb !important;
-      border: 1px solid rgba(245, 158, 11, 0.55) !important;
+      border: 1px solid rgba(56, 189, 248, 0.55) !important;
       border-radius: 5px !important;
       padding: 2px 7px !important;
       font-size: 10.5px !important;
@@ -558,25 +562,35 @@
     }
 
   
-    /* Bookmark row in hero card (always visible) */
+    /* Bookmark card (separate container after hero card) */
+    .bookmark-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .bookmark-card-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 10px;
+    }
     .bookmark-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border-lo);
     }
     .bookmark-count {
       font-size: 12px;
-      color: var(--muted);
+      color: var(--muted2);
       flex: 1;
     }
 
   </style>
   <script>if(localStorage.getItem("field_dark_mode")==="1")document.documentElement.setAttribute("data-dark","");</script>
-  <script>try{if(sessionStorage.getItem('ft_opening_from_hub')==='1'){sessionStorage.removeItem('ft_opening_from_hub');document.documentElement.classList.add('entering-from-hub');setTimeout(function(){document.documentElement.classList.remove('entering-from-hub');},500);}}catch(_){}</script>
+  <script>try{if(sessionStorage.getItem('ft_opening_from_hub')==='1'){sessionStorage.removeItem('ft_opening_from_hub');document.documentElement.classList.add('entering-from-hub');setTimeout(function(){document.documentElement.classList.remove('entering-from-hub');},420);}}catch(_){}</script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-XZJ7XL4S34"></script>
   <script>
@@ -609,13 +623,6 @@
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" opacity=".3"/></svg>
       Find Nearest Stations
     </button>
-    <div class="bookmark-row">
-      <span class="bookmark-count" id="fuel-bookmark-count">No bookmarked stations</span>
-      <button class="fuel-bookmark-filter" id="fuel-bookmark-filter-top" onclick="toggleFuelBookmarkFilter()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <span id="fuel-bookmark-filter-label-top">Bookmarks</span>
-      </button>
-    </div>
     <div class="status-msg" id="status-msg">
       <div class="spinner"></div>
       <span id="status-text">Getting your location…</span>
@@ -627,6 +634,18 @@
         Export All Stations (.kml)
       </button>
       <div class="export-hint">Import into <a href="https://mymaps.google.com" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">Google My Maps</a> to save all 74 pins to your account.</div>
+    </div>
+  </div>
+
+  <!-- Bookmarks card (own container, after hero card) -->
+  <div class="bookmark-card">
+    <div class="bookmark-card-title">My Bookmarks</div>
+    <div class="bookmark-row">
+      <span class="bookmark-count" id="fuel-bookmark-count">No bookmarked stations</span>
+      <button class="fuel-bookmark-filter" id="fuel-bookmark-filter-top" onclick="toggleFuelBookmarkFilter()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <span id="fuel-bookmark-filter-label-top">Show Bookmarks</span>
+      </button>
     </div>
   </div>
 
@@ -814,7 +833,7 @@
   function highlightStation(idx) {
     stationMarkers.forEach(function(m, i) {
       if (!m) return;
-      m.setIcon(makePinIcon(i === idx ? '#f59e0b' : '#1a56db', i === idx));
+      m.setIcon(makePinIcon(i === idx ? '#38bdf8' : '#1a56db', i === idx));
       if (i === idx) m.openTooltip();
       else m.closeTooltip();
     });
@@ -897,7 +916,7 @@
     var dot = '<svg width="7" height="7" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="';
     if (state === true) return '<span class="open-badge">' + dot + '#16a34a"/></svg>Open Now</span>';
     if (state === false) return '<span class="closed-badge">' + dot + '#9ca3af"/></svg>Closed</span>';
-    return '<span class="unknown-badge">' + dot + '#d97706"/></svg>Hours Vary</span>';
+    return '<span class="unknown-badge">' + dot + '#0284c7"/></svg>Hours Vary</span>';
   }
 
   function applyClosedFilter() {
@@ -979,10 +998,35 @@
     el.classList.toggle('visible', !!text);
   }
 
+  var LOC_CACHE_KEY = 'ft_fuel_last_loc';
+  var LOC_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes — reuse cached location to skip permission prompt
+  function getCachedLocation() {
+    try {
+      var raw = localStorage.getItem(LOC_CACHE_KEY);
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      if (!data || typeof data.lat !== 'number' || typeof data.lng !== 'number') return null;
+      if (Date.now() - data.ts > LOC_CACHE_TTL_MS) return null;
+      return data;
+    } catch(e) { return null; }
+  }
+  function setCachedLocation(lat, lng) {
+    try { localStorage.setItem(LOC_CACHE_KEY, JSON.stringify({ lat: lat, lng: lng, ts: Date.now() })); } catch(e){}
+  }
+
   function startLocate() {
     const btn = document.getElementById('locate-btn');
     btn.disabled = true;
     setError('');
+
+    // Use cached position if fresh — avoids the permission prompt on every reload
+    var cached = getCachedLocation();
+    if (cached) {
+      setStatus('Using your recent location…', true);
+      onPosition({ coords: { latitude: cached.lat, longitude: cached.lng } });
+      return;
+    }
+
     setStatus('Getting your location…', true);
 
     if (!navigator.geolocation) {
@@ -992,11 +1036,27 @@
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(onPosition, onGeoError, { timeout: 10000 });
+    // Try to respect the user's prior permission decision before prompting again
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'geolocation' }).then(function(result) {
+        if (result.state === 'denied') {
+          setStatus('', false);
+          setError('Location access is blocked. Allow location in your browser settings.');
+          btn.disabled = false;
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(onPosition, onGeoError, { timeout: 10000, maximumAge: 60000 });
+      }).catch(function() {
+        navigator.geolocation.getCurrentPosition(onPosition, onGeoError, { timeout: 10000, maximumAge: 60000 });
+      });
+    } else {
+      navigator.geolocation.getCurrentPosition(onPosition, onGeoError, { timeout: 10000, maximumAge: 60000 });
+    }
   }
 
   async function onPosition(pos) {
     const { latitude: userLat, longitude: userLng } = pos.coords;
+    setCachedLocation(userLat, userLng);
     setStatus('Loading station data…', true);
 
     try {
@@ -1016,7 +1076,12 @@
         .bindTooltip('Your location', { permanent: false, direction: 'top', offset: [0, -36] })
         .addTo(fuelMap);
       fuelMap.setView([userLat, userLng], 10, { animate: false });
-      document.getElementById('locate-btn').disabled = false;
+      // Hide the locate button now that we've successfully found the location
+      var lbtn = document.getElementById('locate-btn');
+      if (lbtn) { lbtn.disabled = false; lbtn.style.display = 'none'; }
+      // Force Leaflet to recalculate map size (mobile layout shift can collapse it)
+      setTimeout(function() { if (fuelMap) fuelMap.invalidateSize(true); }, 50);
+      setTimeout(function() { if (fuelMap) fuelMap.invalidateSize(true); }, 350);
     } catch(e) {
       setStatus('', false);
       setError('Failed to load station data. Check your connection.');
@@ -1124,6 +1189,8 @@
       e.preventDefault();
       try { sessionStorage.setItem('ft_returning_to_hub', '1'); } catch(_){}
       document.documentElement.classList.add('exiting-to-hub');
+      // Force reflow so animation starts immediately
+      void document.body.offsetWidth;
       setTimeout(function() { window.location.href = link.href; }, 480);
     });
   })();
@@ -1207,15 +1274,28 @@
   // Intercept browser back button to play Hub-return animation
   (function() {
     if (!window.history || !window.history.pushState) return;
-    // Push a dummy state so the first back press triggers our handler
-    history.pushState({ ftDummy: true }, '');
+    // Only push if we haven't already (avoid double-push on bfcache restore)
+    if (!history.state || !history.state.ftDummy) {
+      history.pushState({ ftDummy: true }, '');
+    }
+    var backNavigating = false;
     window.addEventListener('popstate', function() {
+      if (backNavigating) return;
+      backNavigating = true;
       try { sessionStorage.setItem('ft_returning_to_hub', '1'); } catch(_){}
       document.documentElement.classList.add('exiting-to-hub');
+      // Force reflow so the animation starts immediately
+      void document.body.offsetWidth;
       setTimeout(function() {
-        // Go back to the previous real history entry (the hub)
         window.location.href = '../index.html';
       }, 480);
+    });
+    // Re-add the dummy state if the page is restored from bfcache (after navigating back)
+    window.addEventListener('pageshow', function(e) {
+      if (e.persisted && (!history.state || !history.state.ftDummy)) {
+        history.pushState({ ftDummy: true }, '');
+        backNavigating = false;
+      }
     });
   })();
 
