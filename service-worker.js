@@ -9,6 +9,7 @@ const CACHE = 'ft-v1';
 const LOCAL_ASSETS = [
   './',
   './index.html',
+  './manifest.json',
   './pages/njsearch.html',
   './pages/njfuel.html',
   './pages/WorkOrderCloseout.html',

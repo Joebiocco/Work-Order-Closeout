@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Field Tools Hub</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#f59e0b">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -414,28 +416,30 @@
 
     btnDismiss.addEventListener('click', hideBanner);
 
+    // Capture native install prompt if Chrome fires it
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
     if (isIOS) {
-      // iOS has no install event — show manual instructions
       titleEl.textContent = 'Add to Home Screen';
       descEl.innerHTML = 'Tap <strong>Share ↑</strong> then <strong>"Add to Home Screen"</strong> for app-like access and offline use.';
       btnGo.textContent = 'Got it';
       btnGo.addEventListener('click', hideBanner);
-      showBanner();
     } else {
-      // Android / Chrome — wait for native install event
-      window.addEventListener('beforeinstallprompt', function(e) {
-        e.preventDefault();
-        deferredPrompt = e;
-        showBanner();
-      });
       btnGo.addEventListener('click', function() {
         hideBanner();
         if (deferredPrompt) {
+          // Native Chrome install
           deferredPrompt.prompt();
           deferredPrompt.userChoice.then(function(){ deferredPrompt = null; });
         }
       });
     }
+
+    // Always show — don't gate on beforeinstallprompt
+    showBanner();
   })();
 })();
 </script>
