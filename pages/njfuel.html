@@ -19,6 +19,8 @@
       --sans: 'Inter', system-ui, -apple-system, Arial, sans-serif;
       --transition: 0.14s ease;
     }
+    html { background: #eef0f4; transition: background-color 380ms ease-in-out; }
+    html[data-dark] { background: #0f1117; }
     html[data-dark] {
       --bg: #0f1117; --surface: #1c1e26; --border: #2d3748;
       --border-lo: #1f2937; --text: #f1f5f9; --muted: #94a3b8;
@@ -94,7 +96,8 @@
       height: 100%;
     }
     @media (max-width: 700px) {
-      .main-layout { flex-direction: column; }
+      body { overflow: auto; height: auto; }
+      .main-layout { flex-direction: column; overflow: visible; }
       .left-panel { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
       .map-panel { min-height: 300px; }
     }
@@ -213,10 +216,15 @@
 
     .station-top {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
       margin-bottom: 8px;
+    }
+    .station-name {
+      flex: 1;
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
     .station-name { font-size: 14px; font-weight: 600; color: var(--text); }
     .station-county {
@@ -286,7 +294,7 @@
     }
 
     @media (max-width: 600px) {
-      .station-top { flex-direction: column; gap: 4px; }
+      .station-top { flex-wrap: wrap; gap: 6px; }
     }
 
     /* Clickable card */
@@ -320,6 +328,8 @@
       font-size: 11px; color: var(--muted);
       font-variant-numeric: tabular-nums;
     }
+    .coords-row .coords-text { flex: 1; }
+    .coords-row .fuel-bookmark-btn { margin-left: auto; }
     .filter-toggle {
       display: inline-flex; align-items: center; justify-content: center; gap: 5px;
       padding: 0 12px; height: 26px; border-radius: 100px;
@@ -410,11 +420,11 @@
     /* Fuel station bookmark UI (mirrors bridge bookmark style) */
     .fuel-bookmark-btn {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 28px; height: 28px;
-      background: var(--surface); border: 1.5px solid var(--border);
+      width: 24px; height: 24px;
+      background: transparent; border: 1.5px solid var(--border);
       border-radius: 50%; cursor: pointer;
-      color: var(--muted2); padding: 0;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      color: var(--muted); padding: 0;
+      transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
       flex-shrink: 0;
     }
     .fuel-bookmark-btn:hover { border-color: #f59e0b; color: #f59e0b; }
@@ -422,7 +432,7 @@
       background: rgba(245,158,11,0.12); color: #f59e0b;
       border-color: rgba(245,158,11,0.5);
     }
-    .fuel-bookmark-btn svg { width: 13px; height: 13px; }
+    .fuel-bookmark-btn svg { width: 11px; height: 11px; }
     @keyframes fuelBookmarkPop {
       0% { transform: scale(1); } 40% { transform: scale(1.22); }
       70% { transform: scale(0.95); } 100% { transform: scale(1); }
@@ -499,17 +509,74 @@
   
     /* Hub-to-tool entrance: slide in from the LEFT with depth scale */
     @keyframes slideInFromLeft {
-      0%   { opacity: 0.25; transform: translateX(-50%) scale(0.97); }
+      0%   { opacity: 0; transform: translateX(-28vw) scale(0.97); }
+      45%  { opacity: 1; transform: translateX(-12vw) scale(0.99); }
       100% { opacity: 1; transform: translateX(0) scale(1); }
     }
     html.entering-from-hub body {
-      animation: slideInFromLeft 540ms cubic-bezier(0.22, 1, 0.36, 1);
+      animation: slideInFromLeft 460ms cubic-bezier(0.22, 1, 0.36, 1) both !important;
       will-change: transform, opacity;
+    }
+
+  
+    /* Map tooltip styling — small, non-blocking, well above pins */
+    .leaflet-tooltip {
+      pointer-events: none !important;
+      background: rgba(30, 41, 57, 0.95) !important;
+      color: #f9fafb !important;
+      border: 1px solid rgba(245, 158, 11, 0.55) !important;
+      border-radius: 5px !important;
+      padding: 2px 7px !important;
+      font-size: 10.5px !important;
+      font-weight: 600 !important;
+      line-height: 1.3 !important;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25) !important;
+      white-space: nowrap !important;
+      max-width: 200px !important;
+    }
+    .leaflet-tooltip-top:before { display: none !important; }  /* hide the tail since tooltip is far from pin */
+    .leaflet-tooltip-pane { z-index: 650 !important; }
+
+  
+    /* Smart header hide/reveal on scroll */
+    #topbar {
+      position: sticky; top: 0; z-index: 100;
+      transition: transform 460ms cubic-bezier(0.65, 0, 0.35, 1), opacity 460ms cubic-bezier(0.65, 0, 0.35, 1);
+      will-change: transform;
+    }
+    #topbar.header-hidden {
+      transform: translateY(-100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    /* Invisible hover/tap zone at top of viewport — reveals header */
+    .header-hover-zone {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 18px; z-index: 99;
+      background: transparent;
+      pointer-events: auto;
+    }
+
+  
+    /* Bookmark row in hero card (always visible) */
+    .bookmark-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-lo);
+    }
+    .bookmark-count {
+      font-size: 12px;
+      color: var(--muted);
+      flex: 1;
     }
 
   </style>
   <script>if(localStorage.getItem("field_dark_mode")==="1")document.documentElement.setAttribute("data-dark","");</script>
-  <script>try{if(sessionStorage.getItem('ft_opening_from_hub')==='1'){sessionStorage.removeItem('ft_opening_from_hub');document.documentElement.classList.add('entering-from-hub');setTimeout(function(){document.documentElement.classList.remove('entering-from-hub');},600);}}catch(_){}</script>
+  <script>try{if(sessionStorage.getItem('ft_opening_from_hub')==='1'){sessionStorage.removeItem('ft_opening_from_hub');document.documentElement.classList.add('entering-from-hub');setTimeout(function(){document.documentElement.classList.remove('entering-from-hub');},500);}}catch(_){}</script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-XZJ7XL4S34"></script>
   <script>
@@ -520,6 +587,7 @@
   </script>
 </head>
 <body>
+<div class="header-hover-zone" aria-hidden="true"></div>
 
 <div id="topbar">
   <a href="../index.html" class="topbar-back">
@@ -541,6 +609,13 @@
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" opacity=".3"/></svg>
       Find Nearest Stations
     </button>
+    <div class="bookmark-row">
+      <span class="bookmark-count" id="fuel-bookmark-count">No bookmarked stations</span>
+      <button class="fuel-bookmark-filter" id="fuel-bookmark-filter-top" onclick="toggleFuelBookmarkFilter()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <span id="fuel-bookmark-filter-label-top">Bookmarks</span>
+      </button>
+    </div>
     <div class="status-msg" id="status-msg">
       <div class="spinner"></div>
       <span id="status-text">Getting your location…</span>
@@ -615,6 +690,7 @@
     // Also toggle the card class
     var card = btnEl.closest('.station-card');
     if (card) card.classList.toggle('is-bookmarked', nowBookmarked);
+    updateFuelBookmarkCount();
     // If filter is on and we just unbookmarked, re-render
     if (fuelBookmarkFilterOn && !nowBookmarked) {
       renderStations(_applyFuelFilters(currentStations));
@@ -626,13 +702,63 @@
     var bms = getFuelBookmarks();
     return stations.filter(function(s) { return bms.indexOf(_fuelKey(s)) !== -1; });
   }
+  function updateFuelBookmarkCount() {
+    var n = getFuelBookmarks().length;
+    var el = document.getElementById('fuel-bookmark-count');
+    if (el) el.textContent = n === 0 ? 'No bookmarked stations' : (n + ' bookmarked station' + (n === 1 ? '' : 's'));
+  }
   function toggleFuelBookmarkFilter() {
     fuelBookmarkFilterOn = !fuelBookmarkFilterOn;
-    var fbtn = document.getElementById('fuel-bookmark-filter');
-    var flbl = document.getElementById('fuel-bookmark-filter-label');
-    if (fbtn) fbtn.classList.toggle('active', fuelBookmarkFilterOn);
-    if (flbl) flbl.textContent = fuelBookmarkFilterOn ? 'Showing Bookmarks' : 'Bookmarks';
-    renderStations(_applyFuelFilters(currentStations));
+    // Sync state on BOTH filter buttons (top hero card + results header)
+    var fbtn1 = document.getElementById('fuel-bookmark-filter');
+    var fbtn2 = document.getElementById('fuel-bookmark-filter-top');
+    var flbl1 = document.getElementById('fuel-bookmark-filter-label');
+    var flbl2 = document.getElementById('fuel-bookmark-filter-label-top');
+    if (fbtn1) fbtn1.classList.toggle('active', fuelBookmarkFilterOn);
+    if (fbtn2) fbtn2.classList.toggle('active', fuelBookmarkFilterOn);
+    if (flbl1) flbl1.textContent = fuelBookmarkFilterOn ? 'Showing Bookmarks' : 'Bookmarks';
+    if (flbl2) flbl2.textContent = fuelBookmarkFilterOn ? 'Showing Bookmarks' : 'Bookmarks';
+
+    if (fuelBookmarkFilterOn) {
+      // Load full station list if user hasn't fetched location yet
+      var pool = currentStations.length > 0 ? currentStations : stationsData;
+      var bms = getFuelBookmarks();
+      var bookmarked = pool.filter(function(s) { return bms.indexOf(_fuelKey(s)) !== -1; });
+      // Sort: Open stations first, then unknown hours, then Closed.
+      // Within each group, sort by distance (if available) then alphabetically.
+      bookmarked.sort(function(a, b) {
+        var aOpen = isOpenNow(a.hours);
+        var bOpen = isOpenNow(b.hours);
+        var aScore = aOpen === true ? 0 : (aOpen === null ? 1 : 2);
+        var bScore = bOpen === true ? 0 : (bOpen === null ? 1 : 2);
+        if (aScore !== bScore) return aScore - bScore;
+        if (a.dist != null && b.dist != null) return a.dist - b.dist;
+        return (a.location || '').localeCompare(b.location || '');
+      });
+      var section = document.getElementById('results-section');
+      var titleEl = document.querySelector('.results-title');
+      if (titleEl) titleEl.textContent = bookmarked.length === 0
+        ? 'No bookmarked stations'
+        : 'Bookmarked stations (' + bookmarked.length + ')';
+      if (bookmarked.length === 0) {
+        document.getElementById('results-count').textContent = '';
+        document.getElementById('stations-list').innerHTML = '<div style="text-align:center;padding:32px 16px;color:var(--muted);"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.3;display:block;margin:0 auto 12px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><p style="font-size:13px;line-height:1.65;">No bookmarked stations yet.<br>Tap the star on a station to bookmark it.</p></div>';
+        section.classList.add('visible');
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        renderStations(bookmarked);
+      }
+    } else {
+      // Toggle off — restore default title and original list
+      var titleEl2 = document.querySelector('.results-title');
+      if (titleEl2) titleEl2.textContent = 'Stations sorted by distance';
+      if (currentStations.length > 0) {
+        renderStations(currentStations);
+      } else {
+        // Nothing to show yet — hide the results section
+        document.getElementById('results-section').classList.remove('visible');
+      }
+    }
   }
 
   let fuelMap = null;
@@ -678,7 +804,7 @@
     stations.forEach(function(s, i) {
       if (!s.latitude || !s.longitude) { stationMarkers[i] = null; return; }
       var m = L.marker([s.latitude, s.longitude], { icon: makePinIcon('#1a56db', false) });
-      m.bindTooltip(escHtml(s.location), { permanent: false, direction: 'top', offset: [0, -8] });
+      m.bindTooltip(escHtml(s.location), { permanent: false, direction: 'top', offset: [0, -36] });
       m.on('click', function() { highlightStation(i); });
       m.addTo(fuelMap);
       stationMarkers[i] = m;
@@ -690,6 +816,7 @@
       if (!m) return;
       m.setIcon(makePinIcon(i === idx ? '#f59e0b' : '#1a56db', i === idx));
       if (i === idx) m.openTooltip();
+      else m.closeTooltip();
     });
     activeCardIndex = idx;
     var cards = document.querySelectorAll('.station-card');
@@ -886,7 +1013,7 @@
       // User location marker
       if (userMarker) fuelMap.removeLayer(userMarker);
       userMarker = L.marker([userLat, userLng], { icon: makePinIcon('#16a34a', true) })
-        .bindTooltip('Your location', { permanent: false, direction: 'top' })
+        .bindTooltip('Your location', { permanent: false, direction: 'top', offset: [0, -36] })
         .addTo(fuelMap);
       fuelMap.setView([userLat, userLng], 10, { animate: false });
       document.getElementById('locate-btn').disabled = false;
@@ -928,7 +1055,7 @@
         '<div class="station-card' + closedClass + (isFuelBookmarked(_fuelKey(s)) ? ' is-bookmarked' : '') + '" data-idx="' + idx + '" onclick="focusMapOnStation(' + idx + ', currentStations)">' +
           '<div class="station-top">' +
             '<div class="station-name">' + escHtml(s.location) + '</div>' +
-            '<div style="display:flex;align-items:center;gap:5px;flex-shrink:0">' +
+            '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">' +
               openBadge(s.hours) +
               '<span class="station-county">' + escHtml(s.county) + ' Co.</span>' +
             '</div>' +
@@ -958,7 +1085,13 @@
           '</div>' +
           '<div class="coords-row">' +
             '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>' +
-            lat + ', ' + lng +
+            '<span class="coords-text">' + lat + ', ' + lng + '</span>' +
+            (function(){
+              var bm = isFuelBookmarked(_fuelKey(s));
+              var filled = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+              var empty  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+              return '<button type="button" class="fuel-bookmark-btn' + (bm ? ' bookmarked' : '') + '" data-key="' + escHtml(_fuelKey(s)) + '" title="' + (bm ? 'Remove bookmark' : 'Bookmark this station') + '" onclick="event.stopPropagation(); toggleFuelBookmarkClick(this);">' + (bm ? filled : empty) + '</button>';
+            })() +
           '</div>' +
         '</div>'
       );
@@ -968,6 +1101,10 @@
     section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     applyClosedFilter();
   }
+  // Initialize bookmark count display on load
+  document.addEventListener('DOMContentLoaded', function() { updateFuelBookmarkCount(); });
+  if (document.readyState !== 'loading') { updateFuelBookmarkCount(); }
+
   // Initialize map immediately so it is ready
   document.addEventListener('DOMContentLoaded', function() { initFuelMap(); });
   if (document.readyState !== 'loading') { setTimeout(initFuelMap, 0); }
@@ -988,6 +1125,97 @@
       try { sessionStorage.setItem('ft_returning_to_hub', '1'); } catch(_){}
       document.documentElement.classList.add('exiting-to-hub');
       setTimeout(function() { window.location.href = link.href; }, 480);
+    });
+  })();
+
+
+  // Smart header hide on scroll-down (after 1s), reveal on scroll-up + hover/tap top
+  // Never hides while the mouse is hovering over the header itself.
+  (function() {
+    var topbar = document.querySelector('#topbar, .topbar');
+    if (!topbar) return;
+    var lastY = window.scrollY;
+    var lastDir = 'up';
+    var hideTimeout = null;
+    var HIDE_DELAY = 1000;
+    var THRESHOLD = 80;
+    var mouseOverHeader = false;
+
+    // Track hover over the header itself
+    topbar.addEventListener('mouseenter', function() {
+      mouseOverHeader = true;
+      topbar.classList.remove('header-hidden');
+      if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
+    });
+    topbar.addEventListener('mouseleave', function() {
+      mouseOverHeader = false;
+    });
+
+    function onScroll() {
+      var y = window.scrollY;
+      var dy = y - lastY;
+      if (Math.abs(dy) < 4) return;
+      var dir = dy > 0 ? 'down' : 'up';
+      if (dir !== lastDir) {
+        lastDir = dir;
+        if (dir === 'up') {
+          topbar.classList.remove('header-hidden');
+          if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
+        }
+      }
+      if (y < THRESHOLD || mouseOverHeader) {
+        topbar.classList.remove('header-hidden');
+        if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
+      } else if (dir === 'down' && !hideTimeout && !topbar.classList.contains('header-hidden')) {
+        hideTimeout = setTimeout(function() {
+          // Re-check at the moment of hiding — if the mouse is now on the header, abort
+          if (lastDir === 'down' && !mouseOverHeader) topbar.classList.add('header-hidden');
+          hideTimeout = null;
+        }, HIDE_DELAY);
+      }
+      lastY = y;
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Hover zone (thin strip at top) reveals header when hidden
+    var zone = document.querySelector('.header-hover-zone');
+    if (zone) {
+      zone.addEventListener('mouseenter', function() { topbar.classList.remove('header-hidden'); });
+    }
+    document.addEventListener('mousemove', function(e) {
+      if (e.clientY <= 14 && topbar.classList.contains('header-hidden')) {
+        topbar.classList.remove('header-hidden');
+      }
+    }, { passive: true });
+
+    // Tap-to-reveal (mobile)
+    document.addEventListener('touchstart', function(e) {
+      if (!topbar.classList.contains('header-hidden')) return;
+      var t = e.touches && e.touches[0];
+      if (t && t.clientY <= 30) {
+        topbar.classList.remove('header-hidden');
+      }
+    }, { passive: true });
+  })();
+
+
+  // Clean up stale transition classes on bfcache restore
+  window.addEventListener('pageshow', function() {
+    document.documentElement.classList.remove('exiting-to-tool', 'exiting-to-hub', 'entering-from-hub', 'returning-from-tool');
+  });
+
+  // Intercept browser back button to play Hub-return animation
+  (function() {
+    if (!window.history || !window.history.pushState) return;
+    // Push a dummy state so the first back press triggers our handler
+    history.pushState({ ftDummy: true }, '');
+    window.addEventListener('popstate', function() {
+      try { sessionStorage.setItem('ft_returning_to_hub', '1'); } catch(_){}
+      document.documentElement.classList.add('exiting-to-hub');
+      setTimeout(function() {
+        // Go back to the previous real history entry (the hub)
+        window.location.href = '../index.html';
+      }, 480);
     });
   })();
 
