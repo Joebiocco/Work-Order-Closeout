@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -252,7 +252,7 @@
     .install-trigger:hover { background: rgba(255,255,255,0.14); color: #E5B33B; }
     .install-trigger.open { background: rgba(229,179,59,0.20); color: #E5B33B; border-color: rgba(229,179,59,0.5); }
 
-    /* Bookmark dropdown — desktop only, anchored under the icon */
+    /* Bookmark dropdown � desktop only, anchored under the icon */
     .install-dropdown {
       position: fixed;
       top: 58px; right: 16px;
@@ -329,7 +329,7 @@
       .hero-desc { font-size: 13px; }
     }
 
-    /* ── INSTALL BANNER ─────────────────────── */
+    /* -- INSTALL BANNER ----------------------- */
     .install-banner {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
       background: #1e2939;
@@ -368,7 +368,7 @@
       .install-banner-actions { margin-top: 0; margin-left: auto; flex-shrink: 0; }
     }
   
-    /* ── UI ANIMATIONS ──────────────────────── */
+    /* -- UI ANIMATIONS ------------------------ */
     /* Dark mode crossfade (only during toggle, removed after) */
     html.theme-transitioning,
     html.theme-transitioning *,
@@ -402,7 +402,7 @@
       transition: transform 80ms ease-out !important;
     }
 
-    /* Tool card stagger — luxurious feel */
+    /* Tool card stagger � luxurious feel */
     @keyframes cardSlide { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
     .tool-card { animation: cardSlide 520ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
     .tool-grid .tool-card:nth-child(1) { animation-delay: 60ms; }
@@ -419,7 +419,7 @@
     }
 
   
-    /* Slide-in from right when returning from a tool — luxurious depth */
+    /* Slide-in from right when returning from a tool � luxurious depth */
     @keyframes slideInFromRight {
       0%   { opacity: 0; transform: translate3d(20vw, 0, 0) scale(0.98); }
       100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
@@ -437,7 +437,7 @@
     html.returning-from-tool { background: var(--bg); }
 
   
-    /* Hub exit — quick fade + small slide so transition feels snappy and never exposes blank */
+    /* Hub exit � quick fade + small slide so transition feels snappy and never exposes blank */
     @keyframes pageOutRight {
       0%   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
       50%  { opacity: 0; transform: translate3d(15vw, 0, 0) scale(0.98); }
@@ -455,7 +455,7 @@
     html.exiting-to-tool { overflow: hidden; }
 
   
-    /* Button click glow — soft outer pulse without changing button colors */
+    /* Button click glow � soft outer pulse without changing button colors */
     @keyframes btnGlow {
       0%   { box-shadow: 0 0 0 0 rgba(229,179,59,0.35); }
       55%  { box-shadow: 0 0 0 7px rgba(229,179,59,0); }
@@ -544,7 +544,7 @@
 <div id="topbar">
   <div class="topbar-icon"><img id="hub-logo" alt="" /></div>
   <h1>Field Tools</h1>
-  <span class="topbar-sub">— Select a tool to get started</span>
+  <span class="topbar-sub">� Select a tool to get started</span>
   <button id="dark-toggle" class="dark-toggle" title="Toggle dark mode" aria-label="Toggle dark mode">
     <svg id="dark-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
   </button>
@@ -658,7 +658,7 @@
       </div>
       <div class="card-body">
         <div class="card-title">Road Milemarker Finder</div>
-        <div class="card-desc">GPS-based identifier — see which route and milepost you are at instantly.</div>
+        <div class="card-desc">GPS-based identifier � see which route and milepost you are at instantly.</div>
       </div>
       <div class="card-footer">
         <span class="card-tag">GPS</span>
@@ -671,7 +671,7 @@
       </div>
       <div class="card-body">
         <div class="card-title">Emergency Assistance</div>
-        <div class="card-desc">Critical info for field accidents — emergency contacts, protocols, and reporting steps.</div>
+        <div class="card-desc">Critical info for field accidents � emergency contacts, protocols, and reporting steps.</div>
       </div>
       <div class="card-footer">
         <span class="card-tag">SAFETY</span>
@@ -682,14 +682,14 @@
 
 </div>
 
-<div class="page-footer">Field Tools &mdash; Internal Use &middot; <span class="version-stamp" title="Build version — if you spot a user with an older version, ask them to refresh">v1.0 &middot; 2026-05-18</span></div>
+<div class="page-footer">Field Tools &mdash; Internal Use &middot; <span class="version-stamp" title="Build version � if you spot a user with an older version, ask them to refresh">v1.1 &middot; 2026-05-18</span></div>
 
 <!-- Install App Banner -->
 <div id="install-banner" class="install-banner" role="banner" aria-live="polite">
-  <div class="install-banner-icon">📲</div>
+  <div class="install-banner-icon">??</div>
   <div class="install-banner-text">
     <div class="install-banner-title" id="install-banner-title">Install Field Tools</div>
-    <div class="install-banner-desc" id="install-banner-desc">Add to your home screen for quick access and offline use.<br><span style="font-size:11px;opacity:0.7;">This prompt shows twice. Use the 📲 button in the top corner anytime to bring it back.</span></div>
+    <div class="install-banner-desc" id="install-banner-desc">Add to your home screen for quick access and offline use.<br><span style="font-size:11px;opacity:0.7;">This prompt shows twice. Use the ?? button in the top corner anytime to bring it back.</span></div>
     <div class="install-banner-actions">
       <button id="install-btn-dismiss" class="install-btn install-btn-dismiss">Not now</button>
       <button id="install-btn-go" class="install-btn install-btn-primary">Install</button>
@@ -721,7 +721,7 @@
   if(btn){btn.addEventListener('click',function(){
     var d=document.documentElement;
     d.classList.add('theme-transitioning');
-    // Cross-fade icon swap (no layout shift — opacity/transform only)
+    // Cross-fade icon swap (no layout shift � opacity/transform only)
     btn.classList.add('icon-swapping');
     setTimeout(function() {
       if(d.hasAttribute('data-dark')){d.removeAttribute('data-dark');localStorage.removeItem('field_dark_mode');}
@@ -755,7 +755,7 @@
   if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js').catch(function(){});}
 
 
-  // Hub-to-tool transition — hub slides right while next page is loaded
+  // Hub-to-tool transition � hub slides right while next page is loaded
   document.querySelectorAll('.tool-card').forEach(function(card) {
     if (card.classList.contains('is-soon')) return;
     card.addEventListener('click', function(e) {
@@ -808,7 +808,7 @@
         if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
       } else if (dir === 'down' && !hideTimeout && !topbar.classList.contains('header-hidden')) {
         hideTimeout = setTimeout(function() {
-          // Re-check at the moment of hiding — if the mouse is now on the header, abort
+          // Re-check at the moment of hiding � if the mouse is now on the header, abort
           if (lastDir === 'down' && !mouseOverHeader) topbar.classList.add('header-hidden');
           hideTimeout = null;
         }, HIDE_DELAY);
@@ -854,7 +854,7 @@
     }, { passive: true });
   })();
 
-  // ── INSTALL/BOOKMARK TRIGGER BUTTON ───────────
+  // -- INSTALL/BOOKMARK TRIGGER BUTTON -----------
   // Standalone setup so it always works even after the popup has reached its show limit
   (function(){
     var isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
@@ -876,30 +876,30 @@
     if (descEl && titleEl) {
       if (isDesktop) {
         titleEl.textContent = 'Bookmark Field Tools';
-        descEl.innerHTML = 'Press <strong>' + (isMac ? '⌘D' : 'Ctrl+D') + '</strong> to save this page to your browser bookmarks for quick access later.';
+        descEl.innerHTML = 'Press <strong>' + (isMac ? '?D' : 'Ctrl+D') + '</strong> to save this page to your browser bookmarks for quick access later.';
         if (noteEl) noteEl.textContent = 'You can also pin the tab or drag the address bar into your bookmarks bar.';
       } else if (isIOS) {
         titleEl.textContent = 'Add to Home Screen';
-        descEl.innerHTML = 'Tap the <strong>Share ↑</strong> button at the bottom of Safari, then tap <strong>"Add to Home Screen"</strong>.';
+        descEl.innerHTML = 'Tap the <strong>Share ?</strong> button at the bottom of Safari, then tap <strong>"Add to Home Screen"</strong>.';
         if (noteEl) noteEl.textContent = 'The app will install with its own icon and run fullscreen.';
       } else if (isFirefox) {
         titleEl.textContent = 'Add to Home Screen';
-        descEl.innerHTML = 'Tap the <strong>⋮ menu</strong> in Firefox, then tap <strong>"Install"</strong> or <strong>"Add to Home Screen"</strong>.';
+        descEl.innerHTML = 'Tap the <strong>? menu</strong> in Firefox, then tap <strong>"Install"</strong> or <strong>"Add to Home Screen"</strong>.';
         if (noteEl) noteEl.textContent = 'The app will install with its own icon and run fullscreen.';
       } else if (isSamsung) {
         titleEl.textContent = 'Add to Home Screen';
-        descEl.innerHTML = 'Tap the <strong>☰ menu</strong> in Samsung Internet, then tap <strong>"Add page to"</strong> → <strong>"Home screen"</strong>.';
+        descEl.innerHTML = 'Tap the <strong>? menu</strong> in Samsung Internet, then tap <strong>"Add page to"</strong> ? <strong>"Home screen"</strong>.';
         if (noteEl) noteEl.textContent = 'The app will install with its own icon and run fullscreen.';
       } else {
         titleEl.textContent = 'Add to Home Screen';
-        descEl.innerHTML = 'Tap the <strong>⋮ menu</strong> in your browser, then tap <strong>"Add to Home Screen"</strong> or <strong>"Install app"</strong>.';
+        descEl.innerHTML = 'Tap the <strong>? menu</strong> in your browser, then tap <strong>"Add to Home Screen"</strong> or <strong>"Install app"</strong>.';
         if (noteEl) noteEl.textContent = 'The app will install with its own icon and run fullscreen.';
       }
     }
 
     triggerBtn.addEventListener('click', function(e) {
       e.stopPropagation();
-      // Both mobile and desktop use the dropdown — bottom popup is auto-show only (first 2 visits)
+      // Both mobile and desktop use the dropdown � bottom popup is auto-show only (first 2 visits)
       if (dropdown) {
         var wasOpen = dropdown.classList.contains('open');
         dropdown.classList.toggle('open');
@@ -921,7 +921,7 @@
     });
   })();
 
-  // ── INSTALL PROMPT (max 2 times) ─────────────
+  // -- INSTALL PROMPT (max 2 times) -------------
   (function(){
     var isDesktop     = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     var INSTALL_KEY   = isDesktop ? 'ft_bookmark_shown' : 'ft_install_shown';
@@ -963,7 +963,7 @@
     var isEdge     = /edg\//i.test(ua);
     var isChrome   = /chrome/i.test(ua) && !isEdge && !isSamsung;
 
-    var note = '<br><span style="font-size:11px;opacity:0.7;">This prompt shows twice — use the 📲 button in the top corner anytime to bring it back.</span>';
+    var note = '<br><span style="font-size:11px;opacity:0.7;">This prompt shows twice � use the ?? button in the top corner anytime to bring it back.</span>';
 
     // Capture native install event (Chrome, Edge, Samsung Internet)
     window.addEventListener('beforeinstallprompt', function(e) {
@@ -973,21 +973,21 @@
 
     if (isIOS) {
       titleEl.textContent = 'Add to Home Screen';
-      descEl.innerHTML = 'Tap the <strong>Share ↑</strong> button at the bottom of Safari, then tap <strong>"Add to Home Screen"</strong>.' + note;
+      descEl.innerHTML = 'Tap the <strong>Share ?</strong> button at the bottom of Safari, then tap <strong>"Add to Home Screen"</strong>.' + note;
       btnGo.textContent = 'Got it';
       btnGo.addEventListener('click', hideBanner);
     } else if (isFirefox) {
       titleEl.textContent = 'Add to Home Screen';
-      descEl.innerHTML = 'Tap the <strong>⋮ menu</strong> in Firefox, then tap <strong>"Install"</strong> or <strong>"Add to Home Screen"</strong>.' + note;
+      descEl.innerHTML = 'Tap the <strong>? menu</strong> in Firefox, then tap <strong>"Install"</strong> or <strong>"Add to Home Screen"</strong>.' + note;
       btnGo.textContent = 'Got it';
       btnGo.addEventListener('click', hideBanner);
     } else if (isSamsung) {
       titleEl.textContent = 'Add to Home Screen';
-      descEl.innerHTML = 'Tap the <strong>☰ menu</strong> in Samsung Internet, then tap <strong>"Add page to"</strong> → <strong>"Home screen"</strong>.' + note;
+      descEl.innerHTML = 'Tap the <strong>? menu</strong> in Samsung Internet, then tap <strong>"Add page to"</strong> ? <strong>"Home screen"</strong>.' + note;
       btnGo.textContent = 'Got it';
       btnGo.addEventListener('click', hideBanner);
     } else {
-      // Chrome, Edge, or unknown — try native prompt, fall back to instructions
+      // Chrome, Edge, or unknown � try native prompt, fall back to instructions
       descEl.innerHTML = 'Add to your home screen for quick access and offline use.' + note;
       btnGo.addEventListener('click', function() {
         if (deferredPrompt) {
@@ -995,8 +995,8 @@
           deferredPrompt.prompt();
           deferredPrompt.userChoice.then(function(){ deferredPrompt = null; });
         } else {
-          // Native prompt not ready yet — show manual instructions
-          descEl.innerHTML = 'Tap the <strong>⋮ menu</strong> in your browser, then tap <strong>"Add to Home Screen"</strong> or <strong>"Install app"</strong>.' + note;
+          // Native prompt not ready yet � show manual instructions
+          descEl.innerHTML = 'Tap the <strong>? menu</strong> in your browser, then tap <strong>"Add to Home Screen"</strong> or <strong>"Install app"</strong>.' + note;
           btnGo.textContent = 'Got it';
           btnGo.removeEventListener('click', arguments.callee);
           btnGo.addEventListener('click', hideBanner);
@@ -1008,8 +1008,8 @@
     if (isDesktop) {
       var isMacInner = /mac/i.test(navigator.platform);
       titleEl.textContent = 'Bookmark Field Tools';
-      descEl.innerHTML = 'Press <strong>' + (isMacInner ? '⌘D' : 'Ctrl+D') + '</strong> to save this page for quick access.' +
-        '<br><span style="font-size:11px;opacity:0.7;">This prompt shows twice — use the 📲 button in the top corner anytime to bring it back.</span>';
+      descEl.innerHTML = 'Press <strong>' + (isMacInner ? '?D' : 'Ctrl+D') + '</strong> to save this page for quick access.' +
+        '<br><span style="font-size:11px;opacity:0.7;">This prompt shows twice � use the ?? button in the top corner anytime to bring it back.</span>';
       btnGo.textContent = 'Got it';
       btnGo.addEventListener('click', hideBanner);
       banner.style.borderTopColor = '#3b82f6';
