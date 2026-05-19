@@ -191,6 +191,11 @@
 (function() {
   setTimeout(function() { document.documentElement.classList.remove('entering-from-hub'); }, 420);
   try { localStorage.setItem('ft_last', 'milemarker'); } catch(_) {}
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', function(e) {
+      if (e.data && e.data.type === 'RELOAD') window.location.reload();
+    });
+  }
 
   window.addEventListener('storage', function(ev) {
     if (ev.key !== 'field_dark_mode') return;

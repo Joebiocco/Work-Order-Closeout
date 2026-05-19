@@ -1200,7 +1200,12 @@
   // Last used tracking
   try { localStorage.setItem('ft_last', 'njfuel'); } catch(e) {}
   // Service worker
-  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('../service-worker.js').catch(function(){}); }
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('../service-worker.js').catch(function(){});
+    navigator.serviceWorker.addEventListener('message', function(e) {
+      if (e.data && e.data.type === 'RELOAD') window.location.reload();
+    });
+  }
 
   // Hub-back slide-left transition
   (function() {

@@ -11,7 +11,7 @@
    - IndexedDB: work-order photos + per-session data (ft_photos DB)
    ============================================================ */
 
-const CACHE = 'ft-v1.5-2026-05-19';
+const CACHE = 'ft-v1.6-2026-05-19';
 
 // Local assets to pre-cache on install
 const LOCAL_ASSETS = [
@@ -55,6 +55,20 @@ self.addEventListener('activate', function(e) {
   self.clients.claim();
 });
 
+// When hub's reload button is clicked it sends RELOAD_ALL here;
+// we forward a RELOAD message to every open window client so all
+// pages get a fresh fetch simultaneously.
+self.addEventListener('message', function(e) {
+  if (!e.data || e.data.type !== 'RELOAD_ALL') return;
+  self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clients) {
+    clients.forEach(function(client) {
+      // Never auto-reload the Work Order page — it may have unsaved form data
+      if (client.url && client.url.indexOf('WorkOrderCloseout') !== -1) return;
+      client.postMessage({ type: 'RELOAD' });
+    });
+  });
+});
+
 // Heuristic: is this an HTML/document request?
 function isHTML(request, url) {
   if (request.mode === 'navigate') return true;
@@ -73,8 +87,15 @@ self.addEventListener('fetch', function(e) {
     if (isHTML(e.request, url)) {
       // HTML pages: network-first so users always see the latest UI.
       // Cache fallback only when network fails (true offline).
+      // Use cache:'no-cache' so the browser HTTP cache is always
+      // validated — prevents stale pages after a SW update.
+      var freshReq = new Request(e.request.url, {
+        cache: 'no-cache',
+        credentials: 'same-origin',
+        redirect: 'follow'
+      });
       e.respondWith(
-        fetch(e.request).then(function(resp) {
+        fetch(freshReq).then(function(resp) {
           if (resp && resp.ok) {
             var clone = resp.clone();
             caches.open(CACHE).then(function(c) { c.put(e.request, clone); });

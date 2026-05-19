@@ -714,7 +714,7 @@
 
 </div>
 
-<div class="page-footer">Field Tools &mdash; Internal Use &middot; <span class="version-stamp" title="Build version — if you spot a user with an older version, ask them to refresh">v1.5 &middot; 2026-05-19</span></div>
+<div class="page-footer">Field Tools &mdash; Internal Use &middot; <span class="version-stamp" title="Build version — if you spot a user with an older version, ask them to refresh">v1.6 &middot; 2026-05-19</span></div>
 
 <!-- Install App Banner -->
 <div id="install-banner" class="install-banner" role="banner" aria-live="polite">
@@ -1111,6 +1111,16 @@
   });
 })();
 
+// Tell the SW to broadcast RELOAD to all open tool pages, then reload hub.
+// Work Order page is excluded in the SW (may have unsaved form data).
+function reloadAll() {
+  if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({ type: 'RELOAD_ALL' });
+  }
+  // Small delay so the SW has time to dispatch to other clients first
+  setTimeout(function() { window.location.reload(); }, 80);
+}
+
 </script>
 
 <div id="update-banner" role="status" aria-live="polite">
@@ -1119,7 +1129,7 @@
     <strong>Update available</strong>
     <span>Your saved data &amp; bookmarks are safe.</span>
   </div>
-  <button class="ub-reload" onclick="window.location.reload()">Reload</button>
+  <button class="ub-reload" onclick="reloadAll()">Reload</button>
   <button class="ub-dismiss" onclick="document.getElementById('update-banner').classList.remove('show')" aria-label="Dismiss">×</button>
 </div>
 
