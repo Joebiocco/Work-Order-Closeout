@@ -570,7 +570,7 @@
     <div class="hero-desc">Quick access to bridge lookup, fuel stations, and work order documentation tools.</div>
   </div>
 
-  <div class="section-label">Navigation</div>
+  <div class="section-label">Tools</div>
   <div class="tool-grid">
 
     <a href="pages/njsearch.html" class="tool-card card-border-purple">
@@ -597,6 +597,20 @@
       </div>
       <div class="card-footer">
         <span class="card-tag tag-fuel">FUEL</span>
+        <svg class="card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </div>
+    </a>
+
+    <a href="pages/milemarker.html" class="tool-card card-border-amber-soon">
+      <div class="card-icon card-icon-amber-soon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="12" y1="7" x2="12" y2="13"/></svg>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Road Milemarker Finder</div>
+        <div class="card-desc">GPS-based lookup for nearest Interstate, US, NJ State, or County route milepost.</div>
+      </div>
+      <div class="card-footer">
+        <span class="card-tag tag-md">GPS</span>
         <svg class="card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </div>
     </a>
@@ -649,19 +663,6 @@
       </div>
       <div class="card-footer">
         <span class="card-tag">MAP TOOL</span>
-      </div>
-    </div>
-
-    <div class="tool-card is-soon card-border-amber-soon" aria-disabled="true">
-      <div class="card-icon card-icon-amber-soon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="12" y1="7" x2="12" y2="13"/></svg>
-      </div>
-      <div class="card-body">
-        <div class="card-title">Road Milemarker Finder</div>
-        <div class="card-desc">GPS-based identifier — see which route and milepost you are at instantly.</div>
-      </div>
-      <div class="card-footer">
-        <span class="card-tag">GPS</span>
       </div>
     </div>
 
@@ -735,7 +736,7 @@
   try{
     var last=localStorage.getItem('ft_last');
     if(last){
-      var map={njsearch:'pages/njsearch.html',njfuel:'pages/njfuel.html',closeout:'pages/WorkOrderCloseout.html'};
+      var map={njsearch:'pages/njsearch.html',njfuel:'pages/njfuel.html',closeout:'pages/WorkOrderCloseout.html',milemarker:'pages/milemarker.html'};
       var href=map[last];
       if(href){
         var card=document.querySelector('a[href="'+href+'"]');

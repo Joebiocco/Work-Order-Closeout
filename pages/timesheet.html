@@ -116,7 +116,7 @@
     .today-pill:hover { background:var(--accent); color:#fff; }
 
     /* ── Day stats ── */
-    .day-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
+    .day-summary { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:20px; }
     .day-stat {
       background:var(--surface); border:1.5px solid var(--border-lo);
       border-radius:var(--radius-lg); padding:14px 10px; text-align:center;
@@ -268,22 +268,25 @@
     .cal-dow { font-size:10px; font-weight:700; color:var(--muted); text-align:center; text-transform:uppercase; padding:4px 0; }
     .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-bottom:16px; }
     .cal-cell {
-      aspect-ratio:1; border-radius:var(--radius-sm); display:flex; flex-direction:column;
+      min-height:48px; border-radius:var(--radius-sm); display:flex; flex-direction:column;
       align-items:center; justify-content:center; cursor:pointer; position:relative;
       font-size:12px; font-weight:600; color:var(--text); transition:background var(--tr);
     }
+    @media (min-width:720px) { .cal-cell { min-height:56px; } }
     .cal-cell:hover:not(.other-month) { background:var(--accent-lo); }
     .cal-cell.other-month { opacity:0.25; pointer-events:none; }
-    .cal-cell.today { background:var(--accent); color:#fff; border-radius:50%; }
-    .cal-cell.today:hover { background:#1647b8; }
+    .cal-cell.today { background:var(--accent-lo); border:1.5px solid var(--accent); }
+    .cal-cell.today:hover { background:rgba(26,86,219,0.14); }
     .cal-cell.weekend:not(.today) { color:var(--muted); }
+    .cal-dn { display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:50%; }
+    .cal-cell.today .cal-dn { background:var(--accent); color:#fff; }
     .cal-cell.has-entry:not(.today)::after {
       content:''; position:absolute; bottom:3px; left:50%; transform:translateX(-50%);
       width:5px; height:5px; border-radius:50%; background:var(--accent);
     }
     .cal-cell.has-ot:not(.today)::after { background:#10b981; }
     .cal-hrs { font-size:9px; color:var(--muted); font-weight:500; line-height:1; margin-top:1px; }
-    .cal-cell.today .cal-hrs { color:rgba(255,255,255,0.75); }
+    .cal-cell.today .cal-hrs { color:var(--accent); }
     .totals-card {
       background:var(--navy); border-radius:var(--radius-lg); padding:18px 20px;
       color:#fff; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;
@@ -537,7 +540,7 @@
     /* "Add Entry" button in right pane header — desktop only */
     .d-add-entry-row { display:none; }
 
-    @media (min-width:900px) {
+    @media (min-width:720px) {
       body { padding-bottom:0; height:100vh; overflow:hidden; }
       #bottom-nav { display:none; }
       .fab { display:none !important; }
@@ -547,13 +550,12 @@
       /* Day two-pane */
       .day-shell { display:flex; height:100%; overflow:hidden; width:100%; }
       .day-l {
-        width:300px; flex-shrink:0; overflow-y:auto;
+        width:310px; flex-shrink:0; overflow-y:auto;
         border-right:1.5px solid var(--border-lo);
-        padding:24px 20px; max-width:none; margin:0;
+        padding:20px 18px; max-width:none; margin:0;
       }
-      .day-l .view-header { padding-top:10px; }
-      .day-l .day-summary { grid-template-columns:1fr 1fr; }
-      .day-r { flex:1; overflow-y:auto; padding:24px 32px; max-width:none; margin:0; }
+      .day-l .view-header { padding-top:8px; }
+      .day-r { flex:1; overflow-y:auto; padding:20px 24px; max-width:none; margin:0; }
       .d-add-entry-row {
         display:flex; align-items:center; justify-content:space-between;
         margin-bottom:16px;
@@ -569,7 +571,7 @@
       .d-add-entry-btn:hover { background:#1647b8; }
       .d-add-entry-btn:active { transform:scale(0.96); }
 
-      /* Entry form as centered modal on desktop */
+      /* Entry form as centered modal */
       .sheet {
         left:50%; right:auto; bottom:auto; top:50%;
         width:540px; max-width:540px;
@@ -970,9 +972,8 @@ function renderDay(mc) {
     '<div class="day-summary">' +
       '<div class="day-stat"><div class="day-stat-val">' + hFmt(tots.netM) + '</div><div class="day-stat-lbl">Total Hrs</div></div>' +
       '<div class="day-stat"><div class="day-stat-val" style="color:var(--red)">' + hFmt(tots.otM) + '</div><div class="day-stat-lbl">OT Hrs</div></div>' +
-      (hr > 0
-        ? '<div class="day-stat"><div class="day-stat-val" style="color:var(--green)">' + fmtMoney(tots.earnings) + '</div><div class="day-stat-lbl">Earnings</div></div>'
-        : '<div class="day-stat"><div class="day-stat-val">' + entries.length + '</div><div class="day-stat-lbl">Entries</div></div>') +
+      '<div class="day-stat"><div class="day-stat-val" style="color:var(--green)">' + (hr > 0 ? fmtMoney(tots.earnings) : '—') + '</div><div class="day-stat-lbl">Earnings</div></div>' +
+      '<div class="day-stat day-stat-entries"><div class="day-stat-val">' + entries.length + '</div><div class="day-stat-lbl">Entries</div></div>' +
     '</div>';
 
   // Right pane: entries list
@@ -1189,7 +1190,7 @@ function renderMonth(mc) {
     var dayE = eMap[ds] || [], dayT = totalsFor(dayE, settings);
     var cls = 'cal-cell' + (isToday ? ' today' : '') + (isWkd && !isToday ? ' weekend' : '') +
               (dayE.length ? ' has-entry' : '') + (dayT.otM > 0 ? ' has-ot' : '');
-    html += '<div class="' + cls + '" data-goto="' + ds + '">' + day +
+    html += '<div class="' + cls + '" data-goto="' + ds + '"><span class="cal-dn">' + day + '</span>' +
       (dayE.length ? '<div class="cal-hrs">' + hFmt(dayT.netM) + '</div>' : '') + '</div>';
   }
   var total = startDow + lastDay.getDate(), rows = Math.ceil(total / 7);
@@ -1272,9 +1273,7 @@ function renderSettings(mc) {
     showToast('Settings saved', 'ok', 1400);
   }
   ['s-rate','s-mult','s-thresh','s-brk'].forEach(function(id) {
-    var el = document.getElementById(id);
-    el.addEventListener('change', saveS);
-    el.addEventListener('blur', saveS);
+    document.getElementById(id).addEventListener('change', saveS);
   });
   ['s-tfmt','s-wkst','s-dview'].forEach(function(id) {
     document.getElementById(id).addEventListener('change', saveS);

@@ -24,7 +24,7 @@
 
 > **Purpose:** This file is the authoritative quick-reference for the NJDOT Field Tools project. Read this FIRST before reading any HTML file. It contains every architectural decision, storage key, design token, and critical constraint so we can make changes without re-reading 6,800+ lines of HTML.
 >
-> **Last updated:** 2026-05-18 · v1.1
+> **Last updated:** 2026-05-19 · v1.1
 >
 > **Live site:** `https://joebiocco.github.io/NJDOT-Field-Tools-Hub/`
 > **Repo:** `https://github.com/Joebiocco/NJDOT-Field-Tools-Hub` (renamed from `Work-Order-Closeout`)
@@ -34,7 +34,7 @@
 
 ## 1. Project Overview
 
-A static internal PWA for NJ DOT field workers, hosted on GitHub Pages. **No backend.** Three current tools + three placeholder tiles for upcoming features.
+A static internal PWA for NJ DOT field workers, hosted on GitHub Pages. **No backend.** Five current tools + two placeholder tiles for upcoming features.
 
 **Audience:** NJ DOT field workers using phones and tablets in the field, plus desktop in the office.
 
@@ -60,18 +60,23 @@ Work Order Website/
 ├── push.bat                         # Local helper: git add/commit/push
 ├── data/
 │   ├── njfuel.json                  # ~74 NJDOT fuel stations
-│   └── njstructures.json            # ~6,825 NJ bridge records (inline-embedded in njsearch.html too)
+│   ├── njstructures.json            # ~6,825 NJ bridge records (inline-embedded in njsearch.html too)
+│   └── mileposts/
+│       ├── index.json               # Tile index for Road Milemarker Finder (filtered state routes only)
+│       └── chunks/*.json            # Per-tile milepost chunks loaded lazily near user GPS
 ├── icons/
 │   ├── icon-192.png                 # PWA app icon (dark navy + amber bridge arch)
 │   └── icon-512.png                 # PWA app icon (larger)
 ├── pages/
 │   ├── njsearch.html                # Bridge Navigator (1,440 lines)
 │   ├── njfuel.html                  # Fuel Station Finder (1,305 lines)
+│   ├── milemarker.html              # Road Milemarker Finder (GPS nearest route/milepost)
 │   ├── timesheet.html               # Overtime Tracker & Timesheet — Day/Week/Month/Settings
 │   └── WorkOrderCloseout.html       # Work Order tool (2,949 lines)
 ├── _archive/                        # old files, ignore
 ├── reference/                       # data sources, ignore
-└── scripts/                         # transient python helper scripts (ignore)
+└── scripts/
+    └── build-mileposts.ps1          # CSV -> filtered tile chunks for milemarker runtime
 ```
 
 **Backups (on Desktop, DO NOT TOUCH):**
@@ -92,7 +97,7 @@ Work Order Website/
 | `wo_recent` | WorkOrderCloseout | JSON array (max 5) of recent session metadata | Each rec has `{wo, str, date, fname, route, direction, mp, startDate, endDate, priority, photoKey}` — PHOTOS NOT INCLUDED HERE |
 | `workorder_draft` | WorkOrderCloseout | Full session JSON snapshot | Single auto-saved draft |
 | `field_dark_mode` | all pages | `"1"` if dark mode on | Theme preference |
-| `ft_last` | all pages | `"njsearch" \| "njfuel" \| "closeout"` | Last visited tool (used for hub badge) |
+| `ft_last` | all pages | `"njsearch" \| "njfuel" \| "closeout" \| "milemarker"` | Last visited tool (used for home badge) |
 | `ft_install_shown` | index | int 0-2 | How many times install popup has auto-shown on mobile |
 | `ft_bookmark_shown` | index | int 0-2 | How many times bookmark popup has auto-shown on desktop |
 | `ft_ts_entries` | timesheet | JSON array of overtime/timesheet entries | Local Day/Week/Month tracker entries with date, start/stop, break, type, job/activity, and notes |
@@ -171,7 +176,7 @@ html[data-dark] {
 | Work Order card | `#64748b` / `#475569` | same | `card-border-slate`, `card-icon-slate`, `tag-doc` |
 | Find My Bridge pill | `#0d9488` (teal) | `#2dd4bf` | On njsearch.html, distinct from cards |
 | Coming Soon — Drainage | `#0891b2` (cyan) | `#67e8f9` | `card-icon-cyan`, `card-border-cyan` |
-| Coming Soon — Milemarker | `#b45309` / `#d97706` (warm amber) | `#fcd34d` | Safety/warning theme. `card-icon-amber-soon` |
+| Road Milemarker Finder | `#b45309` / `#d97706` (warm amber) | `#fcd34d` | GPS map tool card. `card-icon-amber-soon` |
 | Coming Soon — Emergency | `#be123c` (rose) | `#fb7185` | `card-icon-rose`, `card-border-rose` |
 | Condition: Good / Open | `#22c55e` / `#16a34a` | — | Map markers, badges |
 | Condition: Poor / Closed | `#dc2626` / `#9ca3af` | — | |
@@ -190,7 +195,7 @@ When asked to change the **header accent color**, sweep all hex variants togethe
 
 **DO NOT touch the following during accent sweeps:**
 - Bookmark stars (`.bookmark-btn`, `.fuel-bookmark-btn`, `.is-bookmarked` markers) — always amber `#f59e0b`
-- Coming Soon Milemarker tile — always warm amber
+- Road Milemarker Finder tile — always warm amber
 - Card border/icon colors for the 3 main tools (purple/green/slate)
 - The `--accent: #1a56db` deep blue (used for buttons/links, NOT the header)
 
@@ -340,6 +345,19 @@ Two parallel implementations, identical behavior:
 - "Hide Closed" toggle on results header — label dynamic ("Show Closed" when hidden)
 - Tooltip on station pin: dark-navy themed, `pointer-events: none`, offset `-36px` so it doesn't cover other pins
 - Active station tooltip auto-opens on `highlightStation()`
+
+### Road Milemarker Finder
+
+- Data source is preprocessed from the master CSV into `data/mileposts/`.
+- Allowed route classes only: Interstate (`ROUTE_SUBT=1`), US Route (`2`), NJ State Highway (`3`), County Route (`5`).
+- Excluded from runtime data: local roads and other subtypes (`4`, `6`, `7`, `8`).
+- Runtime does **not** load statewide data at once:
+  - First fetch `data/mileposts/index.json`
+  - Then fetch only nearby tile chunks from `data/mileposts/chunks/*.json` based on GPS tile + neighbors.
+- Nearest lookup uses Haversine distance across loaded points and returns route class, route name, SRI, milepost, cross street, and distance.
+- Milemarker direction display is inferred from nearby route geometry around the matched point and shown as cardinal travel label (Northbound/Eastbound/Southbound/Westbound).
+- Map layer stack matches Bridge/Fuel tools: Google Street (`lyrs=m`) + Google Satellite (`lyrs=y`) with Leaflet layer toggle.
+- Back/Home navigation uses the same animated return pattern as other tools, including browser back interception via dummy `history.pushState`.
 
 ### Hub install/bookmark popup
 

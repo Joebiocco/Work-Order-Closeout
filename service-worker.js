@@ -25,6 +25,8 @@ const LOCAL_ASSETS = [
   './pages/WorkOrderCloseout.html',
   './data/njfuel.json',
   './pages/timesheet.html',
+  './pages/milemarker.html',
+  './data/mileposts/index.json',
 ];
 
 self.addEventListener('install', function(e) {
