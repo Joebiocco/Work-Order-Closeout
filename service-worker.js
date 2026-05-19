@@ -24,6 +24,7 @@ const LOCAL_ASSETS = [
   './pages/njfuel.html',
   './pages/WorkOrderCloseout.html',
   './data/njfuel.json',
+  './pages/timesheet.html',
 ];
 
 self.addEventListener('install', function(e) {
