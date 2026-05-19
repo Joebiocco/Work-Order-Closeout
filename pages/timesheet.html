@@ -224,6 +224,37 @@
     .bw-card-lbl { font-size:11px; font-weight:600; color:var(--muted); }
     .bw-card-sub { font-size:11px; color:var(--muted); margin-top:4px; }
     .bw-full { grid-column:1/-1; }
+
+    /* ── PP 14-Day Calendar ── */
+    .pp-cal-header { display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:4px; }
+    .pp-dow { font-size:9px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; text-align:center; padding:3px 0; }
+    .pp-cal { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:20px; }
+    .pp-cal-cell {
+      background:var(--surface); border:1.5px solid var(--border-lo); border-radius:var(--radius);
+      padding:8px 7px 7px; min-height:80px; cursor:pointer;
+      display:flex; flex-direction:column; transition:border-color var(--tr), background var(--tr);
+    }
+    .pp-cal-cell:hover:not(.pp-future) { border-color:var(--accent); background:var(--accent-lo); }
+    .pp-cal-cell.pp-today { border-color:var(--accent); }
+    .pp-cal-cell.pp-future { opacity:0.32; cursor:default; pointer-events:none; }
+    .pp-cal-cell.pp-has-ot { border-left:3px solid var(--red); }
+    .pp-cal-dn  { font-size:14px; font-weight:700; line-height:1; }
+    .pp-cal-cell.pp-today .pp-cal-dn { color:var(--accent); }
+    .pp-cal-hrs { font-size:11px; font-weight:700; margin-top:3px; }
+    .pp-cal-ot  { font-size:10px; color:var(--red); font-weight:600; }
+    .pp-cal-dots { display:flex; gap:3px; flex-wrap:wrap; margin-top:auto; padding-top:4px; }
+    .pp-cal-dot  { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+    @media (max-width:600px) {
+      .pp-cal { gap:2px; }
+      .pp-cal-cell { min-height:56px; padding:5px 4px; }
+      .pp-cal-dn { font-size:12px; }
+      .pp-cal-hrs { font-size:10px; }
+    }
+    @media (min-width:720px) {
+      .pp-cal-cell { min-height:92px; padding:10px 9px 8px; }
+      .pp-cal-dn { font-size:16px; }
+    }
+
     .bw-totals-row {
       background:var(--navy); border-radius:var(--radius-lg); padding:18px 20px;
       display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;
@@ -450,6 +481,109 @@
     .hov-zone { position:fixed; top:0; left:0; right:0; height:14px; z-index:599; pointer-events:auto; }
     @media (hover:none) { .hov-zone { display:none; } }
     .version-stamp { font-family:ui-monospace,monospace; font-size:10px; color:var(--muted); opacity:0.4; text-align:center; padding:20px 0 8px; }
+
+    /* ── Desktop layout (≥900px) ─────────────────────────────────── */
+    #app-shell { display:flex; flex:1; min-height:0; width:100%; }
+
+    /* Desktop sidebar — hidden on mobile */
+    .d-sidebar {
+      display:none;
+      width:224px; flex-shrink:0;
+      background:var(--surface); border-right:1.5px solid var(--border-lo);
+      flex-direction:column; padding:18px 12px 16px; overflow-y:auto;
+    }
+    .d-sidebar-add {
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      width:100%; background:var(--accent); color:#fff; border:none;
+      border-radius:var(--radius-lg); padding:13px 16px; cursor:pointer;
+      font-family:var(--sans); font-size:14px; font-weight:700;
+      margin-bottom:26px; transition:background var(--tr);
+    }
+    .d-sidebar-add:hover { background:#1647b8; }
+    .d-sidebar-add:active { transform:scale(0.97); }
+    .d-nav-lbl {
+      font-size:9px; font-weight:700; text-transform:uppercase;
+      letter-spacing:0.08em; color:var(--muted); padding-left:10px; margin-bottom:8px;
+    }
+    .d-nav-item {
+      display:flex; align-items:center; gap:10px; width:100%;
+      padding:10px 12px; border-radius:var(--radius); border:none;
+      background:transparent; color:var(--muted); font-family:var(--sans);
+      font-size:13px; font-weight:600; cursor:pointer; margin-bottom:2px;
+      text-align:left; transition:background var(--tr), color var(--tr);
+    }
+    .d-nav-item:hover { background:var(--border-lo); color:var(--text); }
+    .d-nav-item.active { background:var(--accent-lo); color:var(--accent); }
+    .d-nav-item svg { width:16px; height:16px; flex-shrink:0; }
+    .d-sidebar-spacer { flex:1; }
+    .d-pp-mini {
+      background:var(--bg); border:1.5px solid var(--border-lo);
+      border-radius:var(--radius-lg); padding:13px 14px;
+    }
+    .d-pp-mini-lbl {
+      font-size:9px; font-weight:700; text-transform:uppercase;
+      letter-spacing:0.06em; color:var(--muted); margin-bottom:10px;
+    }
+    .d-pp-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px; }
+    .d-pp-row:last-child { margin-bottom:0; }
+    .d-pp-key { font-size:11px; color:var(--muted); }
+    .d-pp-val { font-size:14px; font-weight:700; color:var(--text); }
+
+    /* Day view — two pane */
+    .day-shell { display:block; }
+    /* Mobile padding for day panes (replaces page-wrap) */
+    .day-l { padding:0 14px 8px; }
+    .day-r { padding:0 14px 16px; }
+    /* "Add Entry" button in right pane header — desktop only */
+    .d-add-entry-row { display:none; }
+
+    @media (min-width:900px) {
+      body { padding-bottom:0; height:100vh; overflow:hidden; }
+      #bottom-nav { display:none; }
+      .fab { display:none !important; }
+      #main-content { flex:1; overflow-y:auto; min-height:0; width:0; /* allow shrink */ }
+      .d-sidebar { display:flex; }
+
+      /* Day two-pane */
+      .day-shell { display:flex; height:100%; overflow:hidden; width:100%; }
+      .day-l {
+        width:300px; flex-shrink:0; overflow-y:auto;
+        border-right:1.5px solid var(--border-lo);
+        padding:24px 20px; max-width:none; margin:0;
+      }
+      .day-l .view-header { padding-top:10px; }
+      .day-l .day-summary { grid-template-columns:1fr 1fr; }
+      .day-r { flex:1; overflow-y:auto; padding:24px 32px; max-width:none; margin:0; }
+      .d-add-entry-row {
+        display:flex; align-items:center; justify-content:space-between;
+        margin-bottom:16px;
+      }
+      .d-add-entry-title { font-size:16px; font-weight:700; color:var(--text); }
+      .d-add-entry-btn {
+        display:flex; align-items:center; gap:6px;
+        background:var(--accent); color:#fff; border:none;
+        border-radius:var(--radius); padding:9px 16px;
+        font-family:var(--sans); font-size:12px; font-weight:700;
+        cursor:pointer; transition:background var(--tr);
+      }
+      .d-add-entry-btn:hover { background:#1647b8; }
+      .d-add-entry-btn:active { transform:scale(0.96); }
+
+      /* Entry form as centered modal on desktop */
+      .sheet {
+        left:50%; right:auto; bottom:auto; top:50%;
+        width:540px; max-width:540px;
+        border-radius:16px;
+        transform:translate(-50%, calc(-50% + 20px));
+        opacity:0;
+        transition:transform 280ms cubic-bezier(0.22,1,0.36,1), opacity 220ms ease;
+        padding-bottom:28px;
+        box-shadow:0 24px 64px rgba(0,0,0,0.24);
+        max-height:88vh;
+      }
+      .sheet.open { transform:translate(-50%, -50%); opacity:1; }
+      .sheet-handle { display:none; }
+    }
   </style>
   <script>
     /* Inherit dark mode from Hub — read only, never write */
@@ -474,7 +608,37 @@
   <span id="topbar-title">OT Tracker</span>
 </div>
 
-<div id="main-content"></div>
+<div id="app-shell">
+
+  <!-- Desktop sidebar — hidden on mobile via CSS -->
+  <aside class="d-sidebar" id="d-sidebar">
+    <button class="d-sidebar-add" id="d-sidebar-add">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Log Entry
+    </button>
+    <div class="d-nav-lbl">Views</div>
+    <button class="d-nav-item" data-view="day">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg>
+      Day
+    </button>
+    <button class="d-nav-item" data-view="biweekly">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="7" y1="15" x2="17" y2="15"/></svg>
+      Biweekly
+    </button>
+    <button class="d-nav-item" data-view="month">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><rect x="7" y="14" width="4" height="4" rx="0.5" fill="currentColor" stroke="none"/></svg>
+      Month
+    </button>
+    <button class="d-nav-item" data-view="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </button>
+    <div class="d-sidebar-spacer"></div>
+    <div class="d-pp-mini" id="d-pp-mini"></div>
+  </aside>
+
+  <div id="main-content"></div>
+</div>
 
 <button class="fab" id="fab" aria-label="Log entry">
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -763,7 +927,12 @@ function totalsFor(entries, settings) {
 
 // ── Render dispatcher ─────────────────────────────────────────────
 function render() {
+  // Sync bottom nav tabs (mobile)
   document.querySelectorAll('.nav-tab').forEach(function(t) {
+    t.classList.toggle('active', t.dataset.view === state.view);
+  });
+  // Sync desktop sidebar nav
+  document.querySelectorAll('.d-nav-item').forEach(function(t) {
     t.classList.toggle('active', t.dataset.view === state.view);
   });
   var fab = document.getElementById('fab');
@@ -774,6 +943,8 @@ function render() {
   else if (state.view === 'biweekly')  renderBiweekly(mc);
   else if (state.view === 'month')     renderMonth(mc);
   else                                 renderSettings(mc);
+
+  updateSidebarPP();
 }
 
 // ── Day View ──────────────────────────────────────────────────────
@@ -784,38 +955,56 @@ function renderDay(mc) {
   var tots = totalsFor(entries, settings);
   var isToday = (dateS === today);
 
-  var html = '<div class="page-wrap"><div class="view-header">' +
-    '<button class="view-nav-btn" id="day-prev">&#8249;</button>' +
-    '<div class="view-header-center">' +
-      '<div class="view-header-title">' + fmtDate(dateS) + '</div>' +
-      (isToday ? '<div class="view-header-sub" style="color:var(--accent);font-weight:700">Today</div>' :
-                 '<div class="view-header-sub">' + fmtDateShort(dateS) + '</div>') +
+  // Left pane: date nav + stats
+  var leftHtml =
+    '<div class="view-header">' +
+      '<button class="view-nav-btn" id="day-prev">&#8249;</button>' +
+      '<div class="view-header-center">' +
+        '<div class="view-header-title">' + fmtDate(dateS) + '</div>' +
+        (isToday ? '<div class="view-header-sub" style="color:var(--accent);font-weight:700">Today</div>' :
+                   '<div class="view-header-sub">' + fmtDateShort(dateS) + '</div>') +
+      '</div>' +
+      (!isToday ? '<button class="today-pill" id="day-today">Today</button>' : '') +
+      '<button class="view-nav-btn" id="day-next">&#8250;</button>' +
     '</div>' +
-    (!isToday ? '<button class="today-pill" id="day-today">Today</button>' : '') +
-    '<button class="view-nav-btn" id="day-next">&#8250;</button>' +
-  '</div>' +
+    '<div class="day-summary">' +
+      '<div class="day-stat"><div class="day-stat-val">' + hFmt(tots.netM) + '</div><div class="day-stat-lbl">Total Hrs</div></div>' +
+      '<div class="day-stat"><div class="day-stat-val" style="color:var(--red)">' + hFmt(tots.otM) + '</div><div class="day-stat-lbl">OT Hrs</div></div>' +
+      (hr > 0
+        ? '<div class="day-stat"><div class="day-stat-val" style="color:var(--green)">' + fmtMoney(tots.earnings) + '</div><div class="day-stat-lbl">Earnings</div></div>'
+        : '<div class="day-stat"><div class="day-stat-val">' + entries.length + '</div><div class="day-stat-lbl">Entries</div></div>') +
+    '</div>';
 
-  '<div class="day-summary">' +
-    '<div class="day-stat"><div class="day-stat-val">' + hFmt(tots.netM) + '</div><div class="day-stat-lbl">Total Hrs</div></div>' +
-    '<div class="day-stat"><div class="day-stat-val" style="color:var(--red)">' + hFmt(tots.otM) + '</div><div class="day-stat-lbl">OT Hrs</div></div>' +
-    (hr > 0
-      ? '<div class="day-stat"><div class="day-stat-val" style="color:var(--green)">' + fmtMoney(tots.earnings) + '</div><div class="day-stat-lbl">Earnings</div></div>'
-      : '<div class="day-stat"><div class="day-stat-val">' + entries.length + '</div><div class="day-stat-lbl">Entries</div></div>') +
-  '</div>';
+  // Right pane: entries list
+  var rightHtml =
+    '<div class="d-add-entry-row">' +
+      '<div class="d-add-entry-title">' + fmtDate(dateS) + '</div>' +
+      '<button class="d-add-entry-btn" id="d-day-add">' +
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+        'Add Entry' +
+      '</button>' +
+    '</div>';
 
   if (!entries.length) {
-    html += emptyState('No entries for this day', 'Tap + to log your hours.');
+    rightHtml += emptyState('No entries for this day', 'Tap + to log your hours.');
   } else {
-    entries.forEach(function(e) { html += buildEntryCard(e, calcEntry(e, settings), settings); });
+    entries.forEach(function(e) { rightHtml += buildEntryCard(e, calcEntry(e, settings), settings); });
   }
+  rightHtml += '<div class="version-stamp">Field Tools · OT Tracker · v1.0</div>';
 
-  html += '<div class="version-stamp">Field Tools · OT Tracker · v1.0</div></div>';
+  var html = '<div class="day-shell">' +
+    '<div class="day-l">' + leftHtml + '</div>' +
+    '<div class="day-r">' + rightHtml + '</div>' +
+  '</div>';
+
   mc.innerHTML = html;
 
   mc.querySelector('#day-prev').addEventListener('click', function() { state.date = addDays(state.date, -1); render(); });
   mc.querySelector('#day-next').addEventListener('click', function() { state.date = addDays(state.date,  1); render(); });
   var tp = mc.querySelector('#day-today');
   if (tp) tp.addEventListener('click', function() { state.date = todayStr(); render(); });
+  var da = mc.querySelector('#d-day-add');
+  if (da) da.addEventListener('click', function() { openSheet(null); });
   wireCards(mc);
 }
 
@@ -827,6 +1016,10 @@ function renderBiweekly(mc) {
   var allE      = loadEntries().filter(function(e) { return e.date >= bounds.start && e.date <= bounds.end; });
   var tots      = totalsFor(allE, settings);
   var hr        = parseFloat(settings.hourlyRate) || 0;
+
+  // Day map for calendar
+  var eMap = {};
+  allE.forEach(function(e) { if (!eMap[e.date]) eMap[e.date] = []; eMap[e.date].push(e); });
 
   // Breakdown: cash OT and emergency OT separately
   var cashM = 0, emerM = 0, normalOtM = 0, normalRegM = 0;
@@ -848,6 +1041,8 @@ function renderBiweekly(mc) {
     '</div>' +
 
     '<div class="bw-period-label">' + fmtDate(bounds.start) + ' &ndash; ' + fmtDate(bounds.end) + '</div>' +
+
+    ppCalGrid(bounds, eMap, settings) +
 
     '<div class="bw-totals-row">' +
       '<div class="bw-total-stat"><div class="bw-total-val">' + hFmt(tots.netM) + '</div><div class="bw-total-lbl">Hrs Worked</div></div>' +
@@ -890,9 +1085,12 @@ function renderBiweekly(mc) {
   '<div class="version-stamp">Field Tools · OT Tracker · v1.0</div></div>';
 
   mc.innerHTML = html;
-  mc.querySelector('#pp-cur').addEventListener('click',     function() { state.ppOffset = 0;  render(); });
-  mc.querySelector('#pp-prev-pp').addEventListener('click', function() { state.ppOffset = -1; render(); });
+  mc.querySelector('#pp-cur').addEventListener('click',     function() { state.ppOffset = 0;  savePpOffset(0);  render(); });
+  mc.querySelector('#pp-prev-pp').addEventListener('click', function() { state.ppOffset = -1; savePpOffset(-1); render(); });
   mc.querySelector('#export-bw').addEventListener('click',  function() { exportPDF('period', bounds.start, bounds.end); });
+  mc.querySelectorAll('[data-pp-day]').forEach(function(cell) {
+    cell.addEventListener('click', function() { state.date = this.dataset.ppDay; state.view = 'day'; render(); });
+  });
 }
 
 function bwCard(title, val, badgeClass, badgeLabel, sub) {
@@ -902,6 +1100,57 @@ function bwCard(title, val, badgeClass, badgeLabel, sub) {
     '<div class="bw-card-lbl">' + title + '</div>' +
     (sub ? '<div class="bw-card-sub">' + sub + '</div>' : '') +
   '</div>';
+}
+
+function ppCalGrid(bounds, eMap, settings) {
+  var today    = todayStr();
+  var DOW      = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var startD   = parseDate(bounds.start);
+  var startDow = startD.getDay(); // 0=Sun … 6=Sat
+
+  // DOW header — columns aligned to start day of the PP
+  var hdr = '<div class="pp-cal-header">';
+  for (var d = 0; d < 7; d++) hdr += '<div class="pp-dow">' + DOW[(startDow + d) % 7] + '</div>';
+  hdr += '</div>';
+
+  var cells = '';
+  for (var i = 0; i < 14; i++) {
+    var cur  = new Date(bounds.start + 'T00:00:00');
+    cur.setDate(cur.getDate() + i);
+    var ds    = dateStr(cur);
+    var dayE  = eMap[ds] || [];
+    var dayT  = totalsFor(dayE, settings);
+    var isFut = ds > today;
+    var isTod = ds === today;
+    var hasOt = dayT.otM > 0;
+
+    // Unique rate types for dot indicators
+    var rtSet = {};
+    dayE.forEach(function(e) { rtSet[e.rateType || e.otType || 'Normal'] = true; });
+    var dots = '';
+    if (rtSet['Normal'])    dots += '<span class="pp-cal-dot dot-Normal"></span>';
+    if (rtSet['XP'])        dots += '<span class="pp-cal-dot dot-XP"></span>';
+    if (rtSet['Cash'])      dots += '<span class="pp-cal-dot dot-Cash"></span>';
+    if (rtSet['Emergency']) dots += '<span class="pp-cal-dot dot-Emergency"></span>';
+
+    var cls = 'pp-cal-cell' +
+      (isTod        ? ' pp-today'       : '') +
+      (isFut        ? ' pp-future'      : '') +
+      (dayE.length  ? ' pp-has-entries' : '') +
+      (hasOt        ? ' pp-has-ot'      : '');
+
+    cells += '<div class="' + cls + '"' + (isFut ? '' : ' data-pp-day="' + ds + '"') + '>' +
+      '<div class="pp-cal-dn">' + cur.getDate() + '</div>' +
+      (dayE.length ? '<div class="pp-cal-hrs">' + hFmt(dayT.netM) + 'h</div>' : '') +
+      (hasOt ? '<div class="pp-cal-ot">OT ' + hFmt(dayT.otM) + 'h</div>' : '') +
+      (dots ? '<div class="pp-cal-dots">' + dots + '</div>' : '') +
+    '</div>';
+  }
+  return hdr + '<div class="pp-cal">' + cells + '</div>';
+}
+
+function savePpOffset(off) {
+  try { localStorage.setItem('ft_ts_ppoffset', String(off)); } catch(_) {}
 }
 
 // ── Month View ────────────────────────────────────────────────────
@@ -991,8 +1240,13 @@ function renderSettings(mc) {
     sRow('Default View', '', '<select id="s-dview"><option value="day"' + (s.defaultView === 'day' ? ' selected' : '') + '>Day</option><option value="biweekly"' + (s.defaultView === 'biweekly' ? ' selected' : '') + '>Biweekly</option><option value="month"' + (s.defaultView === 'month' ? ' selected' : '') + '>Month</option></select>') +
   '</div></div>';
 
-  html += '<div class="settings-section"><div class="settings-lbl">Data</div>' +
-    '<button class="danger-btn" id="clear-data">Clear All Entries</button>' +
+  html += '<div class="settings-section"><div class="settings-lbl">Data</div><div class="settings-card">' +
+    sRow('Export Backup', 'Save all entries as a JSON file you can restore later',
+      '<button class="entry-act" id="export-json" style="white-space:nowrap">Export JSON</button>') +
+    sRow('Import Backup', 'Restore entries from a previously exported JSON file',
+      '<label class="entry-act" style="cursor:pointer;white-space:nowrap" for="import-json-file">Import JSON<input type="file" id="import-json-file" accept=".json" style="display:none"></label>') +
+  '</div>' +
+  '<button class="danger-btn" id="clear-data" style="margin-top:10px">Clear All Entries</button>' +
   '</div>';
 
   html += '<div class="settings-section"><div class="settings-card">' +
@@ -1025,6 +1279,8 @@ function renderSettings(mc) {
   ['s-tfmt','s-wkst','s-dview'].forEach(function(id) {
     document.getElementById(id).addEventListener('change', saveS);
   });
+  document.getElementById('export-json').addEventListener('click', function() { exportJSON(); });
+  document.getElementById('import-json-file').addEventListener('change', function() { importJSON(this); this.value = ''; });
   document.getElementById('clear-data').addEventListener('click', function() {
     if (!confirm('Delete ALL entries? This cannot be undone.')) return;
     storeEntries([]);
@@ -1368,6 +1624,72 @@ function showToast(msg, type, dur) {
 }
 function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+// ── Sidebar PP mini-summary ───────────────────────────────────────
+function updateSidebarPP() {
+  var el = document.getElementById('d-pp-mini');
+  if (!el) return;
+  var settings = loadSettings();
+  var bounds = ppBounds(0); // always current PP in sidebar
+  var allE = loadEntries().filter(function(e) { return e.date >= bounds.start && e.date <= bounds.end; });
+  var tots = totalsFor(allE, settings);
+  // Compute regular hours (Normal entries within threshold)
+  var regM = 0;
+  allE.forEach(function(e) { var r = calcEntry(e, settings); if (r) regM += r.regM; });
+  var hr = parseFloat(settings.hourlyRate) || 0;
+  el.innerHTML =
+    '<div class="d-pp-mini-lbl">Current Pay Period</div>' +
+    '<div class="d-pp-row"><span class="d-pp-key">Regular</span><span class="d-pp-val">' + hFmt(regM) + 'h</span></div>' +
+    '<div class="d-pp-row"><span class="d-pp-key">Overtime</span><span class="d-pp-val" style="color:var(--red)">' + hFmt(tots.otM) + 'h</span></div>' +
+    (tots.xpCredited > 0 ? '<div class="d-pp-row"><span class="d-pp-key">Comp Time</span><span class="d-pp-val" style="color:var(--green)">' + hFmt(tots.xpCredited) + 'h</span></div>' : '') +
+    (hr > 0 ? '<div class="d-pp-row"><span class="d-pp-key">Est. Earnings</span><span class="d-pp-val" style="color:var(--green)">' + fmtMoney(tots.earnings) + '</span></div>' : '') +
+    '<div class="d-pp-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border-lo)"><span class="d-pp-key">Entries</span><span class="d-pp-val">' + allE.length + '</span></div>';
+}
+
+// ── JSON Backup / Restore ─────────────────────────────────────────
+function exportJSON() {
+  var data = {
+    version: 1,
+    exported: new Date().toISOString(),
+    entries: loadEntries(),
+    settings: loadSettings()
+  };
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href   = url;
+  a.download = 'OT-Tracker-Backup-' + todayStr() + '.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+  showToast('Backup exported', 'ok', 2000);
+}
+
+function importJSON(input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      var data = JSON.parse(ev.target.result);
+      if (!Array.isArray(data.entries)) throw new Error('Invalid format');
+      if (!confirm('Import ' + data.entries.length + ' entries? This will MERGE with existing entries (duplicates by ID are skipped).')) return;
+      var existing = loadEntries();
+      var existingIds = {};
+      existing.forEach(function(e) { existingIds[e.id] = true; });
+      var added = 0;
+      data.entries.forEach(function(e) {
+        if (!e.id || existingIds[e.id]) return;
+        existing.push(e); added++;
+      });
+      storeEntries(existing);
+      if (data.settings) storeSettings(Object.assign(loadSettings(), data.settings));
+      showToast('Imported ' + added + ' new entries', 'ok', 2600);
+      render();
+    } catch(err) {
+      showToast('Import failed — invalid file', 'err');
+    }
+  };
+  reader.readAsText(input.files[0]);
+}
+
 // ── Boot ──────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
   setTimeout(function() { document.documentElement.classList.remove('entering-from-hub'); }, 500);
@@ -1385,14 +1707,24 @@ document.addEventListener('DOMContentLoaded', function() {
   var settings = loadSettings();
   state.view = settings.defaultView || 'day';
   state.date = todayStr();
+  try { var sOff = localStorage.getItem('ft_ts_ppoffset'); if (sOff !== null) state.ppOffset = parseInt(sOff) || 0; } catch(_) {}
   render();
 
-  // Nav tabs
+  // Nav tabs (mobile bottom nav)
   document.querySelectorAll('.nav-tab').forEach(function(tab) {
     tab.addEventListener('click', function() { state.view = this.dataset.view; render(); });
   });
 
-  // FAB
+  // Desktop sidebar nav items
+  document.querySelectorAll('.d-nav-item').forEach(function(item) {
+    item.addEventListener('click', function() { state.view = this.dataset.view; render(); });
+  });
+
+  // Desktop sidebar "Log Entry" button
+  var dSidebarAdd = document.getElementById('d-sidebar-add');
+  if (dSidebarAdd) dSidebarAdd.addEventListener('click', function() { openSheet(null); });
+
+  // FAB (mobile)
   document.getElementById('fab').addEventListener('click', function() { openSheet(null); });
 
   // Sheet controls
