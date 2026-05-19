@@ -24,7 +24,7 @@
 
 > **Purpose:** This file is the authoritative quick-reference for the NJDOT Field Tools project. Read this FIRST before reading any HTML file. It contains every architectural decision, storage key, design token, and critical constraint so we can make changes without re-reading 6,800+ lines of HTML.
 >
-> **Last updated:** 2026-05-18 · v1.0
+> **Last updated:** 2026-05-18 · v1.1
 >
 > **Live site:** `https://joebiocco.github.io/NJDOT-Field-Tools-Hub/`
 > **Repo:** `https://github.com/Joebiocco/NJDOT-Field-Tools-Hub` (renamed from `Work-Order-Closeout`)
@@ -271,7 +271,7 @@ JS behavior (in every page):
 ### Caching strategy
 
 ```js
-const CACHE = 'ft-v1.0-2026-05-18';  // BUMP this on every push that should force refresh
+const CACHE = 'ft-v1.1-2026-05-18';  // BUMP this on every push that should force refresh
 
 // HTML pages → NETWORK-FIRST (always latest, cache as offline fallback)
 // Static files (icons, JSON, manifest) → CACHE-FIRST (rarely change)
@@ -447,3 +447,81 @@ The user has asked that the visible label "Hub" be replaced with "Home" or "Fiel
 - Then grep the relevant area
 - Avoid full-file reads of WorkOrderCloseout.html (2,949 lines, large)
 - For grep on large files, use `head_limit` parameter to avoid noise
+
+## 12. Overtime Tracker Rules (2026-05)
+
+### Rate Types
+
+- `Normal`: regular time; overtime is only from daily threshold logic.
+- `Cash`: immediate overtime at 1x (all entered hours go to overtime).
+- `XP`: comp-time conversion at 1.5x (`1.0h` worked becomes `1.5h` credited).
+- `Emergency`: immediate overtime at 1x hours, with entry-specific `Emergency Rate ($/hr)` pay input. Emergency is not a multiplier.
+
+### Automatic Shift Detection
+
+- Day shift: `06:00` through `17:59`.
+- Night shift: `18:00` through `05:59`.
+- There is no day/night user toggle in the form.
+- For reporting, entries are internally split into day/night minute buckets while UI stays single-entry.
+
+### 15-Minute Increment Time Entry
+
+- Start/stop time controls allow only `:00`, `:15`, `:30`, `:45`.
+- Desktop uses select controls instead of free-typing minute values.
+- Validation blocks non-quarter-hour values and identical start/stop times.
+
+### Biweekly Summary Rules
+
+- The weekly tab is replaced by biweekly summary.
+- Summary toggle supports current pay period and previous pay period.
+- Biweekly cards include:
+  - total regular hours
+  - total overtime hours
+  - total XP raw and converted
+  - total emergency raw and overtime hours
+  - total comp time earned
+  - total hours worked
+  - total entries
+
+### Summary Totals and Badges
+
+- Summary totals include:
+  - overtime (`Cash` + `XP converted` + `Emergency hours` + threshold overtime from `Normal`)
+  - regular hours
+  - comp time earned
+  - total worked hours
+  - entries
+- Badge colors:
+  - Regular = blue
+  - Overtime = red
+  - XP = green
+  - Emergency = orange
+
+### Theme Inheritance from Home
+
+- Overtime Tracker does not expose local theme toggles in header or settings.
+- Tracker reads global `field_dark_mode` state set by Home and applies `html[data-dark]`.
+- No per-page theme preference writes are performed in tracker.
+
+### Desktop vs Mobile Layout Requirements
+
+- Main content is centered with a wide desktop cap (`max-width: 1200px`).
+- Desktop uses increased spacing, wider cards, and multi-column groups.
+- Mobile keeps compact stacked layout and bottom-tab navigation.
+
+### Overtime Tracker Schema
+
+- Local keys:
+  - `ft_ts_entries`
+  - `ft_ts_settings`
+- Entry fields:
+  - `id`, `date`, `start`, `stop`, `breakMin`
+  - `rateType`
+  - `emergencyRate`
+  - `job`, `act`, `notes`
+- Removed concepts:
+  - `isOvertime`
+  - `emergencyMultiplier`
+  - `shiftToggle`
+  - overtime toggle UI
+  - day/night toggle UI
