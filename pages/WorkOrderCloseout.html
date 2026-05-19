@@ -123,6 +123,22 @@ body {
 .brand-sub   { font-size: 10px; color: #9ca3af; margin-top: 1px; }
 
 .topbar-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.topbar-help {
+  background: none;
+  border: 1.5px solid rgba(229,179,59,0.28);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #E5B33B;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition), border-color var(--transition);
+}
+.topbar-help:hover { background: rgba(229,179,59,0.10); border-color: #E5B33B; }
+.topbar-help svg { width: 16px; height: 16px; }
 
 /* ── BUTTONS ────────────────────────────────── */
 .btn {
@@ -743,6 +759,119 @@ html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
 .toast.ok  { border-color: #22c55e; color: #22c55e; background: #1a2e1a; }
 .toast.err { border-color: #ef4444; color: #ef4444; background: #2e1a1a; }
 
+/* ── GUIDE OVERLAY ─────────────────────────── */
+.guide-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+.guide-overlay.open { opacity: 1; pointer-events: auto; }
+.guide-modal {
+  background: var(--surface);
+  border-radius: 18px;
+  width: min(520px, calc(100vw - 24px));
+  max-height: min(680px, calc(100vh - 40px));
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+  transform: translateY(14px) scale(0.98);
+  transition: transform 280ms cubic-bezier(0.22,1,0.36,1);
+  overflow: hidden;
+}
+.guide-overlay.open .guide-modal { transform: none; }
+.guide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1.5px solid var(--border-lo);
+  flex-shrink: 0;
+}
+.guide-header-title { font-size: 16px; font-weight: 700; }
+.guide-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.guide-close:hover { color: var(--text); }
+.guide-slides { overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; }
+.guide-slide {
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--border-lo);
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.guide-slide:last-child { border-bottom: none; }
+.guide-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.gi-blue { background: var(--accent-lo); }
+.gi-green { background: rgba(16,185,129,0.12); }
+.gi-orange { background: rgba(245,158,11,0.12); }
+.gi-red { background: rgba(220,38,38,0.10); }
+.gi-navy { background: rgba(30,41,57,0.08); }
+html[data-dark] .gi-navy { background: rgba(255,255,255,0.06); }
+.guide-slide-body { flex: 1; min-width: 0; }
+.guide-slide-title { font-size: 14px; font-weight: 700; margin-bottom: 5px; }
+.guide-slide-text { font-size: 13px; color: var(--muted2); line-height: 1.55; }
+.guide-slide-text strong { color: var(--text); }
+.guide-pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.guide-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.03em;
+}
+.gp-blue { background: var(--accent-lo); color: var(--accent); }
+.gp-green { background: rgba(16,185,129,0.12); color: #059669; }
+.gp-orange { background: rgba(245,158,11,0.12); color: #b45309; }
+.gp-red { background: rgba(220,38,38,0.10); color: #dc2626; }
+.guide-footer {
+  padding: 14px 20px;
+  border-top: 1.5px solid var(--border-lo);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 10px;
+}
+.guide-footer-note { font-size: 11px; color: var(--muted); }
+.guide-done {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 10px 22px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.guide-done:hover { background: #1647b8; }
+.guide-done:active { transform: scale(0.97); }
+
 /* ── RESPONSIVE ─────────────────────────────── */
 @media (max-width: 720px) {
   .topbar {
@@ -760,6 +889,103 @@ html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
   .photos-grid { grid-template-columns: 1fr; }
   .fields-row { flex-wrap: wrap; }
   .fields-row .field-group { flex: 1 1 120px; }
+}
+
+@media (max-width: 520px) {
+  .topbar-help {
+    width: 30px;
+    height: 30px;
+  }
+  .guide-modal {
+    width: calc(100vw - 18px);
+    max-height: calc(100vh - 26px);
+    border-radius: 14px;
+  }
+  .guide-header {
+    padding: 15px 16px 12px;
+  }
+  .guide-header-title {
+    font-size: 15px;
+    line-height: 1.25;
+  }
+  .guide-slide {
+    padding: 16px;
+    gap: 11px;
+  }
+  .guide-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 17px;
+  }
+  .guide-slide-title { font-size: 13px; }
+  .guide-slide-text {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .guide-footer {
+    padding: 12px 16px;
+  }
+}
+
+@media (max-width: 380px) {
+  .topbar {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .brand { gap: 8px; }
+  .hub-back {
+    padding: 5px 9px 5px 7px;
+    font-size: 11px;
+  }
+  #topbar-logo { height: 32px !important; }
+  .brand-title { font-size: 14px; }
+  .topbar-actions {
+    gap: 4px;
+  }
+  .btn {
+    padding: 7px 10px;
+  }
+  .photo-badge {
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+  .guide-modal {
+    width: calc(100vw - 12px);
+    max-height: calc(100vh - 18px);
+  }
+  .guide-slide {
+    padding: 14px;
+    gap: 9px;
+  }
+  .guide-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+  }
+  .guide-pill {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+  .guide-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .guide-done {
+    width: 100%;
+  }
+}
+
+@media (max-width: 330px) {
+  .guide-slide {
+    display: block;
+  }
+  .guide-icon {
+    margin: 0 0 10px;
+  }
+  .guide-header-title {
+    font-size: 14px;
+  }
 }
 
   
@@ -979,6 +1205,9 @@ html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Export PDF
       </button>
+      <button class="topbar-help" id="open-guide" aria-label="Help & Guide">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </button>
     </nav>
   </header>
 
@@ -1094,6 +1323,68 @@ html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
   </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- ── GUIDE MODAL ─────────────────────────── -->
+  <div class="guide-overlay" id="guide-overlay" role="dialog" aria-modal="true" aria-label="Work Order Closeout Guide">
+    <div class="guide-modal">
+      <div class="guide-header">
+        <div class="guide-header-title">How to Use Work Order Closeout</div>
+        <button class="guide-close" id="guide-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="guide-slides">
+
+        <div class="guide-slide">
+          <div class="guide-icon gi-blue">1</div>
+          <div class="guide-slide-body">
+            <div class="guide-slide-title">Enter Work Order Details</div>
+            <div class="guide-slide-text">Fill in the <strong>work order, structure, route, direction, milepost, dates, and priority</strong> before adding documentation pages. These fields become the header information in the PDF.</div>
+          </div>
+        </div>
+
+        <div class="guide-slide">
+          <div class="guide-icon gi-green">2</div>
+          <div class="guide-slide-body">
+            <div class="guide-slide-title">Add Photos and Notes</div>
+            <div class="guide-slide-text">Use <strong>Camera</strong> or <strong>Gallery</strong> on each photo card, then enter the location and description. Add pages when the closeout needs more photos.</div>
+            <div class="guide-pill-row">
+              <span class="guide-pill gp-blue">Camera</span>
+              <span class="guide-pill gp-green">Gallery</span>
+              <span class="guide-pill gp-orange">Add Page</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-slide">
+          <div class="guide-icon gi-orange">3</div>
+          <div class="guide-slide-body">
+            <div class="guide-slide-title">Save the Editable Session</div>
+            <div class="guide-slide-text">Tap <strong>Save Session</strong> to download the HTML session file. That saved HTML becomes the editable copy of the work order, so keep it with the job files if anyone may need to change text, add photos, or regenerate the PDF later.</div>
+          </div>
+        </div>
+
+        <div class="guide-slide">
+          <div class="guide-icon gi-navy">4</div>
+          <div class="guide-slide-body">
+            <div class="guide-slide-title">Only Five Recent Sessions</div>
+            <div class="guide-slide-text"><strong>Recent</strong> is temporary device storage and only keeps the latest <strong>five</strong> sessions. Older sessions can be replaced automatically, so do not rely on Recent as the permanent record. Always keep the downloaded HTML session file.</div>
+          </div>
+        </div>
+
+        <div class="guide-slide">
+          <div class="guide-icon gi-red">5</div>
+          <div class="guide-slide-body">
+            <div class="guide-slide-title">Save Both Files</div>
+            <div class="guide-slide-text">Tap <strong>Export PDF</strong> for the final closeout document, and also keep the <strong>HTML session file</strong>. The PDF is basically a flat image for sharing/records; the HTML file is the editor that lets you reopen, revise, and export again.</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="guide-footer">
+        <div class="guide-footer-note">Tap <strong>?</strong> in the header anytime to reopen this guide.</div>
+        <button class="guide-done" id="guide-done">Got it</button>
+      </div>
+    </div>
+  </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1820,6 +2111,26 @@ function buildPage() {
   return block;
 }
 
+function wireExistingPageBlock(block) {
+  if (!block || block.dataset.wired === '1') return;
+  block.dataset.wired = '1';
+  var removeBtn = block.querySelector('.page-remove-btn');
+  if (removeBtn) {
+    removeBtn.addEventListener('click', function() {
+      var all = pagesContainer.querySelectorAll('.page-block');
+      if (all.length <= 1) { showToast('Cannot remove the last page', 'err'); return; }
+      if (!confirm('Remove this page and all its photos? This cannot be undone.')) return;
+      removePageWithAnimation(block, function() {
+        updatePageNumbers();
+        updatePhotoBadge();
+      });
+      showToast('Page removed', 'ok');
+    });
+  }
+  block.querySelectorAll('.photo-card').forEach(setupDropZone);
+  attachAutosize(block);
+}
+
 // ── SAVE DRAFT ────────────────────────────────
 saveDraftBtn.addEventListener('click', function() {
   try {
@@ -1839,94 +2150,49 @@ saveDraftBtn.addEventListener('click', function() {
         if (el.type === 'file') {
           var card = el.closest('.photo-card');
           var img  = card && card.querySelector('.drop-preview img');
-          obj[el.name] = (img && img.src && img.src.startsWith('data:')) ? img.src : '';
+          obj[el.dataset.base || el.name] = (img && img.src && img.src.startsWith('data:')) ? img.src : '';
         } else if (el.type === 'checkbox') {
-          obj[el.name] = el.checked;
+          obj[el.dataset.base || el.name] = el.checked;
         } else {
-          obj[el.name] = el.value || '';
+          obj[el.dataset.base || el.name] = el.value || '';
         }
       });
       data.pages.push(obj);
     });
 
-    // Take a snapshot of the current page HTML
-    var snapshot = document.documentElement.outerHTML;
+    // Take a snapshot of the current page HTML with live form state reflected.
+    var snapshotDoc = document.documentElement.cloneNode(true);
+    var liveFields = document.querySelectorAll('input, textarea, select');
+    snapshotDoc.querySelectorAll('input, textarea, select').forEach(function(cloneEl, idx) {
+      var liveEl = liveFields[idx];
+      if (!liveEl) return;
+
+      if (cloneEl.tagName === 'TEXTAREA') {
+        cloneEl.textContent = liveEl.value || '';
+      } else if (cloneEl.tagName === 'SELECT') {
+        Array.from(cloneEl.options || []).forEach(function(opt) {
+          opt.selected = !!(liveEl.options[liveEl.selectedIndex] && opt.value === liveEl.options[liveEl.selectedIndex].value);
+          if (opt.selected) opt.setAttribute('selected', 'selected');
+          else opt.removeAttribute('selected');
+        });
+      } else if (cloneEl.type === 'checkbox' || cloneEl.type === 'radio') {
+        cloneEl.checked = !!liveEl.checked;
+        if (liveEl.checked) cloneEl.setAttribute('checked', 'checked');
+        else cloneEl.removeAttribute('checked');
+      } else if (cloneEl.type !== 'file') {
+        cloneEl.setAttribute('value', liveEl.value || '');
+      }
+    });
+    var snapshot = snapshotDoc.outerHTML;
 
     // Remove any previous restore block
-    var rOpen  = '<!--SESSION_RESTORE_START-->';
-    var rClose = '<!--SESSION_RESTORE_END-->';
+    var rOpen  = '<!--SESSION_' + 'RESTORE_START-->';
+    var rClose = '<!--SESSION_' + 'RESTORE_END-->';
     var rStart = snapshot.indexOf(rOpen);
     if (rStart !== -1) {
       var rEnd = snapshot.indexOf(rClose, rStart);
       if (rEnd !== -1) snapshot = snapshot.slice(0, rStart) + snapshot.slice(rEnd + rClose.length);
     }
-
-    // Build restore script as concatenated strings
-    var sessionJSON = JSON.stringify(data);
-    var restoreCode = [
-      '(function(){',
-      '  var S = ' + sessionJSON + ';',
-      '  function restore(){',
-      '    ["workorder","structure","route","direction","mp","startDate","endDate"].forEach(function(id){',
-      '      var el=document.getElementById(id); if(el&&S.top[id]!==undefined) el.value=S.top[id];',
-      '    });',
-      '    var co=document.getElementById("isCloseout"); if(co) co.checked=!!S.top.isCloseout;',
-      '    var sel=document.getElementById("prioritySelect");',
-      '    var pri=document.getElementById("priority");',
-      '    if(sel&&S.top.prioritySelect!==undefined){',
-      '      sel.value=S.top.prioritySelect;',
-      '      if(S.top.prioritySelect==="custom"&&pri){ pri.style.display="block"; pri.value=S.top.priority||""; }',
-      '      else if(pri){ pri.style.display="none"; pri.value=S.top.prioritySelect||""; }',
-      '    }',
-      '    var dSel=document.getElementById("directionSelect");',
-      '    var dInp=document.getElementById("direction");',
-      '    if(dSel&&S.top.directionSelect!==undefined){',
-      '      dSel.value=S.top.directionSelect;',
-      '      if(S.top.directionSelect==="custom"&&dInp){ dInp.style.display="block"; dInp.value=S.top.direction||""; }',
-      '      else if(dInp){ dInp.style.display="none"; dInp.value=S.top.directionSelect||""; }',
-      '    }',
-      '    var pages=S.pages||[];',
-      '    var container=document.getElementById("pagesContainer");',
-      '    if(!container) return;',
-      '    // Clear any pages that loaded from the snapshot + the one buildPage() added at boot',
-      '    Array.from(container.querySelectorAll(".page-block")).forEach(function(b){b.remove();});',
-      '    if(typeof pageCounter!=="undefined") pageCounter=0;',
-      '    while(container.querySelectorAll(".page-block").length < pages.length) buildPage();',
-      '    container.querySelectorAll(".page-block").forEach(function(block,idx){',
-      '      var pd=pages[idx]||{};',
-      '      block.querySelectorAll("[data-base]").forEach(function(el){',
-      '        var val=pd[el.name]; if(val===undefined) return;',
-      '        if(el.type==="file"){',
-      '          if(val&&val.startsWith("data:")){',
-      '            var card=el.closest(".photo-card");',
-      '            var img=card&&card.querySelector(".drop-preview img");',
-      '            var prev=card&&card.querySelector(".drop-preview");',
-      '            if(img&&prev){img.src=val;prev.classList.add("active");}',
-      '          }',
-      '        } else if(el.type==="checkbox"){',
-      '          el.checked=!!val;',
-      '        } else {',
-      '          el.value=val||"";',
-      '        }',
-      '      });',
-      '    });',
-      '    if(typeof updatePageNumbers==="function") updatePageNumbers();',
-      '    if(typeof attachAutosize==="function") attachAutosize();',
-      '    if(typeof updatePhotoBadge==="function") updatePhotoBadge();',
-      '  }',
-      '  if(document.readyState==="loading"){',
-      '    document.addEventListener("DOMContentLoaded",function(){ setTimeout(restore,400); });',
-      '  } else { setTimeout(restore,400); }',
-      '})();'
-    ].join('\n');
-
-    // Wrap in script tag using HTML comment markers so we can strip it on next save
-    var scriptBlock = rOpen +
-      '<scr' + 'ipt>' + restoreCode + '</' + 'script>' +
-      rClose;
-
-    // Inject before </body>
-    snapshot = snapshot.replace('</' + 'body>', scriptBlock + '</' + 'body>');
 
     // Download
     var wo  = ((document.getElementById('workorder')||{}).value  || 'WO').trim();
@@ -2774,8 +3040,43 @@ document.getElementById('clearForm').addEventListener('click', function() {
   });
 })();
 
+// ── Guide / Tutorial ─────────────────────────
+(function() {
+  var GUIDE_KEY = 'ft_wo_guide_shown';
+  var guideOverlay = document.getElementById('guide-overlay');
+  var openBtn = document.getElementById('open-guide');
+  var closeBtn = document.getElementById('guide-close');
+  var doneBtn = document.getElementById('guide-done');
+  if (!guideOverlay || !openBtn) return;
+
+  function openGuide() {
+    guideOverlay.classList.add('open');
+  }
+  function closeGuide() {
+    guideOverlay.classList.remove('open');
+  }
+
+  openBtn.addEventListener('click', openGuide);
+  if (closeBtn) closeBtn.addEventListener('click', closeGuide);
+  if (doneBtn) doneBtn.addEventListener('click', closeGuide);
+  guideOverlay.addEventListener('click', function(e) {
+    if (e.target === guideOverlay) closeGuide();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && guideOverlay.classList.contains('open')) closeGuide();
+  });
+
+  try {
+    var shown = parseInt(localStorage.getItem(GUIDE_KEY) || '0', 10);
+    if (shown < 2 && !pagesContainer.querySelectorAll('.page-block').length) {
+      setTimeout(openGuide, 600);
+      localStorage.setItem(GUIDE_KEY, String(shown + 1));
+    }
+  } catch(_) {}
+})();
+
 // ── PWA ───────────────────────────────────────
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
   navigator.serviceWorker.register('../service-worker.js').catch(function(){});
 }
 
@@ -2795,7 +3096,13 @@ if ('serviceWorker' in navigator) {
 document.getElementById('topbar-logo').src = LOGO_SRC_VAR;
 // Last used tracking
 try { localStorage.setItem('ft_last', 'closeout'); } catch(e) {}
-buildPage();
+if (pagesContainer.querySelectorAll('.page-block').length) {
+  pageCounter = pagesContainer.querySelectorAll('.page-block').length;
+  pagesContainer.querySelectorAll('.page-block').forEach(wireExistingPageBlock);
+  updatePageNumbers();
+} else {
+  buildPage();
+}
 if (typeof window.attachDragToAllCards === 'function') window.attachDragToAllCards();
 updatePhotoBadge();
 renderRecent(); // prime the counter badge on page load

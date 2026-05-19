@@ -24,7 +24,7 @@
 
 > **Purpose:** This file is the authoritative quick-reference for the NJDOT Field Tools project. Read this FIRST before reading any HTML file. It contains every architectural decision, storage key, design token, and critical constraint so we can make changes without re-reading 6,800+ lines of HTML.
 >
-> **Last updated:** 2026-05-19 · v1.2
+> **Last updated:** 2026-05-19 · v1.7
 >
 > **Live site:** `https://joebiocco.github.io/NJDOT-Field-Tools-Hub/`
 > **Repo:** `https://github.com/Joebiocco/NJDOT-Field-Tools-Hub` (renamed from `Work-Order-Closeout`)
@@ -102,6 +102,7 @@ Work Order Website/
 | `ft_bookmark_shown` | index | int 0-2 | How many times bookmark popup has auto-shown on desktop |
 | `ft_ts_entries` | timesheet | JSON array of overtime/timesheet entries | Local Day/Week/Month tracker entries with date, start/stop, break, type, job/activity, and notes |
 | `ft_ts_settings` | timesheet | JSON settings object | Hourly rate, overtime multiplier, overtime threshold, default break, time format, week start, and default view |
+| `ft_wo_guide_shown` | WorkOrderCloseout | int 0-2 | How many times the Work Order tutorial modal has auto-shown |
 
 ### sessionStorage keys (cleared on tab close)
 
@@ -284,6 +285,7 @@ const CACHE = 'ft-v1.1-2026-05-18';  // BUMP this on every push that should forc
 ```
 
 **Important:** The service worker cache is **completely separate** from localStorage and IndexedDB. Updating/clearing the SW cache does NOT touch user bookmarks, sessions, or photos.
+Work Order page does not register the service worker on local preview hosts (`localhost`, `127.0.0.1`, `[::1]`) so stale offline fallback cannot mask current Save Session changes during testing.
 
 ### Update protocol
 
@@ -326,6 +328,8 @@ Two parallel implementations, identical behavior:
 - Save flow: collect photos → store full snapshot to IDB with `photoKey` → save metadata to `wo_recent` localStorage (no photos in localStorage)
 - Restore flow on chip click: read `wo_recent` rec, fetch IDB snapshot by `photoKey`, restore page count + per-page text fields + photos
 - Per-page text fields keyed by `data-base` attribute (NOT `el.name` which includes page-number suffix that breaks on rebuild)
+- Downloaded HTML session export is an interactive app snapshot: clone the live document, reflect current input/textarea/select state into the clone, strip any prior restore block, then download with app scripts intact so users can reopen the saved HTML and regenerate PDFs. Do not reintroduce injected restore scripts; they can corrupt exports when script/body marker text appears inside source code. Startup must detect existing `.page-block` elements and wire them instead of always calling `buildPage()`, or reopened snapshots gain an extra blank page.
+- Tutorial modal matches Payroll Calculator's guide format. It auto-shows on the first two fresh Work Order visits via `ft_wo_guide_shown`; the header `?` button reopens it anytime. Tutorial must emphasize that Recent only keeps five sessions, users should save both the HTML session and PDF, the PDF is a flat record, and the saved HTML is the editable session. Mobile guide breakpoints at 520px, 380px, and 330px tune modal width, icon size, padding, and footer stacking for different phone widths.
 
 ### Find My Bridge (njsearch.html)
 
