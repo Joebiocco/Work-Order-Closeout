@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Overtime Tracker &amp; Timesheet — Field Tools</title>
+  <title>Payroll Calculator — Field Tools</title>
   <link rel="manifest" href="../manifest.json">
   <meta name="theme-color" content="#E5B33B">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -385,13 +385,18 @@
       text-transform:none; letter-spacing:0; line-height:1.5; z-index:10;
       box-shadow:0 4px 16px rgba(0,0,0,0.2);
     }
-    .rate-pills { display:flex; gap:8px; justify-content:center; margin-bottom:18px; }
+    .rate-pills { display:flex; gap:6px; justify-content:center; margin-bottom:18px; }
     .rate-pill-opt { display:none; }
     .rate-pill-lbl {
-      flex:1; min-width:60px; text-align:center; padding:9px 8px;
+      flex:1; min-width:0; text-align:center; padding:9px 6px;
       border:2px solid var(--border); border-radius:20px;
       font-size:12px; font-weight:700; color:var(--muted); cursor:pointer;
-      transition:all var(--tr); user-select:none;
+      transition:all var(--tr); user-select:none; white-space:nowrap;
+      overflow:hidden; text-overflow:ellipsis;
+    }
+    @media (max-width:380px) {
+      .rate-pills { flex-wrap:wrap; gap:6px; }
+      .rate-pill-lbl { flex:0 0 calc(50% - 3px); font-size:11px; padding:8px 4px; }
     }
     .rate-pill-lbl:hover { border-color:var(--muted); color:var(--text); }
     .rate-pill-opt[value="Normal"]:checked    ~ .rate-pill-lbl-Normal    { border-color:var(--accent);  background:var(--accent-lo);  color:var(--accent); }
@@ -586,6 +591,90 @@
       .sheet.open { transform:translate(-50%, -50%); opacity:1; }
       .sheet-handle { display:none; }
     }
+
+    /* ── Topbar help button ── */
+    .topbar-help {
+      background:none; border:1.5px solid var(--gold-bd); border-radius:50%;
+      width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+      color:var(--gold); cursor:pointer; flex-shrink:0;
+      transition:background var(--tr), border-color var(--tr);
+    }
+    .topbar-help:hover { background:var(--gold-lo); border-color:var(--gold); }
+    .topbar-help svg { width:16px; height:16px; }
+
+    /* ── Guide overlay ── */
+    .guide-overlay {
+      position:fixed; inset:0; z-index:1200; background:rgba(0,0,0,0.55);
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none;
+      transition:opacity 220ms ease;
+    }
+    .guide-overlay.open { opacity:1; pointer-events:auto; }
+    .guide-modal {
+      background:var(--surface); border-radius:18px;
+      width:min(520px, calc(100vw - 24px));
+      max-height:min(680px, calc(100vh - 40px));
+      display:flex; flex-direction:column;
+      box-shadow:0 24px 64px rgba(0,0,0,0.3);
+      transform:translateY(14px) scale(0.98);
+      transition:transform 280ms cubic-bezier(0.22,1,0.36,1);
+      overflow:hidden;
+    }
+    .guide-overlay.open .guide-modal { transform:none; }
+    .guide-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:18px 20px 14px; border-bottom:1.5px solid var(--border-lo);
+      flex-shrink:0;
+    }
+    .guide-header-title { font-size:16px; font-weight:700; }
+    .guide-close {
+      background:none; border:none; color:var(--muted); font-size:22px;
+      line-height:1; cursor:pointer; padding:0 4px;
+    }
+    .guide-close:hover { color:var(--text); }
+    .guide-slides { overflow-y:auto; flex:1; -webkit-overflow-scrolling:touch; }
+    .guide-slide {
+      padding:20px 22px; border-bottom:1px solid var(--border-lo);
+      display:flex; gap:14px; align-items:flex-start;
+    }
+    .guide-slide:last-child { border-bottom:none; }
+    .guide-icon {
+      width:40px; height:40px; border-radius:12px; display:flex;
+      align-items:center; justify-content:center; font-size:20px;
+      flex-shrink:0; margin-top:1px;
+    }
+    .gi-blue   { background:var(--accent-lo); }
+    .gi-green  { background:var(--green-lo); }
+    .gi-orange { background:var(--orange-lo); }
+    .gi-red    { background:var(--red-lo); }
+    .gi-navy   { background:rgba(30,41,57,0.08); }
+    html[data-dark] .gi-navy { background:rgba(255,255,255,0.06); }
+    .guide-slide-body { flex:1; min-width:0; }
+    .guide-slide-title { font-size:14px; font-weight:700; margin-bottom:5px; }
+    .guide-slide-text { font-size:13px; color:var(--muted2); line-height:1.55; }
+    .guide-slide-text strong { color:var(--text); }
+    .guide-pill-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .guide-pill {
+      font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px;
+      letter-spacing:0.03em;
+    }
+    .gp-normal { background:var(--accent-lo); color:var(--accent); }
+    .gp-xp     { background:rgba(16,185,129,0.12); color:#059669; }
+    .gp-cash   { background:rgba(245,158,11,0.12); color:#b45309; }
+    .gp-emg    { background:rgba(220,38,38,0.10); color:#dc2626; }
+    .guide-footer {
+      padding:14px 20px; border-top:1.5px solid var(--border-lo);
+      display:flex; align-items:center; justify-content:space-between;
+      flex-shrink:0; gap:10px;
+    }
+    .guide-footer-note { font-size:11px; color:var(--muted); }
+    .guide-done {
+      background:var(--accent); color:#fff; border:none; border-radius:var(--radius);
+      padding:10px 22px; font-family:var(--sans); font-size:13px; font-weight:700;
+      cursor:pointer; transition:background var(--tr);
+    }
+    .guide-done:hover { background:#1647b8; }
+    .guide-done:active { transform:scale(0.97); }
   </style>
   <script>
     /* Inherit dark mode from Hub — read only, never write */
@@ -607,7 +696,10 @@
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/></svg>
     Home
   </a>
-  <span id="topbar-title">OT Tracker</span>
+  <span id="topbar-title">Payroll Calculator</span>
+  <button class="topbar-help" id="open-guide" aria-label="Help & Guide">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  </button>
 </div>
 
 <div id="app-shell">
@@ -782,7 +874,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <script>
 // ================================================================
-//  OT Tracker & Timesheet  —  Field Tools
+//  Payroll Calculator  —  Field Tools
 //  Storage: ft_ts_entries, ft_ts_settings
 // ================================================================
 
@@ -991,7 +1083,7 @@ function renderDay(mc) {
   } else {
     entries.forEach(function(e) { rightHtml += buildEntryCard(e, calcEntry(e, settings), settings); });
   }
-  rightHtml += '<div class="version-stamp">Field Tools · OT Tracker · v1.0</div>';
+  rightHtml += '<div class="version-stamp">Field Tools · Payroll Calculator · v1.2</div>';
 
   var html = '<div class="day-shell">' +
     '<div class="day-l">' + leftHtml + '</div>' +
@@ -1083,7 +1175,7 @@ function renderBiweekly(mc) {
       'Export Pay Period PDF' +
     '</button>' +
 
-  '<div class="version-stamp">Field Tools · OT Tracker · v1.0</div></div>';
+  '<div class="version-stamp">Field Tools · Payroll Calculator · v1.2</div></div>';
 
   mc.innerHTML = html;
   mc.querySelector('#pp-cur').addEventListener('click',     function() { state.ppOffset = 0;  savePpOffset(0);  render(); });
@@ -1211,7 +1303,7 @@ function renderMonth(mc) {
     '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
     'Export Month PDF</button>';
 
-  html += '<div class="version-stamp">Field Tools · OT Tracker · v1.0</div></div>';
+  html += '<div class="version-stamp">Field Tools · Payroll Calculator · v1.2</div></div>';
   mc.innerHTML = html;
 
   mc.querySelector('#mo-prev').addEventListener('click', function() { state.date = dateStr(new Date(yr, mo - 1, 1)); render(); });
@@ -1251,13 +1343,13 @@ function renderSettings(mc) {
   '</div>';
 
   html += '<div class="settings-section"><div class="settings-card">' +
-    '<div class="about-text">Field Tools · OT Tracker &amp; Timesheet · v1.0<br>' +
+    '<div class="about-text">Field Tools · Payroll Calculator · v1.2<br>' +
     'Part of the NJ DOT Field Tools suite.<br>' +
     'All data stored locally on this device.<br>' +
     'Theme controlled by the Home screen.</div>' +
   '</div></div>';
 
-  html += '<div class="version-stamp">Field Tools · OT Tracker · v1.0</div></div>';
+  html += '<div class="version-stamp">Field Tools · Payroll Calculator · v1.2</div></div>';
   mc.innerHTML = html;
 
   function saveS() {
@@ -1574,7 +1666,7 @@ function exportPDF(period, startDate, endDate) {
 
   var doc = new jsPDFClass({ orientation: 'portrait', unit: 'mm', format: 'letter' });
   doc.setFontSize(16); doc.setFont(undefined, 'bold');
-  doc.text('OT Tracker — ' + (period === 'period' ? 'Pay Period' : 'Monthly') + ' Report', 14, 20);
+  doc.text('Payroll Calculator — ' + (period === 'period' ? 'Pay Period' : 'Monthly') + ' Report', 14, 20);
   doc.setFontSize(10); doc.setFont(undefined, 'normal');
   doc.text('Period: ' + fmtDate(startDate) + ' – ' + fmtDate(endDate), 14, 28);
   doc.text('Generated: ' + new Date().toLocaleDateString(), 14, 34);
@@ -1787,7 +1879,108 @@ document.addEventListener('DOMContentLoaded', function() {
   window.addEventListener('touchstart', function(e) { if (e.touches[0].clientY <= 30) topbar.classList.remove('header-hidden'); }, { passive: true });
 
   if ('serviceWorker' in navigator) { navigator.serviceWorker.register('../service-worker.js').catch(function() {}); }
+
+  // ── Guide / Tutorial ──────────────────────────────────────────────────────
+  var GUIDE_KEY = 'ft_pc_guide_shown';
+  function openGuide() {
+    document.getElementById('guide-overlay').classList.add('open');
+  }
+  function closeGuide() {
+    document.getElementById('guide-overlay').classList.remove('open');
+  }
+  document.getElementById('open-guide').addEventListener('click', openGuide);
+  document.getElementById('guide-close').addEventListener('click', closeGuide);
+  document.getElementById('guide-done').addEventListener('click', closeGuide);
+  document.getElementById('guide-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeGuide();
+  });
+  // Auto-show first 2 times
+  try {
+    var shown = parseInt(localStorage.getItem(GUIDE_KEY) || '0', 10);
+    if (shown < 2) {
+      setTimeout(openGuide, 600);
+      localStorage.setItem(GUIDE_KEY, String(shown + 1));
+    }
+  } catch(_) {}
 });
 </script>
+
+<!-- ── Guide Modal ── -->
+<div class="guide-overlay" id="guide-overlay" role="dialog" aria-modal="true" aria-label="Payroll Calculator Guide">
+  <div class="guide-modal">
+    <div class="guide-header">
+      <div class="guide-header-title">📋 How to Use Payroll Calculator</div>
+      <button class="guide-close" id="guide-close" aria-label="Close">×</button>
+    </div>
+    <div class="guide-slides">
+
+      <div class="guide-slide">
+        <div class="guide-icon gi-blue">➕</div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Logging an Entry</div>
+          <div class="guide-slide-text">Tap the <strong>+</strong> button (mobile) or <strong>Log Entry</strong> (desktop sidebar) to record a shift. Enter your start &amp; end time in 15-minute increments, select your break duration, and choose a rate type.</div>
+        </div>
+      </div>
+
+      <div class="guide-slide">
+        <div class="guide-icon gi-blue">⏱</div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Rate Types</div>
+          <div class="guide-slide-text">Choose the type that matches your work:</div>
+          <div class="guide-pill-row">
+            <span class="guide-pill gp-normal">Normal</span>
+            <span class="guide-pill gp-xp">XP</span>
+            <span class="guide-pill gp-cash">Cash</span>
+            <span class="guide-pill gp-emg">Emergency</span>
+          </div>
+          <div class="guide-slide-text" style="margin-top:8px">
+            <strong>Normal</strong> — Regular pay; OT kicks in after daily threshold.<br>
+            <strong>XP</strong> — Comp time at 1.5× (1h worked = 1.5h credited).<br>
+            <strong>Cash</strong> — All hours count as OT at 1× immediately.<br>
+            <strong>Emergency</strong> — Call-out OT with a custom $/hr rate.
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-slide">
+        <div class="guide-icon gi-green">📅</div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Day View</div>
+          <div class="guide-slide-text">The default view shows <strong>today's entries</strong>, total hours, OT hours, and estimated earnings. Use the <strong>‹ ›</strong> arrows to navigate days, or tap <strong>Today</strong> to jump back.</div>
+        </div>
+      </div>
+
+      <div class="guide-slide">
+        <div class="guide-icon gi-orange">📊</div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Biweekly Summary</div>
+          <div class="guide-slide-text">The <strong>Biweekly</strong> tab shows a 14-day calendar for your current pay period. Tap any day to jump to it. Use the toggle to switch between the current and previous pay period.</div>
+        </div>
+      </div>
+
+      <div class="guide-slide">
+        <div class="guide-icon gi-navy">🗓</div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Month Calendar</div>
+          <div class="guide-slide-text">The <strong>Month</strong> tab shows every day at a glance. Days with entries show their total hours. A green dot means overtime was logged. Tap any day to open it in Day view.</div>
+        </div>
+      </div>
+
+      <div class="guide-slide">
+        <div class="guide-icon gi-navy">⚙️</div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Settings</div>
+          <div class="guide-slide-text">Set your <strong>hourly rate</strong> so earnings are calculated automatically. Configure your <strong>daily OT threshold</strong> (hours before overtime starts) and your <strong>pay period anchor date</strong>. Use <strong>Export / Import</strong> to back up your data.</div>
+        </div>
+      </div>
+
+    </div>
+    <div class="guide-footer">
+      <div class="guide-footer-note">Tap <strong>?</strong> in the header anytime to reopen this guide.</div>
+      <button class="guide-done" id="guide-done">Got it</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

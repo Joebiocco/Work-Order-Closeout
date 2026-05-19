@@ -11,7 +11,7 @@
    - IndexedDB: work-order photos + per-session data (ft_photos DB)
    ============================================================ */
 
-const CACHE = 'ft-v1.2-2026-05-19';
+const CACHE = 'ft-v1.3-2026-05-19';
 
 // Local assets to pre-cache on install
 const LOCAL_ASSETS = [

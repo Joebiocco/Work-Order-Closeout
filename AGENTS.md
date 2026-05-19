@@ -71,7 +71,7 @@ Work Order Website/
 │   ├── njsearch.html                # Bridge Navigator (1,440 lines)
 │   ├── njfuel.html                  # Fuel Station Finder (1,305 lines)
 │   ├── milemarker.html              # Road Milemarker Finder (GPS nearest route/milepost)
-│   ├── timesheet.html               # Overtime Tracker & Timesheet — Day/Week/Month/Settings
+│   ├── timesheet.html               # Payroll Calculator & Timesheet — Day/Week/Month/Settings
 │   └── WorkOrderCloseout.html       # Work Order tool (2,949 lines)
 ├── _archive/                        # old files, ignore
 ├── reference/                       # data sources, ignore
@@ -466,7 +466,7 @@ The user has asked that the visible label "Hub" be replaced with "Home" or "Fiel
 - Avoid full-file reads of WorkOrderCloseout.html (2,949 lines, large)
 - For grep on large files, use `head_limit` parameter to avoid noise
 
-## 12. Overtime Tracker Rules (2026-05)
+## 12. Payroll Calculator Rules (2026-05)
 
 ### Rate Types
 
@@ -517,7 +517,7 @@ The user has asked that the visible label "Hub" be replaced with "Home" or "Fiel
 
 ### Theme Inheritance from Home
 
-- Overtime Tracker does not expose local theme toggles in header or settings.
+- Payroll Calculator does not expose local theme toggles in header or settings.
 - Tracker reads global `field_dark_mode` state set by Home and applies `html[data-dark]`.
 - No per-page theme preference writes are performed in tracker.
 
@@ -527,7 +527,7 @@ The user has asked that the visible label "Hub" be replaced with "Home" or "Fiel
 - Desktop uses increased spacing, wider cards, and multi-column groups.
 - Mobile keeps compact stacked layout and bottom-tab navigation.
 
-### Overtime Tracker Schema
+### Payroll Calculator Schema
 
 - Local keys:
   - `ft_ts_entries`

@@ -20,7 +20,7 @@
     html.entering-from-hub body { opacity:0; transform:translate3d(-18vw,0,0) scale(0.98); animation:slideInLeft 380ms cubic-bezier(0.22,1,0.36,1) both !important; will-change:transform,opacity; }
     html.exiting-to-hub body { animation:slideOutLeft 360ms cubic-bezier(0.65,0,0.35,1) both !important; overflow:hidden; will-change:transform,opacity; }
 
-    #topbar { position:sticky; top:0; z-index:600; height:58px; background:#1e2939; border-bottom:2px solid #E5B33B; display:flex; align-items:center; gap:12px; padding:0 16px; transition:transform 460ms cubic-bezier(0.65,0,0.35,1),opacity 460ms cubic-bezier(0.65,0,0.35,1); }
+    #topbar { position:sticky; top:0; z-index:600; height:54px; background:#1e2939; border-bottom:2px solid #E5B33B; display:flex; align-items:center; gap:12px; padding:0 16px; transition:transform 460ms cubic-bezier(0.65,0,0.35,1),opacity 460ms cubic-bezier(0.65,0,0.35,1); }
     #topbar.header-hidden { transform:translateY(-100%); opacity:0; pointer-events:none; }
     .topbar-back {
       display:inline-flex; align-items:center; gap:6px;
@@ -34,47 +34,78 @@
       flex-shrink:0; white-space:nowrap;
     }
     .topbar-back:hover { background:#C9971A; border-color:#C9971A; color:#fff; }
-    .topbar-div { width:1px; height:22px; background:#374557; }
-    #topbar-title { color:#fff; font-size:15px; font-weight:700; }
+    .topbar-div { width:1px; height:22px; background:#374557; flex-shrink:0; }
+    #topbar-title { color:#fff; font-size:15px; font-weight:700; flex:1; }
 
-    .wrap { max-width:1200px; margin:0 auto; padding:18px 16px 34px; }
-    .hero { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:14px; }
-    .hero h1 { font-size:20px; line-height:1.25; margin-bottom:8px; }
-    .hero p { color:var(--muted); font-size:14px; line-height:1.6; max-width:860px; }
-    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
-    .btn { border:1px solid var(--border); background:var(--surface); color:var(--text); border-radius:999px; padding:11px 16px; font-size:14px; font-weight:600; cursor:pointer; transition:transform 120ms ease, box-shadow 180ms ease, border-color 180ms ease; }
-    .btn:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,0,0,0.08); border-color:#b8c4d3; }
-    .btn:active { transform:translateY(0); }
+    .wrap { max-width:1200px; margin:0 auto; padding:20px 16px 36px; }
+
+    /* Hero / search panel */
+    .hero { background:var(--surface); border:1.5px solid var(--border); border-radius:14px; padding:18px 20px; margin-bottom:16px; }
+    .hero h1 { font-size:20px; font-weight:700; line-height:1.25; margin-bottom:6px; }
+    .hero p { color:var(--muted); font-size:13px; line-height:1.6; max-width:860px; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; align-items:center; }
+    .btn {
+      font-family:var(--sans); border:1.5px solid var(--border); background:var(--surface);
+      color:var(--text); border-radius:10px; padding:11px 20px; font-size:14px; font-weight:600;
+      cursor:pointer; transition:transform 120ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+      white-space:nowrap;
+    }
+    .btn:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(0,0,0,0.1); border-color:#b8c4d3; }
+    .btn:active { transform:scale(0.97); }
     .btn-primary { background:#1a56db; border-color:#1a56db; color:#fff; }
+    .btn-primary:hover { background:#1647b8; border-color:#1647b8; box-shadow:0 4px 14px rgba(26,86,219,0.3); }
+    #retry-btn { display:none; } /* hidden until first locate succeeds */
+    #retry-btn.visible { display:inline-flex; }
 
-    .layout { display:grid; gap:14px; grid-template-columns:1fr; }
-    .card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; }
-    .kv { display:grid; grid-template-columns:140px 1fr; gap:8px; font-size:14px; margin-bottom:8px; }
-    .k { color:var(--muted); }
-    .v { font-weight:600; word-break:break-word; }
-    .status { margin-top:10px; font-size:13px; color:var(--muted); }
-    #map { height:360px; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
-    .small { font-size:12px; color:var(--muted); margin-top:8px; }
+    .status-wrap { margin-top:12px; display:flex; align-items:center; gap:8px; min-height:22px; }
+    .status-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; background:var(--muted); transition:background 0.2s; }
+    .status-dot.active { background:#1a56db; animation:pulse 1.4s ease infinite; }
+    .status-dot.ok { background:#10b981; animation:none; }
+    .status-dot.err { background:#dc2626; animation:none; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+    #status { font-size:13px; color:var(--muted); }
 
-    @media (max-width: 720px) {
-      .wrap { padding:14px 12px 24px; }
-      .hero { padding:14px; }
+    /* Result layout */
+    .layout { display:grid; gap:16px; grid-template-columns:1fr; }
+    .card { background:var(--surface); border:1.5px solid var(--border); border-radius:14px; padding:18px 20px; }
+    .card-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted); margin-bottom:14px; }
+    .result-empty { text-align:center; padding:28px 16px; color:var(--muted); font-size:14px; }
+    .result-empty svg { display:block; margin:0 auto 10px; opacity:0.35; }
+
+    .kv { display:flex; justify-content:space-between; align-items:baseline; gap:12px; padding:9px 0; border-bottom:1px solid var(--border-lo); font-size:14px; }
+    .kv:last-child { border-bottom:none; }
+    .k { color:var(--muted); font-size:13px; white-space:nowrap; }
+    .v { font-weight:600; word-break:break-word; text-align:right; color:var(--text); }
+    .v.v-large { font-size:20px; font-weight:700; color:#1a56db; }
+    .v.v-route { font-size:15px; font-weight:700; }
+    .small { font-size:11px; color:var(--muted); margin-top:14px; line-height:1.5; }
+
+    #map { height:340px; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+
+    @media (max-width:600px) {
+      .wrap { padding:14px 12px 28px; }
+      .hero { padding:14px 16px; }
       .hero h1 { font-size:18px; }
-      .hero p { font-size:13px; }
-      .actions { display:grid; grid-template-columns:1fr; gap:8px; }
-      .btn { width:100%; padding:12px 14px; font-size:14px; }
-      .card { padding:14px; }
-      .kv { grid-template-columns:1fr; gap:2px; font-size:13px; margin-bottom:9px; }
-      #map { height:320px; }
+      .actions { flex-direction:column; gap:8px; }
+      .btn { width:100%; padding:13px 16px; text-align:center; }
+      .card { padding:14px 16px; }
+      #map { height:280px; }
+      .kv { font-size:13px; }
     }
 
-    @media (min-width: 980px) {
-      .wrap { padding:22px 24px 36px; }
-      .hero { padding:20px; margin-bottom:16px; }
+    @media (min-width:720px) {
+      .wrap { padding:22px 24px 40px; }
+      .hero { padding:22px 24px; margin-bottom:18px; }
+      .hero h1 { font-size:22px; }
+      .layout { grid-template-columns:minmax(360px, 420px) minmax(0, 1fr); align-items:start; gap:18px; }
+      .card { padding:20px 22px; }
+      #map { height:460px; }
+    }
+
+    @media (min-width:1100px) {
       .hero h1 { font-size:24px; }
-      .layout { grid-template-columns:minmax(390px, 440px) minmax(0, 1fr); align-items:start; }
-      .card { padding:18px; }
-      #map { height:540px; }
+      .layout { grid-template-columns:minmax(380px, 440px) minmax(0, 1fr); }
+      #map { height:540px; position:sticky; top:72px; }
     }
   </style>
   <script>
@@ -100,27 +131,32 @@
 <div class="wrap">
   <section class="hero">
     <h1>Nearest State Route Milepost</h1>
-    <p>Uses GPS to find your nearest official state-maintained route milepost (Interstate, US, NJ, County). Local roads are excluded.</p>
+    <p>Uses GPS to find your nearest official state-maintained route milepost (Interstate, US, NJ Route, County). Local roads are excluded.</p>
     <div class="actions">
-      <button class="btn btn-primary" id="find-btn">Find My Milepost</button>
-      <button class="btn" id="retry-btn">Refresh Location</button>
+      <button class="btn btn-primary" id="find-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-3px;margin-right:6px"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        Find My Milepost
+      </button>
+      <button class="btn" id="retry-btn">🔄 Refresh Location</button>
     </div>
-    <div class="status" id="status">Ready.</div>
+    <div class="status-wrap">
+      <div class="status-dot" id="status-dot"></div>
+      <div id="status">Tap "Find My Milepost" to get started.</div>
+    </div>
   </section>
 
   <section class="layout">
     <article class="card">
-      <div class="kv"><div class="k">Route Class</div><div class="v" id="r-class">-</div></div>
-      <div class="kv"><div class="k">Route Name</div><div class="v" id="r-name">-</div></div>
-      <div class="kv"><div class="k">Route ID (SRI)</div><div class="v" id="r-sri">-</div></div>
-      <div class="kv"><div class="k">Milepost</div><div class="v" id="r-mp">-</div></div>
-      <div class="kv"><div class="k">Direction</div><div class="v" id="r-dir">-</div></div>
-      <div class="kv"><div class="k">Cross Street</div><div class="v" id="r-cross">-</div></div>
-      <div class="kv"><div class="k">Distance</div><div class="v" id="r-dist">-</div></div>
-      <div class="kv"><div class="k">GPS</div><div class="v" id="r-gps">-</div></div>
-      <p class="small">Search loads nearby tile chunks only. It does not load the full statewide dataset.</p>
+      <div class="card-title">Nearest Milepost</div>
+      <div id="result-body">
+        <div class="result-empty">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          No result yet. Tap the button above.
+        </div>
+      </div>
+      <p class="small">Loads nearby data tiles only — not the full statewide dataset.</p>
     </article>
-    <article class="card">
+    <article class="card" style="padding:0;overflow:hidden;">
       <div id="map"></div>
     </article>
   </section>
@@ -172,7 +208,11 @@
   }
 
   var statusEl = document.getElementById('status');
-  function setStatus(msg) { statusEl.textContent = msg; }
+  var statusDot = document.getElementById('status-dot');
+  function setStatus(msg, state) {
+    statusEl.textContent = msg;
+    statusDot.className = 'status-dot' + (state ? ' ' + state : '');
+  }
   function byId(id){ return document.getElementById(id); }
 
   var routeTypes = { "1":"Interstate", "2":"US Route", "3":"NJ State Highway", "5":"County Route" };
@@ -237,14 +277,18 @@
     return String(s || '').replace(/_+$/g, '');
   }
   function setResult(res, userLat, userLon, dirInfo){
-    byId('r-class').textContent = routeTypes[res[4]] || ("Type " + res[4]);
-    byId('r-name').textContent = res[5] || "-";
-    byId('r-sri').textContent = cleanSRI(res[3]) || "-";
-    byId('r-mp').textContent = String(res[2]);
-    byId('r-dir').textContent = dirInfo && dirInfo.label ? dirInfo.label : "-";
-    byId('r-cross').textContent = res[6] || "-";
-    byId('r-dist').textContent = fmtDist(res._dist);
-    byId('r-gps').textContent = userLat.toFixed(6) + ", " + userLon.toFixed(6);
+    var routeName = res[5] || cleanSRI(res[3]) || '-';
+    var routeClass = routeTypes[res[4]] || ('Type ' + res[4]);
+    var dirLabel = dirInfo && dirInfo.label ? dirInfo.label : '-';
+    byId('result-body').innerHTML =
+      '<div class="kv"><div class="k">Route</div><div class="v v-route">' + routeName + '</div></div>' +
+      '<div class="kv"><div class="k">Milepost</div><div class="v v-large">MP ' + res[2] + '</div></div>' +
+      '<div class="kv"><div class="k">Direction</div><div class="v">' + dirLabel + '</div></div>' +
+      '<div class="kv"><div class="k">Route Class</div><div class="v">' + routeClass + '</div></div>' +
+      '<div class="kv"><div class="k">Route ID (SRI)</div><div class="v">' + (cleanSRI(res[3]) || '-') + '</div></div>' +
+      (res[6] ? '<div class="kv"><div class="k">Cross Street</div><div class="v">' + res[6] + '</div></div>' : '') +
+      '<div class="kv"><div class="k">Distance from you</div><div class="v">' + fmtDist(res._dist) + '</div></div>' +
+      '<div class="kv"><div class="k">Your GPS</div><div class="v" style="font-size:12px;font-family:monospace">' + userLat.toFixed(6) + ', ' + userLon.toFixed(6) + '</div></div>';
   }
 
   function fetchJsonWithFallback(paths) {
@@ -321,17 +365,20 @@
   }
 
   function doLocate() {
-    setStatus('Getting GPS location...');
-    if (!navigator.geolocation) { setStatus('Geolocation is not supported on this browser.'); return; }
+    setStatus('Getting GPS location…', 'active');
+    byId('find-btn').disabled = true;
+    if (!navigator.geolocation) { setStatus('Geolocation is not supported on this browser.', 'err'); byId('find-btn').disabled = false; return; }
     navigator.geolocation.getCurrentPosition(function(pos){
       var lat = pos.coords.latitude, lon = pos.coords.longitude;
-      setStatus('Searching nearby route tiles...');
+      setStatus('Searching nearby route tiles…', 'active');
       findNearest(lat, lon).then(function(result){
-        if (!result || !result.best) { setStatus('No state-route milepost found near this location.'); return; }
+        byId('find-btn').disabled = false;
+        byId('retry-btn').classList.add('visible');
+        if (!result || !result.best) { setStatus('No state-route milepost found near this location.', 'err'); return; }
         var best = result.best;
         var dirInfo = nearestDirFromRoute(best, result.points || []);
         setResult(best, lat, lon, dirInfo);
-        setStatus('Nearest milepost found.');
+        setStatus('Nearest milepost found.', 'ok');
 
         if (userMarker) map.removeLayer(userMarker);
         if (userRing) map.removeLayer(userRing);
@@ -357,14 +404,17 @@
         map.fitBounds(g.getBounds().pad(0.35));
         nearestMarker.openPopup();
       }).catch(function() {
+        byId('find-btn').disabled = false;
+        byId('retry-btn').classList.add('visible');
         if (location.protocol === 'file:') {
-          setStatus('Could not load data from file mode. Open with local server: http://127.0.0.1:8765/pages/milemarker.html');
+          setStatus('Could not load data. Use local server: http://127.0.0.1:8765/pages/milemarker.html', 'err');
         } else {
-          setStatus('Could not search milepost data.');
+          setStatus('Could not search milepost data. Try again.', 'err');
         }
       });
     }, function(err){
-      setStatus('Location error: ' + err.message);
+      byId('find-btn').disabled = false;
+      setStatus('Location error: ' + err.message, 'err');
     }, { enableHighAccuracy:true, timeout:15000, maximumAge:0 });
   }
 

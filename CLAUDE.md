@@ -445,7 +445,7 @@ The user has asked that the visible label "Hub" be replaced with "Home" or "Fiel
 - Avoid full-file reads of WorkOrderCloseout.html (2,949 lines, large)
 - For grep on large files, use `head_limit` parameter to avoid noise
 
-## 12. Overtime Tracker Rules (2026-05)
+## 12. Payroll Calculator Rules (2026-05)
 
 ### Rate Types
 
@@ -496,7 +496,7 @@ The user has asked that the visible label "Hub" be replaced with "Home" or "Fiel
 
 ### Theme Inheritance from Home
 
-- Overtime Tracker does not expose local theme toggles in header or settings.
+- Payroll Calculator does not expose local theme toggles in header or settings.
 - Tracker reads global `field_dark_mode` state set by Home and applies `html[data-dark]`.
 - No per-page theme preference writes are performed in tracker.
 
@@ -506,7 +506,7 @@ The user has asked that the visible label "Hub" be replaced with "Home" or "Fiel
 - Desktop uses increased spacing, wider cards, and multi-column groups.
 - Mobile keeps compact stacked layout and bottom-tab navigation.
 
-### Overtime Tracker Schema
+### Payroll Calculator Schema
 
 - Local keys:
   - `ft_ts_entries`
