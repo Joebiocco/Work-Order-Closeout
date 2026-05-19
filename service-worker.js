@@ -11,7 +11,7 @@
    - IndexedDB: work-order photos + per-session data (ft_photos DB)
    ============================================================ */
 
-const CACHE = 'ft-v1.1-2026-05-18';
+const CACHE = 'ft-v1.2-2026-05-19';
 
 // Local assets to pre-cache on install
 const LOCAL_ASSETS = [
@@ -25,6 +25,8 @@ const LOCAL_ASSETS = [
   './pages/WorkOrderCloseout.html',
   './data/njfuel.json',
   './pages/timesheet.html',
+  './pages/milemarker.html',
+  './data/mileposts/index.json',
 ];
 
 self.addEventListener('install', function(e) {

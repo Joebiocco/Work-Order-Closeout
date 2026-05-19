@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Road Milemarker Finder - Field Tools</title>
+  <meta name="theme-color" content="#E5B33B">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root { --bg:#eef0f4; --surface:#fff; --border:#d1d9e0; --border-lo:#e8ecf0; --accent:#1a56db; --text:#111827; --muted:#6b7280; --radius:10px; --sans:'Inter',system-ui,-apple-system,Arial,sans-serif; }
+    html[data-dark] { --bg:#0f1117; --surface:#1c1e26; --border:#2d3748; --border-lo:#1f2937; --text:#f1f5f9; --muted:#94a3b8; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:var(--sans); background:var(--bg); color:var(--text); min-height:100vh; animation:pageFadeIn 460ms cubic-bezier(0.16,1,0.3,1); }
+    @keyframes pageFadeIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes slideInLeft { 0% { opacity:0; transform:translate3d(-18vw,0,0) scale(0.98); } 100% { opacity:1; transform:translate3d(0,0,0) scale(1); } }
+    @keyframes slideOutLeft { 0% { opacity:1; transform:translate3d(0,0,0) scale(1); } 50% { opacity:0; transform:translate3d(-30vw,0,0) scale(0.98); } 100% { opacity:0; transform:translate3d(-40vw,0,0) scale(0.97); } }
+    html.entering-from-hub body { opacity:0; transform:translate3d(-18vw,0,0) scale(0.98); animation:slideInLeft 380ms cubic-bezier(0.22,1,0.36,1) both !important; will-change:transform,opacity; }
+    html.exiting-to-hub body { animation:slideOutLeft 360ms cubic-bezier(0.65,0,0.35,1) both !important; overflow:hidden; will-change:transform,opacity; }
+
+    #topbar { position:sticky; top:0; z-index:600; height:58px; background:#1e2939; border-bottom:2px solid #E5B33B; display:flex; align-items:center; gap:12px; padding:0 16px; transition:transform 460ms cubic-bezier(0.65,0,0.35,1),opacity 460ms cubic-bezier(0.65,0,0.35,1); }
+    #topbar.header-hidden { transform:translateY(-100%); opacity:0; pointer-events:none; }
+    .topbar-back {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:5px 12px 5px 9px;
+      background:rgba(229,179,59,0.08);
+      border:1px solid rgba(229,179,59,0.30);
+      border-radius:999px;
+      color:#E5B33B; text-decoration:none;
+      font-size:12px; font-weight:600; letter-spacing:0.02em;
+      transition:background 0.15s, border-color 0.15s, color 0.15s;
+      flex-shrink:0; white-space:nowrap;
+    }
+    .topbar-back:hover { background:#C9971A; border-color:#C9971A; color:#fff; }
+    .topbar-div { width:1px; height:22px; background:#374557; }
+    #topbar-title { color:#fff; font-size:15px; font-weight:700; }
+
+    .wrap { max-width:1200px; margin:0 auto; padding:18px 16px 34px; }
+    .hero { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:14px; }
+    .hero h1 { font-size:20px; line-height:1.25; margin-bottom:8px; }
+    .hero p { color:var(--muted); font-size:14px; line-height:1.6; max-width:860px; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+    .btn { border:1px solid var(--border); background:var(--surface); color:var(--text); border-radius:999px; padding:11px 16px; font-size:14px; font-weight:600; cursor:pointer; transition:transform 120ms ease, box-shadow 180ms ease, border-color 180ms ease; }
+    .btn:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,0,0,0.08); border-color:#b8c4d3; }
+    .btn:active { transform:translateY(0); }
+    .btn-primary { background:#1a56db; border-color:#1a56db; color:#fff; }
+
+    .layout { display:grid; gap:14px; grid-template-columns:1fr; }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; }
+    .kv { display:grid; grid-template-columns:140px 1fr; gap:8px; font-size:14px; margin-bottom:8px; }
+    .k { color:var(--muted); }
+    .v { font-weight:600; word-break:break-word; }
+    .status { margin-top:10px; font-size:13px; color:var(--muted); }
+    #map { height:360px; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+    .small { font-size:12px; color:var(--muted); margin-top:8px; }
+
+    @media (max-width: 720px) {
+      .wrap { padding:14px 12px 24px; }
+      .hero { padding:14px; }
+      .hero h1 { font-size:18px; }
+      .hero p { font-size:13px; }
+      .actions { display:grid; grid-template-columns:1fr; gap:8px; }
+      .btn { width:100%; padding:12px 14px; font-size:14px; }
+      .card { padding:14px; }
+      .kv { grid-template-columns:1fr; gap:2px; font-size:13px; margin-bottom:9px; }
+      #map { height:320px; }
+    }
+
+    @media (min-width: 980px) {
+      .wrap { padding:22px 24px 36px; }
+      .hero { padding:20px; margin-bottom:16px; }
+      .hero h1 { font-size:24px; }
+      .layout { grid-template-columns:minmax(390px, 440px) minmax(0, 1fr); align-items:start; }
+      .card { padding:18px; }
+      #map { height:540px; }
+    }
+  </style>
+  <script>
+    try {
+      if (localStorage.getItem('field_dark_mode') === '1') document.documentElement.setAttribute('data-dark', '');
+      if (sessionStorage.getItem('ft_opening_from_hub') === '1') {
+        document.documentElement.classList.add('entering-from-hub');
+        sessionStorage.removeItem('ft_opening_from_hub');
+      }
+    } catch (_) {}
+  </script>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html" class="topbar-back" id="hub-back">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+    Home
+  </a>
+  <div class="topbar-div"></div>
+  <span id="topbar-title">Road Milemarker Finder</span>
+</div>
+
+<div class="wrap">
+  <section class="hero">
+    <h1>Nearest State Route Milepost</h1>
+    <p>Uses GPS to find your nearest official state-maintained route milepost (Interstate, US, NJ, County). Local roads are excluded.</p>
+    <div class="actions">
+      <button class="btn btn-primary" id="find-btn">Find My Milepost</button>
+      <button class="btn" id="retry-btn">Refresh Location</button>
+    </div>
+    <div class="status" id="status">Ready.</div>
+  </section>
+
+  <section class="layout">
+    <article class="card">
+      <div class="kv"><div class="k">Route Class</div><div class="v" id="r-class">-</div></div>
+      <div class="kv"><div class="k">Route Name</div><div class="v" id="r-name">-</div></div>
+      <div class="kv"><div class="k">Route ID (SRI)</div><div class="v" id="r-sri">-</div></div>
+      <div class="kv"><div class="k">Milepost</div><div class="v" id="r-mp">-</div></div>
+      <div class="kv"><div class="k">Direction</div><div class="v" id="r-dir">-</div></div>
+      <div class="kv"><div class="k">Cross Street</div><div class="v" id="r-cross">-</div></div>
+      <div class="kv"><div class="k">Distance</div><div class="v" id="r-dist">-</div></div>
+      <div class="kv"><div class="k">GPS</div><div class="v" id="r-gps">-</div></div>
+      <p class="small">Search loads nearby tile chunks only. It does not load the full statewide dataset.</p>
+    </article>
+    <article class="card">
+      <div id="map"></div>
+    </article>
+  </section>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function() {
+  setTimeout(function() { document.documentElement.classList.remove('entering-from-hub'); }, 420);
+  try { localStorage.setItem('ft_last', 'milemarker'); } catch(_) {}
+
+  window.addEventListener('storage', function(ev) {
+    if (ev.key !== 'field_dark_mode') return;
+    if (ev.newValue === '1') document.documentElement.setAttribute('data-dark', '');
+    else document.documentElement.removeAttribute('data-dark');
+  });
+
+  var topbar = document.getElementById('topbar');
+  var lastY = window.scrollY, downStart = null, over = false;
+  topbar.addEventListener('mouseenter', function(){ over = true; });
+  topbar.addEventListener('mouseleave', function(){ over = false; });
+  window.addEventListener('scroll', function(){
+    var y = window.scrollY;
+    if (y > lastY && y > 80) { if (!downStart) downStart = Date.now(); if (Date.now() - downStart > 1000 && !over) topbar.classList.add('header-hidden'); }
+    else { downStart = null; topbar.classList.remove('header-hidden'); }
+    lastY = y;
+  }, { passive:true });
+  window.addEventListener('mousemove', function(e){ if (e.clientY <= 14) topbar.classList.remove('header-hidden'); });
+  window.addEventListener('touchstart', function(e){ if (e.touches[0].clientY <= 30) topbar.classList.remove('header-hidden'); }, { passive:true });
+
+  var link = document.getElementById('hub-back');
+  if (link) {
+    link.addEventListener('click', function(e) {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+      e.preventDefault();
+      try { sessionStorage.setItem('ft_returning_to_hub', '1'); } catch(_) {}
+      var body = document.body;
+      body.style.transition = 'none';
+      body.style.opacity = '1';
+      body.style.transform = 'translate3d(0, 0, 0) scale(1)';
+      body.style.willChange = 'transform, opacity';
+      body.style.backfaceVisibility = 'hidden';
+      void body.offsetWidth;
+      body.style.transition = 'opacity 320ms cubic-bezier(0.65, 0, 0.35, 1), transform 320ms cubic-bezier(0.65, 0, 0.35, 1)';
+      body.style.opacity = '0';
+      body.style.transform = 'translate3d(-30vw, 0, 0) scale(0.97)';
+      setTimeout(function() { window.location.href = link.href; }, 340);
+    });
+  }
+
+  var statusEl = document.getElementById('status');
+  function setStatus(msg) { statusEl.textContent = msg; }
+  function byId(id){ return document.getElementById(id); }
+
+  var routeTypes = { "1":"Interstate", "2":"US Route", "3":"NJ State Highway", "5":"County Route" };
+  var idx = null;
+  var chunkCache = {};
+  var tileSize = 0.1;
+  var map = L.map('map', { wheelDebounceTime: 200 }).setView([40.1, -74.5], 8);
+  var streetLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+    attribution: 'Map data &copy; Google',
+    subdomains: '0123',
+    maxZoom: 20
+  });
+  var satLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+    attribution: 'Map data &copy; Google',
+    subdomains: '0123',
+    maxZoom: 20
+  }).addTo(map);
+  L.control.layers({ 'Street': streetLayer, 'Satellite': satLayer }, null, { position: 'topright' }).addTo(map);
+  var userMarker = null, userRing = null, nearestMarker = null;
+
+  function toRad(v){ return v * Math.PI / 180; }
+  function hav(lat1, lon1, lat2, lon2) {
+    var R = 6371000, dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+  function bearingDeg(lat1, lon1, lat2, lon2) {
+    var p1 = toRad(lat1), p2 = toRad(lat2), dLon = toRad(lon2 - lon1);
+    var y = Math.sin(dLon) * Math.cos(p2);
+    var x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dLon);
+    var b = Math.atan2(y, x) * 180 / Math.PI;
+    return (b + 360) % 360;
+  }
+  function cardinalFromBearing(b) {
+    if (b >= 315 || b < 45) return 'Northbound';
+    if (b >= 45 && b < 135) return 'Eastbound';
+    if (b >= 135 && b < 225) return 'Southbound';
+    return 'Westbound';
+  }
+  function nearestDirFromRoute(best, points) {
+    var sri = best[3], bestI = -1, bestD = Infinity;
+    for (var i = 0; i < points.length; i++) {
+      var p = points[i];
+      if (p[3] !== sri) continue;
+      var d = hav(best[0], best[1], p[0], p[1]);
+      if (d < bestD) { bestD = d; bestI = i; }
+    }
+    if (bestI < 0) return null;
+    var a = null, c = null;
+    for (var j = bestI - 1; j >= 0; j--) { if (points[j][3] === sri) { a = points[j]; break; } }
+    for (var k = bestI + 1; k < points.length; k++) { if (points[k][3] === sri) { c = points[k]; break; } }
+    var from = a, to = c;
+    if (!from && c) from = points[bestI];
+    if (!to && a) to = points[bestI];
+    if (!from || !to || (from[0] === to[0] && from[1] === to[1])) return null;
+    var b = bearingDeg(from[0], from[1], to[0], to[1]);
+    return { bearing: b, label: cardinalFromBearing(b) };
+  }
+  function tileKey(lat, lon){ return Math.floor(lat / tileSize) + "_" + Math.floor(lon / tileSize); }
+  function fmtDist(m){ return m < 1609 ? Math.round(m) + " ft" : (m / 1609.344).toFixed(2) + " mi"; }
+  function cleanSRI(s) {
+    return String(s || '').replace(/_+$/g, '');
+  }
+  function setResult(res, userLat, userLon, dirInfo){
+    byId('r-class').textContent = routeTypes[res[4]] || ("Type " + res[4]);
+    byId('r-name').textContent = res[5] || "-";
+    byId('r-sri').textContent = cleanSRI(res[3]) || "-";
+    byId('r-mp').textContent = String(res[2]);
+    byId('r-dir').textContent = dirInfo && dirInfo.label ? dirInfo.label : "-";
+    byId('r-cross').textContent = res[6] || "-";
+    byId('r-dist').textContent = fmtDist(res._dist);
+    byId('r-gps').textContent = userLat.toFixed(6) + ", " + userLon.toFixed(6);
+  }
+
+  function fetchJsonWithFallback(paths) {
+    var i = 0;
+    function next() {
+      if (i >= paths.length) return Promise.reject(new Error('all fetch attempts failed'));
+      var p = paths[i++];
+      return fetch(p, { cache: 'no-store' }).then(function(r){
+        if (!r.ok) throw new Error('http ' + r.status);
+        return r.json();
+      }).catch(function(){ return next(); });
+    }
+    return next();
+  }
+
+  function loadIndex() {
+    if (idx) return Promise.resolve(idx);
+    var paths = ['../data/mileposts/index.json'];
+    if (location.protocol === 'file:') {
+      paths.push('http://127.0.0.1:8765/data/mileposts/index.json');
+      paths.push('http://localhost:8765/data/mileposts/index.json');
+    }
+    return fetchJsonWithFallback(paths).then(function(j){
+      idx = j; tileSize = +j.tileSizeDeg || 0.1; return j;
+    });
+  }
+
+  function loadChunk(tile) {
+    if (chunkCache[tile]) return Promise.resolve(chunkCache[tile]);
+    var meta = idx.tiles[tile];
+    if (!meta) return Promise.resolve([]);
+    var paths = ['../' + meta.file];
+    if (location.protocol === 'file:') {
+      paths.push('http://127.0.0.1:8765/' + meta.file);
+      paths.push('http://localhost:8765/' + meta.file);
+    }
+    return fetchJsonWithFallback(paths).then(function(j){
+      chunkCache[tile] = j.points || [];
+      return chunkCache[tile];
+    }).catch(function(){ return []; });
+  }
+
+  function neighborTiles(lat, lon, radius) {
+    var baseLat = Math.floor(lat / tileSize), baseLon = Math.floor(lon / tileSize), out = [];
+    for (var a = -radius; a <= radius; a++) {
+      for (var b = -radius; b <= radius; b++) {
+        out.push((baseLat + a) + "_" + (baseLon + b));
+      }
+    }
+    return out;
+  }
+
+  function findNearest(lat, lon) {
+    return loadIndex().then(function() {
+      var r = 1;
+      function step() {
+        var keys = neighborTiles(lat, lon, r).filter(function(k){ return !!idx.tiles[k]; });
+        if (!keys.length && r < 3) { r++; return step(); }
+        return Promise.all(keys.map(loadChunk)).then(function(sets){
+          var all = [];
+          for (var i=0; i<sets.length; i++) for (var j=0; j<sets[i].length; j++) all.push(sets[i][j]);
+          if (!all.length && r < 3) { r++; return step(); }
+          var best = null;
+          for (var x=0; x<all.length; x++) {
+            var p = all[x];
+            var d = hav(lat, lon, p[0], p[1]);
+            if (!best || d < best._dist) { best = p; best._dist = d; }
+          }
+          return { best: best, points: all };
+        });
+      }
+      return step();
+    });
+  }
+
+  function doLocate() {
+    setStatus('Getting GPS location...');
+    if (!navigator.geolocation) { setStatus('Geolocation is not supported on this browser.'); return; }
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var lat = pos.coords.latitude, lon = pos.coords.longitude;
+      setStatus('Searching nearby route tiles...');
+      findNearest(lat, lon).then(function(result){
+        if (!result || !result.best) { setStatus('No state-route milepost found near this location.'); return; }
+        var best = result.best;
+        var dirInfo = nearestDirFromRoute(best, result.points || []);
+        setResult(best, lat, lon, dirInfo);
+        setStatus('Nearest milepost found.');
+
+        if (userMarker) map.removeLayer(userMarker);
+        if (userRing) map.removeLayer(userRing);
+        if (nearestMarker) map.removeLayer(nearestMarker);
+        userRing = L.circle([lat, lon], {
+          radius: Math.max(25, Math.min(80, (pos.coords.accuracy || 30) * 0.6)),
+          color: '#1a56db',
+          weight: 2,
+          fillColor: '#1a56db',
+          fillOpacity: 0.18
+        }).addTo(map);
+        userMarker = L.circleMarker([lat, lon], {
+          radius: 10,
+          color: '#ffffff',
+          weight: 3,
+          fillColor:'#1a56db',
+          fillOpacity:1
+        }).addTo(map).bindPopup('Your Current Location');
+        var dirText = dirInfo && dirInfo.label ? ('<br>' + dirInfo.label) : '';
+        nearestMarker = L.circleMarker([best[0], best[1]], { radius: 7, color: '#d97706', fillColor:'#d97706', fillOpacity:0.9 }).addTo(map)
+          .bindPopup((routeTypes[best[4]] || 'Route') + ' • MP ' + best[2] + '<br>' + (best[5] || best[3]) + dirText);
+        var g = L.featureGroup([userRing, userMarker, nearestMarker]);
+        map.fitBounds(g.getBounds().pad(0.35));
+        nearestMarker.openPopup();
+      }).catch(function() {
+        if (location.protocol === 'file:') {
+          setStatus('Could not load data from file mode. Open with local server: http://127.0.0.1:8765/pages/milemarker.html');
+        } else {
+          setStatus('Could not search milepost data.');
+        }
+      });
+    }, function(err){
+      setStatus('Location error: ' + err.message);
+    }, { enableHighAccuracy:true, timeout:15000, maximumAge:0 });
+  }
+
+  document.getElementById('find-btn').addEventListener('click', doLocate);
+  document.getElementById('retry-btn').addEventListener('click', doLocate);
+
+  // Clean up stale transition classes on bfcache restore
+  window.addEventListener('pageshow', function() {
+    document.documentElement.classList.remove('exiting-to-tool', 'exiting-to-hub', 'entering-from-hub', 'returning-from-tool');
+  });
+
+  // Intercept browser back button to play Home-return animation
+  (function() {
+    if (!window.history || !window.history.pushState) return;
+    if (!history.state || !history.state.ftDummy) {
+      history.pushState({ ftDummy: true }, '');
+    }
+    var backNavigating = false;
+    window.addEventListener('popstate', function() {
+      if (backNavigating) return;
+      backNavigating = true;
+      try { sessionStorage.setItem('ft_returning_to_hub', '1'); } catch(_){}
+      var body = document.body;
+      body.style.transition = 'none';
+      body.style.opacity = '1';
+      body.style.transform = 'translate3d(0, 0, 0) scale(1)';
+      body.style.willChange = 'transform, opacity';
+      body.style.backfaceVisibility = 'hidden';
+      void body.offsetWidth;
+      body.style.transition = 'opacity 320ms cubic-bezier(0.65, 0, 0.35, 1), transform 320ms cubic-bezier(0.65, 0, 0.35, 1)';
+      body.style.opacity = '0';
+      body.style.transform = 'translate3d(-30vw, 0, 0) scale(0.97)';
+      setTimeout(function() { window.location.href = '../index.html'; }, 340);
+    });
+    window.addEventListener('pageshow', function(e) {
+      if (e.persisted && (!history.state || !history.state.ftDummy)) {
+        history.pushState({ ftDummy: true }, '');
+        backNavigating = false;
+      }
+    });
+  })();
+})();
+</script>
+</body>
+</html>

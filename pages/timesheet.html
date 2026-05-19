@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Overtime Tracker & Timesheet — Field Tools</title>
+  <title>Overtime Tracker &amp; Timesheet — Field Tools</title>
   <link rel="manifest" href="../manifest.json">
   <meta name="theme-color" content="#E5B33B">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,6 +14,8 @@
       --bg:#eef0f4; --surface:#fff; --border:#d1d9e0; --border-lo:#e8ecf0;
       --accent:#1a56db; --accent-lo:rgba(26,86,219,0.08);
       --red:#dc2626; --red-lo:rgba(220,38,38,0.08);
+      --green:#059669; --green-lo:rgba(5,150,105,0.08);
+      --orange:#d97706; --orange-lo:rgba(217,119,6,0.08);
       --text:#111827; --muted:#6b7280; --muted2:#4b5563;
       --radius-sm:5px; --radius:8px; --radius-lg:14px;
       --sans:'Inter',system-ui,-apple-system,Arial,sans-serif;
@@ -24,11 +26,15 @@
     html[data-dark] {
       --bg:#0f1117; --surface:#1c1e26; --border:#2d3748; --border-lo:#1f2937;
       --text:#f1f5f9; --muted:#94a3b8; --muted2:#cbd5e1;
-      --accent-lo:rgba(26,86,219,0.15); --red-lo:rgba(220,38,38,0.12);
+      --accent-lo:rgba(26,86,219,0.15); --red-lo:rgba(220,38,38,0.14);
+      --green-lo:rgba(5,150,105,0.14); --orange-lo:rgba(217,119,6,0.14);
     }
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
     html { background:var(--bg); }
-    body { font-family:var(--sans); background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; padding-bottom:var(--nav-h); }
+    body {
+      font-family:var(--sans); background:var(--bg); color:var(--text);
+      min-height:100vh; display:flex; flex-direction:column; padding-bottom:var(--nav-h);
+    }
 
     /* ── Animations ── */
     @keyframes pageFadeIn { from{opacity:0} to{opacity:1} }
@@ -44,10 +50,9 @@
     /* ── Topbar ── */
     #topbar {
       height:54px; background:var(--navy); border-bottom:2px solid var(--gold);
-      display:flex; align-items:center; padding:0 14px; gap:10px; flex-shrink:0;
+      display:flex; align-items:center; padding:0 20px; gap:12px; flex-shrink:0;
       position:sticky; top:0; z-index:600;
       transition:transform 460ms cubic-bezier(0.65,0,0.35,1), opacity 460ms cubic-bezier(0.65,0,0.35,1);
-      will-change:transform;
     }
     #topbar.header-hidden { transform:translateY(-100%); opacity:0; pointer-events:none; }
     .hub-back {
@@ -58,37 +63,41 @@
     }
     .hub-back:hover { background:rgba(229,179,59,0.2); color:#FEE9A1; }
     #topbar-title { color:#fff; font-size:15px; font-weight:700; flex:1; }
-    .dark-toggle {
-      background:var(--gold-lo); border:1px solid var(--gold-bd); color:var(--gold);
-      border-radius:20px; padding:5px 9px; cursor:pointer; display:flex; align-items:center;
-      transition:background var(--tr); flex-shrink:0;
-    }
-    .dark-toggle:hover { background:rgba(229,179,59,0.2); color:#FEE9A1; }
 
     /* ── Bottom Nav ── */
     #bottom-nav {
       position:fixed; bottom:0; left:0; right:0; height:var(--nav-h);
       background:var(--surface); border-top:1.5px solid var(--border);
-      display:flex; z-index:600;
-      padding-bottom:env(safe-area-inset-bottom,0px);
+      display:flex; z-index:600; padding-bottom:env(safe-area-inset-bottom,0px);
     }
     .nav-tab {
       flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
       gap:3px; cursor:pointer; border:none; background:transparent;
       color:var(--muted); font-family:var(--sans); font-size:10px; font-weight:600;
-      letter-spacing:0.03em; transition:color var(--tr); padding:0; -webkit-tap-highlight-color:transparent;
+      letter-spacing:0.03em; transition:color var(--tr); padding:0;
+      -webkit-tap-highlight-color:transparent;
     }
     .nav-tab.active { color:var(--accent); }
     .nav-tab:active { transform:scale(0.92); }
 
-    /* ── Main Content ── */
-    #main-content { flex:1; max-width:520px; width:100%; margin:0 auto; padding:0 0 16px; }
+    /* ── Main Content / Desktop Layout ── */
+    #main-content { flex:1; width:100%; }
+    .page-wrap {
+      max-width:960px; margin:0 auto; padding:0 14px 16px;
+    }
+    @media (min-width:720px) {
+      .page-wrap { padding:0 32px 32px; }
+      #topbar { padding:0 32px; }
+    }
+    @media (min-width:1024px) {
+      .page-wrap { padding:0 48px 40px; }
+    }
 
     /* ── View header ── */
-    .view-header { display:flex; align-items:center; padding:16px 14px 12px; gap:8px; }
+    .view-header { display:flex; align-items:center; padding:18px 0 14px; gap:8px; }
     .view-nav-btn {
       background:var(--surface); border:1.5px solid var(--border); color:var(--text);
-      border-radius:var(--radius-sm); height:32px; min-width:32px; padding:0 10px;
+      border-radius:var(--radius-sm); height:34px; min-width:34px; padding:0 10px;
       display:flex; align-items:center; justify-content:center;
       cursor:pointer; font-size:16px; font-weight:700; font-family:var(--sans);
       transition:border-color var(--tr), background var(--tr), color var(--tr); flex-shrink:0;
@@ -96,154 +105,212 @@
     .view-nav-btn:hover { border-color:var(--accent); background:var(--accent-lo); color:var(--accent); }
     .view-nav-btn:active { transform:scale(0.95); }
     .view-header-center { flex:1; text-align:center; }
-    .view-header-title { font-size:15px; font-weight:700; color:var(--text); }
-    .view-header-sub { font-size:11px; color:var(--muted); margin-top:1px; }
+    .view-header-title { font-size:16px; font-weight:700; color:var(--text); }
+    .view-header-sub { font-size:11px; color:var(--muted); margin-top:2px; }
     .today-pill {
-      font-size:11px; font-weight:700; padding:4px 11px;
+      font-size:11px; font-weight:700; padding:5px 12px;
       background:var(--accent-lo); border:1.5px solid var(--accent); color:var(--accent);
-      border-radius:20px; cursor:pointer; transition:all var(--tr); white-space:nowrap; flex-shrink:0;
-      font-family:var(--sans);
+      border-radius:20px; cursor:pointer; transition:all var(--tr); white-space:nowrap;
+      flex-shrink:0; font-family:var(--sans);
     }
     .today-pill:hover { background:var(--accent); color:#fff; }
 
     /* ── Day stats ── */
-    .day-summary { margin:0 14px 16px; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-    .day-stat { background:var(--surface); border:1.5px solid var(--border-lo); border-radius:var(--radius-lg); padding:12px 8px; text-align:center; }
-    .day-stat-val { font-size:20px; font-weight:700; line-height:1.1; }
-    .day-stat-lbl { font-size:10px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-top:3px; }
+    .day-summary { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:20px; }
+    .day-stat {
+      background:var(--surface); border:1.5px solid var(--border-lo);
+      border-radius:var(--radius-lg); padding:14px 10px; text-align:center;
+    }
+    .day-stat-val { font-size:22px; font-weight:700; line-height:1.1; }
+    .day-stat-lbl { font-size:10px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-top:4px; }
+    @media (min-width:720px) {
+      .day-stat-val { font-size:26px; }
+      .day-stat-lbl { font-size:11px; }
+    }
 
     /* ── Entry card ── */
     .entry-card {
       background:var(--surface); border:1.5px solid var(--border-lo); border-radius:var(--radius-lg);
-      margin:0 14px 10px; overflow:hidden;
+      margin-bottom:10px; overflow:hidden;
       transition:border-color var(--tr), box-shadow var(--tr);
       animation:cardIn 260ms cubic-bezier(0.16,1,0.3,1) both;
     }
-    .entry-card:hover { border-color:var(--border); box-shadow:0 2px 12px rgba(0,0,0,0.06); }
-    .entry-row { display:flex; align-items:center; padding:13px 14px; gap:10px; cursor:pointer; }
+    .entry-card:hover { border-color:var(--border); box-shadow:0 2px 12px rgba(0,0,0,0.07); }
+    .entry-row { display:flex; align-items:center; padding:14px 16px; gap:12px; cursor:pointer; }
     .entry-type-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-    .dot-Regular,.dot-none { background:var(--accent); }
+    .dot-Normal    { background:var(--accent); }
     .dot-XP        { background:#10b981; }
     .dot-Cash      { background:#f59e0b; }
     .dot-Emergency { background:#ef4444; }
     .entry-main { flex:1; min-width:0; }
-    .entry-type-badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:20px; letter-spacing:0.04em; text-transform:uppercase; margin-bottom:3px; }
-    .badge-Regular   { background:var(--accent-lo);              color:var(--accent); }
-    .badge-XP        { background:rgba(16,185,129,0.12);  color:#059669; }
-    .badge-Cash      { background:rgba(245,158,11,0.12);   color:#b45309; }
-    .badge-Emergency { background:rgba(220,38,38,0.10);    color:#dc2626; }
+    .entry-type-badge {
+      display:inline-block; font-size:10px; font-weight:700; padding:2px 8px;
+      border-radius:20px; letter-spacing:0.04em; text-transform:uppercase; margin-bottom:3px;
+    }
+    .badge-Normal    { background:var(--accent-lo);             color:var(--accent); }
+    .badge-XP        { background:rgba(16,185,129,0.12); color:#059669; }
+    .badge-Cash      { background:rgba(245,158,11,0.12);  color:#b45309; }
+    .badge-Emergency { background:rgba(220,38,38,0.10);   color:#dc2626; }
     .entry-time-row { font-size:12px; color:var(--muted); }
-    .entry-notes { font-size:11px; color:var(--muted2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; margin-top:2px; }
+    .entry-shift-tag { font-size:10px; font-weight:600; color:var(--muted2); margin-top:2px; }
+    .entry-notes { font-size:11px; color:var(--muted2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:240px; margin-top:2px; }
     .entry-hrs-col { text-align:right; flex-shrink:0; }
     .entry-hrs-big { font-size:20px; font-weight:700; }
     .entry-hrs-lbl { font-size:10px; color:var(--muted); font-weight:600; }
     .entry-chevron { color:var(--muted); font-size:16px; margin-left:4px; transition:transform var(--tr); }
     .entry-card.expanded .entry-chevron { transform:rotate(90deg); }
-    .entry-detail { display:none; padding:0 14px 14px; border-top:1px solid var(--border-lo); }
+    .entry-detail { display:none; padding:0 16px 16px; border-top:1px solid var(--border-lo); }
     .entry-card.expanded .entry-detail { display:block; }
-    .detail-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px 20px; padding-top:10px; margin-bottom:12px; }
+    .detail-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px 24px; padding-top:12px; margin-bottom:14px; }
+    @media (min-width:720px) { .detail-grid { grid-template-columns:repeat(3,1fr); } }
     .detail-item { display:flex; flex-direction:column; gap:2px; }
     .detail-lbl { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); }
     .detail-val { font-size:13px; font-weight:600; color:var(--text); }
     .detail-full { grid-column:1/-1; }
-    .entry-act-row { display:flex; gap:6px; }
-    .entry-act { font-family:var(--sans); font-size:12px; font-weight:600; padding:6px 14px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; transition:all var(--tr); }
+    .entry-act-row { display:flex; gap:8px; }
+    .entry-act {
+      font-family:var(--sans); font-size:12px; font-weight:600; padding:7px 16px;
+      border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--surface);
+      color:var(--text); cursor:pointer; transition:all var(--tr);
+    }
     .entry-act:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-lo); }
     .entry-act.del:hover { border-color:var(--red); color:var(--red); background:var(--red-lo); }
     .entry-act:active { transform:scale(0.95); }
 
     /* ── FAB ── */
     .fab {
-      position:fixed; bottom:calc(var(--nav-h) + 14px); right:18px; z-index:590;
-      width:52px; height:52px; border-radius:50%; background:var(--accent); color:#fff; border:none;
+      position:fixed; bottom:calc(var(--nav-h) + 16px); right:20px; z-index:590;
+      width:54px; height:54px; border-radius:50%; background:var(--accent); color:#fff; border:none;
       display:flex; align-items:center; justify-content:center; cursor:pointer;
-      box-shadow:0 4px 20px rgba(26,86,219,0.38); transition:background var(--tr), transform 80ms ease;
+      box-shadow:0 4px 20px rgba(26,86,219,0.40); transition:background var(--tr), transform 80ms ease;
     }
     .fab:hover { background:#1647b8; }
     .fab:active { transform:scale(0.93); }
     .fab.hidden { display:none; }
 
     /* ── Empty state ── */
-    .empty { text-align:center; padding:40px 20px 20px; color:var(--muted); }
-    .empty svg { opacity:0.2; margin-bottom:14px; }
+    .empty { text-align:center; padding:48px 20px 24px; color:var(--muted); }
+    .empty svg { opacity:0.18; margin-bottom:16px; }
     .empty-title { font-size:15px; font-weight:700; color:var(--text); margin-bottom:6px; }
     .empty-desc  { font-size:13px; line-height:1.6; }
 
-    /* ── Week view ── */
-    .week-grid { margin:0 14px 14px; }
-    .week-row {
-      display:flex; align-items:center; background:var(--surface);
-      border:1.5px solid var(--border-lo); border-radius:var(--radius);
-      margin-bottom:6px; padding:11px 14px; cursor:pointer; gap:12px;
-      transition:border-color var(--tr), box-shadow var(--tr);
-      animation:cardIn 200ms cubic-bezier(0.16,1,0.3,1) both;
+    /* ── Biweekly Summary ── */
+    .pp-toggle { display:flex; gap:0; margin-bottom:20px; border:1.5px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+    .pp-toggle-btn {
+      flex:1; padding:10px 14px; font-family:var(--sans); font-size:13px; font-weight:600;
+      border:none; background:transparent; color:var(--muted); cursor:pointer; transition:all var(--tr);
     }
-    .week-row:hover { border-color:var(--border); box-shadow:0 2px 8px rgba(0,0,0,0.05); }
-    .week-row.today-row { border-color:var(--accent); background:var(--accent-lo); }
-    .week-row.weekend-row { background:var(--bg); }
-    .week-day-col { width:44px; flex-shrink:0; }
-    .week-dow { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; }
-    .week-date { font-size:17px; font-weight:700; color:var(--text); }
-    .week-row.today-row .week-date { color:var(--accent); }
-    .week-middle { flex:1; min-width:0; }
-    .week-entry-preview { font-size:12px; color:var(--muted); }
-    .week-no-entry { font-size:12px; color:var(--muted); opacity:0.4; }
-    .week-hrs-col { text-align:right; flex-shrink:0; }
-    .week-hrs { font-size:16px; font-weight:700; color:var(--text); }
-    .week-hrs.has-ot { color:var(--accent); }
-    .week-ot-badge { font-size:10px; font-weight:700; color:#059669; }
-    .week-no-hrs { font-size:13px; color:var(--muted); opacity:0.35; }
+    .pp-toggle-btn.active { background:var(--accent); color:#fff; }
+    .bw-header { margin-bottom:8px; }
+    .bw-period-label { font-size:13px; font-weight:600; color:var(--muted); margin-bottom:16px; }
+    .bw-cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+    @media (min-width:720px) { .bw-cards { grid-template-columns:repeat(3,1fr); } }
+    .bw-card {
+      background:var(--surface); border:1.5px solid var(--border-lo); border-radius:var(--radius-lg);
+      padding:16px 14px; animation:cardIn 280ms cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .bw-card-badge {
+      display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:700;
+      text-transform:uppercase; letter-spacing:0.06em; padding:3px 8px; border-radius:20px;
+      margin-bottom:10px;
+    }
+    .bw-badge-blue   { background:var(--accent-lo);  color:var(--accent); }
+    .bw-badge-red    { background:var(--red-lo);    color:var(--red); }
+    .bw-badge-green  { background:var(--green-lo);  color:var(--green); }
+    .bw-badge-orange { background:var(--orange-lo); color:var(--orange); }
+    .bw-badge-navy   { background:rgba(30,41,57,0.08); color:var(--navy); }
+    html[data-dark] .bw-badge-navy { background:rgba(255,255,255,0.08); color:var(--muted2); }
+    .bw-card-val { font-size:28px; font-weight:700; color:var(--text); line-height:1; margin-bottom:4px; }
+    .bw-card-lbl { font-size:11px; font-weight:600; color:var(--muted); }
+    .bw-card-sub { font-size:11px; color:var(--muted); margin-top:4px; }
+    .bw-full { grid-column:1/-1; }
 
-    /* ── Totals card ── */
+    /* ── PP 14-Day Calendar ── */
+    .pp-cal-header { display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:4px; }
+    .pp-dow { font-size:9px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; text-align:center; padding:3px 0; }
+    .pp-cal { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:20px; }
+    .pp-cal-cell {
+      background:var(--surface); border:1.5px solid var(--border-lo); border-radius:var(--radius);
+      padding:8px 7px 7px; min-height:80px; cursor:pointer;
+      display:flex; flex-direction:column; transition:border-color var(--tr), background var(--tr);
+    }
+    .pp-cal-cell:hover:not(.pp-future) { border-color:var(--accent); background:var(--accent-lo); }
+    .pp-cal-cell.pp-today { border-color:var(--accent); }
+    .pp-cal-cell.pp-future { opacity:0.32; cursor:default; pointer-events:none; }
+    .pp-cal-cell.pp-has-ot { border-left:3px solid var(--red); }
+    .pp-cal-dn  { font-size:14px; font-weight:700; line-height:1; }
+    .pp-cal-cell.pp-today .pp-cal-dn { color:var(--accent); }
+    .pp-cal-hrs { font-size:11px; font-weight:700; margin-top:3px; }
+    .pp-cal-ot  { font-size:10px; color:var(--red); font-weight:600; }
+    .pp-cal-dots { display:flex; gap:3px; flex-wrap:wrap; margin-top:auto; padding-top:4px; }
+    .pp-cal-dot  { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+    @media (max-width:600px) {
+      .pp-cal { gap:2px; }
+      .pp-cal-cell { min-height:56px; padding:5px 4px; }
+      .pp-cal-dn { font-size:12px; }
+      .pp-cal-hrs { font-size:10px; }
+    }
+    @media (min-width:720px) {
+      .pp-cal-cell { min-height:92px; padding:10px 9px 8px; }
+      .pp-cal-dn { font-size:16px; }
+    }
+
+    .bw-totals-row {
+      background:var(--navy); border-radius:var(--radius-lg); padding:18px 20px;
+      display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;
+    }
+    .bw-total-stat { text-align:center; color:#fff; }
+    .bw-total-val { font-size:22px; font-weight:700; }
+    .bw-total-lbl { font-size:10px; font-weight:600; opacity:0.6; text-transform:uppercase; letter-spacing:0.06em; margin-top:3px; }
+
+    /* ── Month / Calendar ── */
+    .cal-grid-header { display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:4px; }
+    .cal-dow { font-size:10px; font-weight:700; color:var(--muted); text-align:center; text-transform:uppercase; padding:4px 0; }
+    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-bottom:16px; }
+    .cal-cell {
+      min-height:48px; border-radius:var(--radius-sm); display:flex; flex-direction:column;
+      align-items:center; justify-content:center; cursor:pointer; position:relative;
+      font-size:12px; font-weight:600; color:var(--text); transition:background var(--tr);
+    }
+    @media (min-width:720px) { .cal-cell { min-height:56px; } }
+    .cal-cell:hover:not(.other-month) { background:var(--accent-lo); }
+    .cal-cell.other-month { opacity:0.25; pointer-events:none; }
+    .cal-cell.today { background:var(--accent-lo); border:1.5px solid var(--accent); }
+    .cal-cell.today:hover { background:rgba(26,86,219,0.14); }
+    .cal-cell.weekend:not(.today) { color:var(--muted); }
+    .cal-dn { display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:50%; }
+    .cal-cell.today .cal-dn { background:var(--accent); color:#fff; }
+    .cal-cell.has-entry:not(.today)::after {
+      content:''; position:absolute; bottom:3px; left:50%; transform:translateX(-50%);
+      width:5px; height:5px; border-radius:50%; background:var(--accent);
+    }
+    .cal-cell.has-ot:not(.today)::after { background:#10b981; }
+    .cal-hrs { font-size:9px; color:var(--muted); font-weight:500; line-height:1; margin-top:1px; }
+    .cal-cell.today .cal-hrs { color:var(--accent); }
     .totals-card {
-      margin:0 14px 14px; background:var(--navy); border-radius:var(--radius-lg);
-      padding:16px 18px; color:#fff;
-      display:grid; grid-template-columns:repeat(3,1fr); gap:8px;
+      background:var(--navy); border-radius:var(--radius-lg); padding:18px 20px;
+      color:#fff; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;
     }
     .totals-stat { text-align:center; }
     .totals-val { font-size:20px; font-weight:700; }
     .totals-lbl { font-size:10px; font-weight:600; opacity:0.6; text-transform:uppercase; letter-spacing:0.06em; margin-top:2px; }
 
     /* Export button */
-    .export-btn-wrap { padding:0 14px 16px; }
     .export-btn {
-      width:100%; padding:12px; background:transparent; color:var(--accent);
+      width:100%; padding:13px; background:transparent; color:var(--accent);
       border:1.5px solid var(--accent); border-radius:var(--radius-lg); font-family:var(--sans);
-      font-size:13px; font-weight:700; cursor:pointer;
+      font-size:13px; font-weight:700; cursor:pointer; margin-bottom:16px;
       display:flex; align-items:center; justify-content:center; gap:8px;
       transition:all var(--tr);
     }
     .export-btn:hover { background:var(--accent); color:#fff; }
     .export-btn:active { transform:scale(0.98); }
 
-    /* ── Month / calendar ── */
-    .cal-grid-header { display:grid; grid-template-columns:repeat(7,1fr); margin:0 14px 4px; }
-    .cal-dow { font-size:10px; font-weight:700; color:var(--muted); text-align:center; text-transform:uppercase; padding:4px 0; }
-    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); margin:0 14px 14px; gap:3px; }
-    .cal-cell {
-      aspect-ratio:1; border-radius:var(--radius-sm); display:flex; flex-direction:column;
-      align-items:center; justify-content:center; cursor:pointer; position:relative;
-      font-size:12px; font-weight:600; color:var(--text);
-      transition:background var(--tr);
-    }
-    .cal-cell:hover:not(.other-month) { background:var(--accent-lo); }
-    .cal-cell.other-month { opacity:0.25; pointer-events:none; }
-    .cal-cell.today { background:var(--accent); color:#fff; border-radius:50%; }
-    .cal-cell.today:hover { background:#1647b8; }
-    .cal-cell.weekend:not(.today) { color:var(--muted); }
-    .cal-cell.has-entry:not(.today)::after {
-      content:''; position:absolute; bottom:2px; left:50%; transform:translateX(-50%);
-      width:5px; height:5px; border-radius:50%; background:var(--accent);
-    }
-    .cal-cell.has-ot:not(.today)::after { background:#10b981; }
-    .cal-hrs { font-size:9px; color:var(--muted); font-weight:500; line-height:1; margin-top:1px; }
-    .cal-cell.today .cal-hrs { color:rgba(255,255,255,0.75); }
-
     /* ── Settings ── */
-    .settings-section { margin:0 14px 20px; }
+    .settings-section { margin-bottom:24px; }
     .settings-lbl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:10px; padding-left:2px; }
     .settings-card { background:var(--surface); border:1.5px solid var(--border-lo); border-radius:var(--radius-lg); overflow:hidden; }
-    .settings-row { display:flex; align-items:center; padding:13px 16px; gap:12px; border-bottom:1px solid var(--border-lo); }
+    .settings-row { display:flex; align-items:center; padding:14px 18px; gap:14px; border-bottom:1px solid var(--border-lo); }
     .settings-row:last-child { border-bottom:none; }
     .settings-row-label { flex:1; }
     .settings-row-main { font-size:14px; font-weight:600; color:var(--text); }
@@ -251,26 +318,19 @@
     .settings-row input[type="number"], .settings-row select {
       font-family:var(--sans); font-size:14px; color:var(--text); background:var(--bg);
       border:1.5px solid var(--border); border-radius:var(--radius-sm);
-      padding:7px 10px; width:100px; text-align:right;
+      padding:7px 10px; width:110px; text-align:right;
       transition:border-color var(--tr); -webkit-appearance:none; appearance:none;
     }
-    .settings-row select { width:120px; }
+    .settings-row select { width:130px; }
     .settings-row input:focus, .settings-row select:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-lo); }
     html[data-dark] .settings-row input, html[data-dark] .settings-row select { background:#161921; }
-    .settings-toggle-btn {
-      width:120px; padding:9px 10px; border-radius:var(--radius); border:1.5px solid var(--border);
-      background:var(--bg); color:var(--text); font-family:var(--sans); font-size:13px; font-weight:700;
-      cursor:pointer; transition:background var(--tr), border-color var(--tr), color var(--tr), transform 80ms ease;
-    }
-    .settings-toggle-btn:hover { border-color:var(--accent); background:var(--accent-lo); color:var(--accent); }
-    .settings-toggle-btn:active { transform:scale(0.97); }
     .danger-btn {
-      width:100%; padding:13px; background:transparent; color:var(--red);
+      width:100%; padding:14px; background:transparent; color:var(--red);
       border:1.5px solid var(--red); border-radius:var(--radius-lg); font-family:var(--sans);
       font-size:14px; font-weight:700; cursor:pointer; transition:all var(--tr);
     }
     .danger-btn:hover { background:var(--red); color:#fff; }
-    .about-text { font-size:12px; color:var(--muted); line-height:1.6; text-align:center; padding:16px; }
+    .about-text { font-size:12px; color:var(--muted); line-height:1.7; text-align:center; padding:18px; }
 
     /* ── Bottom Sheet ── */
     .sheet-overlay {
@@ -287,58 +347,91 @@
       padding-bottom:env(safe-area-inset-bottom,16px);
     }
     .sheet.open { transform:translateY(0); }
+    @media (min-width:720px) {
+      .sheet {
+        left:50%; right:auto; width:100%; max-width:600px;
+        transform:translateX(-50%) translateY(100%);
+        border-radius:20px 20px 0 0;
+        box-shadow:0 -8px 40px rgba(0,0,0,0.18);
+      }
+      .sheet.open { transform:translateX(-50%) translateY(0); }
+    }
     .sheet-handle { width:36px; height:4px; background:var(--border); border-radius:2px; margin:12px auto 0; }
-    .sheet-header { padding:16px 18px 0; display:flex; align-items:center; justify-content:space-between; }
-    .sheet-title  { font-size:16px; font-weight:700; }
-    .sheet-close  { background:var(--bg); border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); font-size:18px; transition:background var(--tr); }
+    .sheet-header { padding:16px 20px 0; display:flex; align-items:center; justify-content:space-between; }
+    .sheet-title  { font-size:17px; font-weight:700; }
+    .sheet-close  {
+      background:var(--bg); border:none; border-radius:50%; width:32px; height:32px;
+      display:flex; align-items:center; justify-content:center; cursor:pointer;
+      color:var(--muted); font-size:18px; transition:background var(--tr);
+    }
     .sheet-close:hover { background:var(--border-lo); color:var(--text); }
-    .sheet-body { padding:16px 18px 20px; }
+    .sheet-body { padding:18px 20px 22px; }
 
-    /* Form */
+    /* ── Rate Type Pills ── */
+    .fsect-label {
+      font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em;
+      color:var(--muted); margin-bottom:10px; display:flex; align-items:center; gap:6px;
+    }
+    .fsect-tooltip {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:15px; height:15px; border-radius:50%; background:var(--border); color:var(--muted);
+      font-size:9px; font-weight:700; cursor:help; position:relative;
+    }
+    .fsect-tooltip:hover::after {
+      content:attr(data-tip); position:absolute; bottom:calc(100% + 6px); left:50%;
+      transform:translateX(-50%); background:var(--navy); color:#fff;
+      font-size:11px; font-weight:500; white-space:normal; width:200px;
+      padding:7px 10px; border-radius:var(--radius-sm); pointer-events:none;
+      text-transform:none; letter-spacing:0; line-height:1.5; z-index:10;
+      box-shadow:0 4px 16px rgba(0,0,0,0.2);
+    }
+    .rate-pills { display:flex; gap:8px; justify-content:center; margin-bottom:18px; }
+    .rate-pill-opt { display:none; }
+    .rate-pill-lbl {
+      flex:1; min-width:60px; text-align:center; padding:9px 8px;
+      border:2px solid var(--border); border-radius:20px;
+      font-size:12px; font-weight:700; color:var(--muted); cursor:pointer;
+      transition:all var(--tr); user-select:none;
+    }
+    .rate-pill-lbl:hover { border-color:var(--muted); color:var(--text); }
+    .rate-pill-opt[value="Normal"]:checked    ~ .rate-pill-lbl-Normal    { border-color:var(--accent);  background:var(--accent-lo);  color:var(--accent); }
+    .rate-pill-opt[value="XP"]:checked        ~ .rate-pill-lbl-XP        { border-color:#10b981; background:rgba(16,185,129,0.10); color:#059669; }
+    .rate-pill-opt[value="Cash"]:checked      ~ .rate-pill-lbl-Cash      { border-color:#f59e0b; background:rgba(245,158,11,0.10); color:#b45309; }
+    .rate-pill-opt[value="Emergency"]:checked ~ .rate-pill-lbl-Emergency { border-color:#ef4444; background:rgba(220,38,38,0.10);   color:#dc2626; }
+    /* Sibling-based checked state — each opt directly precedes its label */
+    input.rate-pill-opt:checked + label.rate-pill-lbl { border-color:var(--accent); background:var(--accent-lo); color:var(--accent); }
+    input.rate-pill-opt.xp-pill:checked + label.rate-pill-lbl   { border-color:#10b981; background:rgba(16,185,129,0.10); color:#059669; }
+    input.rate-pill-opt.cash-pill:checked + label.rate-pill-lbl { border-color:#f59e0b; background:rgba(245,158,11,0.10); color:#b45309; }
+    input.rate-pill-opt.emg-pill:checked + label.rate-pill-lbl  { border-color:#ef4444; background:rgba(220,38,38,0.10);   color:#dc2626; }
+
+    /* ── Time Picker ── */
+    .time-wrap { display:flex; align-items:center; gap:6px; }
+    .time-sel {
+      font-family:var(--sans); font-size:14px; color:var(--text); background:var(--bg);
+      border:1.5px solid var(--border); border-radius:var(--radius); padding:10px 8px;
+      transition:border-color var(--tr); -webkit-appearance:none; appearance:none;
+      cursor:pointer; flex:1;
+    }
+    .time-sel:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-lo); }
+    html[data-dark] .time-sel { background:#161921; }
+    .time-colon { font-size:18px; font-weight:700; color:var(--muted); flex-shrink:0; }
+    .time-min-sel { max-width:80px; }
+
+    /* ── Form fields ── */
     .field { display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
     .field label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); }
-    .field input, .field select {
+    .field input[type="number"], .field input[type="text"], .field input[type="date"] {
       font-family:var(--sans); font-size:14px; color:var(--text); background:var(--bg);
       border:1.5px solid var(--border); border-radius:var(--radius); padding:10px 12px; width:100%;
       transition:border-color var(--tr), box-shadow var(--tr); -webkit-appearance:none; appearance:none;
     }
-    .field input:focus, .field select:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-lo); }
-    html[data-dark] .field input, html[data-dark] .field select { background:#161921; }
-    .field-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .field input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-lo); }
+    html[data-dark] .field input { background:#161921; }
+    .field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .field-group { background:var(--bg); border:1.5px solid var(--border-lo); border-radius:var(--radius-lg); padding:14px; margin-bottom:14px; }
+    .field-group-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); margin-bottom:12px; }
 
-    /* Type grid */
-    .fsect-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); margin-bottom:8px; }
-    .type-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; margin-bottom:16px; }
-    @media (min-width:380px) { .type-grid { grid-template-columns:repeat(4,1fr); } }
-    .type-opt { display:none; }
-    .type-card {
-      border:2px solid var(--border-lo); border-radius:var(--radius); padding:10px 6px;
-      text-align:center; cursor:pointer; transition:border-color var(--tr), background var(--tr);
-      display:flex; flex-direction:column; align-items:center; gap:4px;
-    }
-    .type-card-icon { font-size:16px; line-height:1; }
-    .type-card-name { font-size:10px; font-weight:700; color:var(--muted); }
-    .type-opt.reg-radio:checked + .type-card  { background:var(--accent-lo);             border-color:var(--accent); }
-    .type-opt.reg-radio:checked + .type-card .type-card-name { color:var(--accent); }
-    .type-opt.xp-radio:checked + .type-card   { background:rgba(16,185,129,0.08);  border-color:#10b981; }
-    .type-opt.xp-radio:checked + .type-card .type-card-name { color:#059669; }
-    .type-opt.cash-radio:checked + .type-card  { background:rgba(245,158,11,0.08); border-color:#f59e0b; }
-    .type-opt.cash-radio:checked + .type-card .type-card-name { color:#b45309; }
-    .type-opt.emg-radio:checked + .type-card  { background:rgba(220,38,38,0.08);   border-color:#ef4444; }
-    .type-opt.emg-radio:checked + .type-card .type-card-name { color:#dc2626; }
-
-    /* Shift toggle */
-    .shift-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
-    .shift-opt { display:none; }
-    .shift-card {
-      border:1.5px solid var(--border-lo); border-radius:var(--radius); padding:10px 8px;
-      text-align:center; cursor:pointer; transition:border-color var(--tr), background var(--tr);
-      font-size:12px; font-weight:600; color:var(--muted);
-      display:flex; align-items:center; justify-content:center; gap:6px;
-    }
-    .shift-opt:checked + .shift-card { border-color:var(--accent); background:var(--accent-lo); color:var(--accent); }
-
-    /* Meal quick */
+    /* ── Meal break quick select ── */
     .meal-bar { display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
     .meal-q {
       font-family:var(--sans); font-size:11px; font-weight:600; padding:4px 10px;
@@ -348,29 +441,38 @@
     .meal-q:hover  { border-color:var(--accent); color:var(--accent); }
     .meal-q.active { border-color:var(--accent); background:var(--accent-lo); color:var(--accent); font-weight:700; }
 
-    /* Live calc */
-    .calc-box { border-radius:var(--radius); padding:13px 15px; margin:4px 0 16px; display:flex; align-items:center; gap:12px; min-height:60px; }
+    /* ── Calc box ── */
+    .calc-box { border-radius:var(--radius); padding:14px 16px; margin:4px 0 16px; display:flex; align-items:flex-start; gap:14px; min-height:64px; }
     .calc-box.ready { background:var(--accent-lo); border:1.5px solid rgba(26,86,219,0.18); }
     .calc-box.empty { background:var(--bg); border:1.5px solid var(--border-lo); }
     .calc-box.error { background:var(--red-lo); border:1.5px solid rgba(220,38,38,0.2); }
-    .calc-big { font-size:28px; font-weight:700; color:var(--accent); line-height:1; white-space:nowrap; }
-    .calc-detail { font-size:12px; color:var(--muted); line-height:1.65; }
+    .calc-big { font-size:30px; font-weight:700; color:var(--accent); line-height:1; white-space:nowrap; flex-shrink:0; margin-top:2px; }
+    .calc-detail { font-size:12px; color:var(--muted); line-height:1.75; }
     .calc-detail strong { color:var(--accent); }
+    .calc-detail .xp-color { color:#059669; font-weight:700; }
+    .calc-detail .emg-color { color:#dc2626; font-weight:700; }
+    .calc-detail .cash-color { color:#b45309; font-weight:700; }
     .calc-hint { font-size:12px; color:var(--muted); }
     .calc-err  { font-size:12px; color:var(--red); font-weight:600; }
+    .shift-badge {
+      display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:700;
+      padding:2px 8px; border-radius:20px; margin-top:4px;
+      background:rgba(30,41,57,0.07); color:var(--navy);
+    }
+    html[data-dark] .shift-badge { background:rgba(255,255,255,0.08); color:var(--muted2); }
 
-    /* Sheet actions */
-    .sheet-actions { display:flex; gap:8px; margin-top:6px; }
-    .btn { font-family:var(--sans); font-size:13px; font-weight:700; padding:12px 18px; border-radius:var(--radius); border:1.5px solid transparent; cursor:pointer; transition:background var(--tr), border-color var(--tr), color var(--tr), transform 80ms ease; }
+    /* ── Sheet actions ── */
+    .sheet-actions { display:flex; gap:10px; margin-top:8px; }
+    .btn { font-family:var(--sans); font-size:13px; font-weight:700; padding:13px 20px; border-radius:var(--radius); border:1.5px solid transparent; cursor:pointer; transition:background var(--tr), border-color var(--tr), color var(--tr), transform 80ms ease; }
     .btn:active { transform:scale(0.97); }
     .btn-primary { background:var(--accent); color:#fff; border-color:var(--accent); flex:1; font-size:14px; }
     .btn-primary:hover { background:#1647b8; }
     .btn-ghost { background:transparent; color:var(--muted); border-color:var(--border); }
     .btn-ghost:hover { color:var(--text); border-color:var(--muted); }
 
-    /* Toast */
+    /* ── Toast ── */
     #toast-ct { position:fixed; bottom:calc(var(--nav-h) + 14px); left:50%; transform:translateX(-50%); z-index:1000; display:flex; flex-direction:column; gap:7px; pointer-events:none; }
-    .toast { padding:10px 18px; border-radius:var(--radius); font-size:13px; font-weight:600; color:#fff; animation:toastIn 220ms cubic-bezier(0.16,1,0.3,1) both; white-space:nowrap; box-shadow:0 4px 16px rgba(0,0,0,0.2); }
+    .toast { padding:10px 20px; border-radius:var(--radius); font-size:13px; font-weight:600; color:#fff; animation:toastIn 220ms cubic-bezier(0.16,1,0.3,1) both; white-space:nowrap; box-shadow:0 4px 16px rgba(0,0,0,0.2); }
     .toast.ok   { background:#059669; }
     .toast.err  { background:var(--red); }
     .toast.info { background:var(--navy); border:1px solid var(--gold); }
@@ -378,12 +480,115 @@
     @keyframes toastIn  { from{opacity:0;transform:translateY(6px) scale(0.97)} to{opacity:1;transform:none} }
     @keyframes toastOut { from{opacity:1} to{opacity:0;transform:translateY(4px) scale(0.97)} }
 
-    /* Misc */
+    /* ── Misc ── */
     .hov-zone { position:fixed; top:0; left:0; right:0; height:14px; z-index:599; pointer-events:auto; }
     @media (hover:none) { .hov-zone { display:none; } }
-    .version-stamp { font-family:ui-monospace,monospace; font-size:10px; color:var(--muted); opacity:0.45; text-align:center; padding:16px 0 8px; }
+    .version-stamp { font-family:ui-monospace,monospace; font-size:10px; color:var(--muted); opacity:0.4; text-align:center; padding:20px 0 8px; }
+
+    /* ── Desktop layout (≥900px) ─────────────────────────────────── */
+    #app-shell { display:flex; flex:1; min-height:0; width:100%; }
+
+    /* Desktop sidebar — hidden on mobile */
+    .d-sidebar {
+      display:none;
+      width:224px; flex-shrink:0;
+      background:var(--surface); border-right:1.5px solid var(--border-lo);
+      flex-direction:column; padding:18px 12px 16px; overflow-y:auto;
+    }
+    .d-sidebar-add {
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      width:100%; background:var(--accent); color:#fff; border:none;
+      border-radius:var(--radius-lg); padding:13px 16px; cursor:pointer;
+      font-family:var(--sans); font-size:14px; font-weight:700;
+      margin-bottom:26px; transition:background var(--tr);
+    }
+    .d-sidebar-add:hover { background:#1647b8; }
+    .d-sidebar-add:active { transform:scale(0.97); }
+    .d-nav-lbl {
+      font-size:9px; font-weight:700; text-transform:uppercase;
+      letter-spacing:0.08em; color:var(--muted); padding-left:10px; margin-bottom:8px;
+    }
+    .d-nav-item {
+      display:flex; align-items:center; gap:10px; width:100%;
+      padding:10px 12px; border-radius:var(--radius); border:none;
+      background:transparent; color:var(--muted); font-family:var(--sans);
+      font-size:13px; font-weight:600; cursor:pointer; margin-bottom:2px;
+      text-align:left; transition:background var(--tr), color var(--tr);
+    }
+    .d-nav-item:hover { background:var(--border-lo); color:var(--text); }
+    .d-nav-item.active { background:var(--accent-lo); color:var(--accent); }
+    .d-nav-item svg { width:16px; height:16px; flex-shrink:0; }
+    .d-sidebar-spacer { flex:1; }
+    .d-pp-mini {
+      background:var(--bg); border:1.5px solid var(--border-lo);
+      border-radius:var(--radius-lg); padding:13px 14px;
+    }
+    .d-pp-mini-lbl {
+      font-size:9px; font-weight:700; text-transform:uppercase;
+      letter-spacing:0.06em; color:var(--muted); margin-bottom:10px;
+    }
+    .d-pp-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px; }
+    .d-pp-row:last-child { margin-bottom:0; }
+    .d-pp-key { font-size:11px; color:var(--muted); }
+    .d-pp-val { font-size:14px; font-weight:700; color:var(--text); }
+
+    /* Day view — two pane */
+    .day-shell { display:block; }
+    /* Mobile padding for day panes (replaces page-wrap) */
+    .day-l { padding:0 14px 8px; }
+    .day-r { padding:0 14px 16px; }
+    /* "Add Entry" button in right pane header — desktop only */
+    .d-add-entry-row { display:none; }
+
+    @media (min-width:720px) {
+      body { padding-bottom:0; height:100vh; overflow:hidden; }
+      #bottom-nav { display:none; }
+      .fab { display:none !important; }
+      #main-content { flex:1; overflow-y:auto; min-height:0; width:0; /* allow shrink */ }
+      .d-sidebar { display:flex; }
+
+      /* Day two-pane */
+      .day-shell { display:flex; height:100%; overflow:hidden; width:100%; }
+      .day-l {
+        width:310px; flex-shrink:0; overflow-y:auto;
+        border-right:1.5px solid var(--border-lo);
+        padding:20px 18px; max-width:none; margin:0;
+      }
+      .day-l .view-header { padding-top:8px; }
+      .day-r { flex:1; overflow-y:auto; padding:20px 24px; max-width:none; margin:0; }
+      .d-add-entry-row {
+        display:flex; align-items:center; justify-content:space-between;
+        margin-bottom:16px;
+      }
+      .d-add-entry-title { font-size:16px; font-weight:700; color:var(--text); }
+      .d-add-entry-btn {
+        display:flex; align-items:center; gap:6px;
+        background:var(--accent); color:#fff; border:none;
+        border-radius:var(--radius); padding:9px 16px;
+        font-family:var(--sans); font-size:12px; font-weight:700;
+        cursor:pointer; transition:background var(--tr);
+      }
+      .d-add-entry-btn:hover { background:#1647b8; }
+      .d-add-entry-btn:active { transform:scale(0.96); }
+
+      /* Entry form as centered modal */
+      .sheet {
+        left:50%; right:auto; bottom:auto; top:50%;
+        width:540px; max-width:540px;
+        border-radius:16px;
+        transform:translate(-50%, calc(-50% + 20px));
+        opacity:0;
+        transition:transform 280ms cubic-bezier(0.22,1,0.36,1), opacity 220ms ease;
+        padding-bottom:28px;
+        box-shadow:0 24px 64px rgba(0,0,0,0.24);
+        max-height:88vh;
+      }
+      .sheet.open { transform:translate(-50%, -50%); opacity:1; }
+      .sheet-handle { display:none; }
+    }
   </style>
   <script>
+    /* Inherit dark mode from Hub — read only, never write */
     if (localStorage.getItem('field_dark_mode') === '1') document.documentElement.setAttribute('data-dark', '');
     try {
       if (sessionStorage.getItem('ft_opening_from_hub') === '1') {
@@ -402,13 +607,40 @@
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/></svg>
     Home
   </a>
-  <span id="topbar-title">Overtime Tracker</span>
-  <button class="dark-toggle" id="dark-tog" aria-label="Toggle dark mode">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-  </button>
+  <span id="topbar-title">OT Tracker</span>
 </div>
 
-<div id="main-content"></div>
+<div id="app-shell">
+
+  <!-- Desktop sidebar — hidden on mobile via CSS -->
+  <aside class="d-sidebar" id="d-sidebar">
+    <button class="d-sidebar-add" id="d-sidebar-add">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Log Entry
+    </button>
+    <div class="d-nav-lbl">Views</div>
+    <button class="d-nav-item" data-view="day">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg>
+      Day
+    </button>
+    <button class="d-nav-item" data-view="biweekly">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="7" y1="15" x2="17" y2="15"/></svg>
+      Biweekly
+    </button>
+    <button class="d-nav-item" data-view="month">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><rect x="7" y="14" width="4" height="4" rx="0.5" fill="currentColor" stroke="none"/></svg>
+      Month
+    </button>
+    <button class="d-nav-item" data-view="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </button>
+    <div class="d-sidebar-spacer"></div>
+    <div class="d-pp-mini" id="d-pp-mini"></div>
+  </aside>
+
+  <div id="main-content"></div>
+</div>
 
 <button class="fab" id="fab" aria-label="Log entry">
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -419,9 +651,9 @@
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg>
     Day
   </button>
-  <button class="nav-tab" data-view="week">
+  <button class="nav-tab" data-view="biweekly">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="7" y1="15" x2="17" y2="15"/></svg>
-    Week
+    Biweekly
   </button>
   <button class="nav-tab" data-view="month">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><rect x="7" y="14" width="4" height="4" rx="0.5" fill="currentColor" stroke="none"/></svg>
@@ -433,7 +665,7 @@
   </button>
 </nav>
 
-<!-- Bottom Sheet -->
+<!-- Bottom Sheet Form -->
 <div class="sheet-overlay" id="sheet-overlay"></div>
 <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Log entry">
   <div class="sheet-handle"></div>
@@ -442,32 +674,75 @@
     <button class="sheet-close" id="sheet-close" aria-label="Close">&#215;</button>
   </div>
   <div class="sheet-body">
-    <div class="fsect-label">Entry Type</div>
-    <div class="type-grid">
-      <span><input class="type-opt xp-radio"  type="radio" name="ot-type" id="type-XP"      value="XP"><label class="type-card" for="type-XP"><div class="type-card-icon">⏱</div><div class="type-card-name">XP</div></label></span>
-      <span><input class="type-opt cash-radio" type="radio" name="ot-type" id="type-Cash"    value="Cash"><label class="type-card" for="type-Cash"><div class="type-card-icon">💵</div><div class="type-card-name">Cash</div></label></span>
-      <span><input class="type-opt emg-radio"  type="radio" name="ot-type" id="type-Emergency" value="Emergency"><label class="type-card" for="type-Emergency"><div class="type-card-icon">🚨</div><div class="type-card-name">Emergency</div></label></span>
+
+    <!-- Rate Type Pills -->
+    <div class="fsect-label">
+      Rate Type
+      <span class="fsect-tooltip" data-tip="Normal = regular time. Cash = all hours are OT paid out. XP = all hours become comp time at 1.5×. Emergency = all hours are OT at a custom pay rate.">?</span>
+    </div>
+    <div class="rate-pills">
+      <input class="rate-pill-opt" type="radio" name="rate-type" id="rt-Normal"     value="Normal">
+      <label class="rate-pill-lbl" for="rt-Normal">Normal</label>
+      <input class="rate-pill-opt xp-pill" type="radio" name="rate-type" id="rt-XP"   value="XP">
+      <label class="rate-pill-lbl" for="rt-XP">XP</label>
+      <input class="rate-pill-opt cash-pill" type="radio" name="rate-type" id="rt-Cash" value="Cash">
+      <label class="rate-pill-lbl" for="rt-Cash">Cash</label>
+      <input class="rate-pill-opt emg-pill" type="radio" name="rate-type" id="rt-Emergency" value="Emergency">
+      <label class="rate-pill-lbl" for="rt-Emergency">Emergency</label>
     </div>
 
+    <!-- Emergency Rate — shown only when Emergency selected -->
+    <div class="field" id="emg-rate-wrap" style="display:none">
+      <label>
+        Emergency Rate ($/hr)
+        <span class="fsect-tooltip" style="margin-left:6px" data-tip="Enter the exact hourly pay rate for this emergency call. This rate can vary per entry.">?</span>
+      </label>
+      <input type="number" id="f-emg-rate" min="0" step="0.01" placeholder="0.00">
+    </div>
+
+    <!-- Date -->
     <div class="field">
       <label>Date</label>
       <input type="date" id="f-date">
     </div>
 
-    <div class="fsect-label">Shift</div>
-    <div class="shift-row">
-      <span><input class="shift-opt" type="radio" name="shift-type" id="shift-day" value="day" checked><label class="shift-card" for="shift-day"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>Day Shift</label></span>
-      <span><input class="shift-opt" type="radio" name="shift-type" id="shift-night" value="night"><label class="shift-card" for="shift-night"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>Night Shift</label></span>
+    <!-- Time — custom 15-min picker -->
+    <div class="field-group">
+      <div class="field-group-label">Time</div>
+      <div class="field-row">
+        <div class="field" style="margin-bottom:0">
+          <label>Start Time</label>
+          <div class="time-wrap">
+            <select class="time-sel" id="f-start-h"></select>
+            <span class="time-colon">:</span>
+            <select class="time-sel time-min-sel" id="f-start-m">
+              <option value="00">00</option>
+              <option value="15">15</option>
+              <option value="30">30</option>
+              <option value="45">45</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Stop Time</label>
+          <div class="time-wrap">
+            <select class="time-sel" id="f-stop-h"></select>
+            <span class="time-colon">:</span>
+            <select class="time-sel time-min-sel" id="f-stop-m">
+              <option value="00">00</option>
+              <option value="15">15</option>
+              <option value="30">30</option>
+              <option value="45">45</option>
+            </select>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="field-row">
-      <div class="field"><label>Start Time</label><input type="time" id="f-start"></div>
-      <div class="field"><label>Stop Time</label><input type="time" id="f-stop"></div>
-    </div>
-
+    <!-- Break -->
     <div class="field">
       <label>Break Duration</label>
-      <input type="number" id="f-meal" min="0" max="120" step="5" placeholder="Minutes (0 = none)">
+      <input type="number" id="f-meal" min="0" max="120" step="15" placeholder="Minutes (0 = none)">
       <div class="meal-bar">
         <button type="button" class="meal-q" data-min="0">None</button>
         <button type="button" class="meal-q" data-min="30">30 min</button>
@@ -476,17 +751,22 @@
       </div>
     </div>
 
+    <!-- Live calc -->
     <div class="calc-box empty" id="calc-box">
-      <div class="calc-hint">Enter start and stop times to calculate hours.</div>
+      <div class="calc-hint">Select start and stop times to calculate hours.</div>
     </div>
 
-    <div class="field-row">
-      <div class="field"><label>Job # <span style="font-weight:400;text-transform:none;letter-spacing:0">(opt)</span></label><input type="text" id="f-job" placeholder="e.g. 12345"></div>
-      <div class="field"><label>Activity <span style="font-weight:400;text-transform:none;letter-spacing:0">(opt)</span></label><input type="text" id="f-act" placeholder="Code"></div>
-    </div>
-    <div class="field">
-      <label>Notes <span style="font-weight:400;text-transform:none;letter-spacing:0">(opt)</span></label>
-      <input type="text" id="f-notes" placeholder="What were you working on?">
+    <!-- Optional fields grouped -->
+    <div class="field-group">
+      <div class="field-group-label">Job Details (optional)</div>
+      <div class="field-row" style="margin-bottom:12px">
+        <div class="field" style="margin-bottom:0"><label>Job #</label><input type="text" id="f-job" placeholder="e.g. 12345"></div>
+        <div class="field" style="margin-bottom:0"><label>Activity</label><input type="text" id="f-act" placeholder="Code"></div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Notes</label>
+        <input type="text" id="f-notes" placeholder="What were you working on?">
+      </div>
     </div>
 
     <div class="sheet-actions">
@@ -502,41 +782,43 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <script>
 // ================================================================
-//  Overtime Tracker & Timesheet  |  Field Tools
+//  OT Tracker & Timesheet  —  Field Tools
 //  Storage: ft_ts_entries, ft_ts_settings
 // ================================================================
 
 var LS_ENTRIES  = 'ft_ts_entries';
 var LS_SETTINGS = 'ft_ts_settings';
 
+// Pay-period anchor: Saturday 2026-05-30
+var PP_ANC = new Date(2026, 4, 30);
+
 var DEFAULT_SETTINGS = {
   hourlyRate: 0, otMultiplier: 1.5, otThresholdHrs: 8,
   breakDefault: 30, timeFormat: '12', defaultView: 'day', weekStart: 'sun'
 };
 
-// State
-var state = { view: 'day', date: todayStr() };
+var state = { view: 'day', date: todayStr(), ppOffset: 0 };
 var editingId = null;
 
 // ── Storage ──────────────────────────────────────────────────────
-function loadEntries()  { try { return JSON.parse(localStorage.getItem(LS_ENTRIES)  || '[]');  } catch(e) { return []; } }
-function storeEntries(a){ try { localStorage.setItem(LS_ENTRIES,  JSON.stringify(a)); } catch(e) {} }
-function loadSettings() {
+function loadEntries()   { try { return JSON.parse(localStorage.getItem(LS_ENTRIES)  || '[]'); } catch(e) { return []; } }
+function storeEntries(a) { try { localStorage.setItem(LS_ENTRIES,  JSON.stringify(a)); } catch(e) {} }
+function loadSettings()  {
   try { return Object.assign({}, DEFAULT_SETTINGS, JSON.parse(localStorage.getItem(LS_SETTINGS) || '{}')); }
   catch(e) { return Object.assign({}, DEFAULT_SETTINGS); }
 }
-function storeSettings(o){ try { localStorage.setItem(LS_SETTINGS, JSON.stringify(o)); } catch(e) {} }
+function storeSettings(o) { try { localStorage.setItem(LS_SETTINGS, JSON.stringify(o)); } catch(e) {} }
 
 // ── Date utils ───────────────────────────────────────────────────
-function pad(n)       { return String(n).padStart(2,'0'); }
-function todayStr()   { var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
-function parseDate(s) { return s ? new Date(s+'T00:00:00') : null; }
-function dateStr(d)   { return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
-function addDays(s,n) { var d=parseDate(s); d.setDate(d.getDate()+n); return dateStr(d); }
+function pad(n)       { return String(n).padStart(2, '0'); }
+function todayStr()   { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function parseDate(s) { return s ? new Date(s + 'T00:00:00') : null; }
+function dateStr(d)   { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function addDays(s, n) { var d = parseDate(s); d.setDate(d.getDate() + n); return dateStr(d); }
 
-var MONTHS      = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-var MONTHS_SH   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-var DAYS_SH     = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var MONTHS    = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var MONTHS_SH = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var DAYS_SH   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 function getWeekStart(dateS, startDay) {
   var d = parseDate(dateS), dow = d.getDay();
@@ -544,653 +826,967 @@ function getWeekStart(dateS, startDay) {
   d.setDate(d.getDate() + off);
   return dateStr(d);
 }
+function isoWeek(d) {
+  var dt = new Date(d); dt.setHours(0, 0, 0, 0);
+  dt.setDate(dt.getDate() + 3 - (dt.getDay() + 6) % 7);
+  var w1 = new Date(dt.getFullYear(), 0, 4);
+  return 1 + Math.round(((dt - w1) / 86400000 - 3 + (w1.getDay() + 6) % 7) / 7);
+}
+
+// Pay period bounds
+function ppBounds(off) {
+  var now  = new Date();
+  var days = Math.floor((now - PP_ANC) / 86400000);
+  var idx  = Math.floor(days / 14);
+  var s    = new Date(PP_ANC);
+  s.setDate(PP_ANC.getDate() + (idx + off) * 14);
+  var e = new Date(s);
+  e.setDate(s.getDate() + 13);
+  return { start: dateStr(s), end: dateStr(e) };
+}
 
 function fmtDate(dateS) {
   var d = parseDate(dateS);
   return DAYS_SH[d.getDay()] + ', ' + MONTHS_SH[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
 }
-function fmtDateShort(dateS) { var d=parseDate(dateS); return (d.getMonth()+1)+'/'+d.getDate(); }
+function fmtDateShort(dateS) { var d = parseDate(dateS); return (d.getMonth() + 1) + '/' + d.getDate(); }
 function fmtTime(t, fmt) {
   if (!t) return '—';
-  var p=t.split(':'), h=parseInt(p[0]), m=p[1];
-  if (fmt === '24') return pad(h)+':'+m;
-  return (h%12||12)+':'+m+(h>=12?' PM':' AM');
+  var p = t.split(':'), h = parseInt(p[0]), m = p[1];
+  if ((fmt || '12') === '24') return pad(h) + ':' + m;
+  return (h % 12 || 12) + ':' + m + (h >= 12 ? ' PM' : ' AM');
 }
-function isoWeek(d) {
-  var dt=new Date(d); dt.setHours(0,0,0,0);
-  dt.setDate(dt.getDate()+3-(dt.getDay()+6)%7);
-  var w1=new Date(dt.getFullYear(),0,4);
-  return 1+Math.round(((dt-w1)/86400000-3+(w1.getDay()+6)%7)/7);
+
+// ── Shift auto-detection ─────────────────────────────────────────
+function detectShift(startTime) {
+  if (!startTime) return 'day';
+  var h = parseInt(startTime.split(':')[0]);
+  return (h >= 6 && h < 18) ? 'day' : 'night';
+}
+function shiftLabel(startTime) {
+  return detectShift(startTime) === 'day' ? '☀ Day Shift' : '🌙 Night Shift';
 }
 
 // ── Calculations ─────────────────────────────────────────────────
-function t2m(t) { if(!t)return null; var p=t.split(':'); return p.length<2?null:parseInt(p[0])*60+parseInt(p[1]); }
-function hFmt(m) { return (m/60).toFixed(2); }
-function hDisp(m) { var h=Math.floor(m/60),mn=m%60; return h+(mn?'h '+mn+'m':'h'); }
-function fmtMoney(v) { return '$'+v.toFixed(2); }
+function t2m(t)   { if (!t) return null; var p = t.split(':'); return p.length < 2 ? null : parseInt(p[0]) * 60 + parseInt(p[1]); }
+function hFmt(m)  { return (m / 60).toFixed(2); }
+function hDisp(m) { var h = Math.floor(m / 60), mn = m % 60; return h + (mn ? 'h ' + mn + 'm' : 'h'); }
+function fmtMoney(v) { return '$' + v.toFixed(2); }
 
 function calcEntry(e, settings) {
-  var s=t2m(e.start), en=t2m(e.stop);
-  if (s===null||en===null) return null;
-  var dur=en-s;
-  if (e.overnight||dur<0) dur+=1440;
-  var brk=parseInt(e.breakMin)||0;
-  var netM=dur-brk;
-  if (netM<0) return null;
-  var thresh=(parseFloat(settings.otThresholdHrs)||8)*60;
-  var regM=Math.min(netM,thresh), otM=Math.max(0,netM-thresh);
-  var hr=parseFloat(settings.hourlyRate)||0;
-  var mult=parseFloat(settings.otMultiplier)||1.5;
-  var earnings=hr>0?(regM/60*hr+otM/60*hr*mult):0;
-  return { netM:netM, regM:regM, otM:otM, earnings:earnings };
+  var s = t2m(e.start), en = t2m(e.stop);
+  if (s === null || en === null) return null;
+  var dur = en - s;
+  // Auto-detect overnight: if stop <= start treat as crossing midnight
+  if (dur <= 0) dur += 1440;
+  var brk  = parseInt(e.breakMin) || 0;
+  var netM = dur - brk;
+  if (netM <= 0) return null;
+
+  var rateType = e.rateType || e.otType || 'Normal';
+  var settings = settings || loadSettings();
+  var thresh   = (parseFloat(settings.otThresholdHrs) || 8) * 60;
+  var hr       = parseFloat(settings.hourlyRate) || 0;
+  var otMult   = parseFloat(settings.otMultiplier) || 1.5;
+  var regM = 0, otM = 0, xpCredited = 0, earnings = 0;
+
+  if (rateType === 'Normal') {
+    regM = Math.min(netM, thresh);
+    otM  = Math.max(0, netM - thresh);
+    if (hr > 0) earnings = regM / 60 * hr + otM / 60 * hr * otMult;
+  } else if (rateType === 'Cash') {
+    otM = netM;
+    if (hr > 0) earnings = otM / 60 * hr * otMult;
+  } else if (rateType === 'XP') {
+    otM        = netM;
+    xpCredited = netM * 1.5;
+    earnings   = 0; // comp time only
+  } else if (rateType === 'Emergency') {
+    otM = netM;
+    var emerRate = parseFloat(e.emergencyRate) || 0;
+    if (emerRate > 0) earnings = otM / 60 * emerRate;
+  }
+
+  var shift = detectShift(e.start);
+  return { netM: netM, regM: regM, otM: otM, xpCredited: xpCredited, earnings: earnings, shift: shift };
 }
 
 function totalsFor(entries, settings) {
-  var netM=0, otM=0, earnings=0;
+  var netM = 0, regM = 0, otM = 0, xpRaw = 0, xpCredited = 0, emerM = 0, earnings = 0;
   entries.forEach(function(e) {
-    var r=calcEntry(e,settings);
-    if (r) { netM+=r.netM; otM+=r.otM; earnings+=r.earnings; }
+    var r = calcEntry(e, settings);
+    if (!r) return;
+    netM += r.netM;
+    regM += r.regM;
+    otM  += r.otM;
+    earnings += r.earnings;
+    var rt = e.rateType || e.otType || 'Normal';
+    if (rt === 'XP')        { xpRaw += r.netM; xpCredited += r.xpCredited; }
+    if (rt === 'Emergency') { emerM += r.netM; }
   });
-  return { netM:netM, otM:otM, earnings:earnings };
+  return { netM: netM, regM: regM, otM: otM, xpRaw: xpRaw, xpCredited: xpCredited, emerM: emerM, earnings: earnings, count: entries.length };
 }
 
 // ── Render dispatcher ─────────────────────────────────────────────
 function render() {
+  // Sync bottom nav tabs (mobile)
   document.querySelectorAll('.nav-tab').forEach(function(t) {
-    t.classList.toggle('active', t.dataset.view===state.view);
+    t.classList.toggle('active', t.dataset.view === state.view);
   });
-  var fab=document.getElementById('fab');
-  if (fab) fab.classList.toggle('hidden', state.view==='settings');
+  // Sync desktop sidebar nav
+  document.querySelectorAll('.d-nav-item').forEach(function(t) {
+    t.classList.toggle('active', t.dataset.view === state.view);
+  });
+  var fab = document.getElementById('fab');
+  if (fab) fab.classList.toggle('hidden', state.view === 'settings');
 
-  var mc=document.getElementById('main-content');
-  if      (state.view==='day')      renderDay(mc);
-  else if (state.view==='week')     renderWeek(mc);
-  else if (state.view==='month')    renderMonth(mc);
-  else                              renderSettings(mc);
+  var mc = document.getElementById('main-content');
+  if      (state.view === 'day')       renderDay(mc);
+  else if (state.view === 'biweekly')  renderBiweekly(mc);
+  else if (state.view === 'month')     renderMonth(mc);
+  else                                 renderSettings(mc);
+
+  updateSidebarPP();
 }
 
-// ── Day View ─────────────────────────────────────────────────────
+// ── Day View ──────────────────────────────────────────────────────
 function renderDay(mc) {
-  var settings=loadSettings(), tf=settings.timeFormat||'12';
-  var dateS=state.date, today=todayStr(), hr=parseFloat(settings.hourlyRate)||0;
-  var entries=loadEntries().filter(function(e){return e.date===dateS;});
-  var tots=totalsFor(entries,settings);
+  var settings = loadSettings(), tf = settings.timeFormat || '12';
+  var dateS = state.date, today = todayStr(), hr = parseFloat(settings.hourlyRate) || 0;
+  var entries = loadEntries().filter(function(e) { return e.date === dateS; });
+  var tots = totalsFor(entries, settings);
+  var isToday = (dateS === today);
 
-  var isToday=(dateS===today);
-  var html='<div class="view-header">'+
-    '<button class="view-nav-btn" id="day-prev">&#8249;</button>'+
-    '<div class="view-header-center">'+
-      '<div class="view-header-title">'+fmtDate(dateS)+'</div>'+
-      (isToday?'<div class="view-header-sub" style="color:var(--accent);font-weight:700;">Today</div>':'<div class="view-header-sub">'+fmtDateShort(dateS)+'</div>')+
-    '</div>'+
-    (!isToday?'<button class="today-pill" id="day-today">Today</button>':'')+
-    '<button class="view-nav-btn" id="day-next">&#8250;</button>'+
-  '</div>';
+  // Left pane: date nav + stats
+  var leftHtml =
+    '<div class="view-header">' +
+      '<button class="view-nav-btn" id="day-prev">&#8249;</button>' +
+      '<div class="view-header-center">' +
+        '<div class="view-header-title">' + fmtDate(dateS) + '</div>' +
+        (isToday ? '<div class="view-header-sub" style="color:var(--accent);font-weight:700">Today</div>' :
+                   '<div class="view-header-sub">' + fmtDateShort(dateS) + '</div>') +
+      '</div>' +
+      (!isToday ? '<button class="today-pill" id="day-today">Today</button>' : '') +
+      '<button class="view-nav-btn" id="day-next">&#8250;</button>' +
+    '</div>' +
+    '<div class="day-summary">' +
+      '<div class="day-stat"><div class="day-stat-val">' + hFmt(tots.netM) + '</div><div class="day-stat-lbl">Total Hrs</div></div>' +
+      '<div class="day-stat"><div class="day-stat-val" style="color:var(--red)">' + hFmt(tots.otM) + '</div><div class="day-stat-lbl">OT Hrs</div></div>' +
+      '<div class="day-stat"><div class="day-stat-val" style="color:var(--green)">' + (hr > 0 ? fmtMoney(tots.earnings) : '—') + '</div><div class="day-stat-lbl">Earnings</div></div>' +
+      '<div class="day-stat day-stat-entries"><div class="day-stat-val">' + entries.length + '</div><div class="day-stat-lbl">Entries</div></div>' +
+    '</div>';
 
-  html+='<div class="day-summary">'+
-    '<div class="day-stat"><div class="day-stat-val">'+hFmt(tots.netM)+'</div><div class="day-stat-lbl">Total Hrs</div></div>'+
-    '<div class="day-stat"><div class="day-stat-val" style="color:var(--accent)">'+hFmt(tots.otM)+'</div><div class="day-stat-lbl">OT Hrs</div></div>'+
-    (hr>0
-      ?'<div class="day-stat"><div class="day-stat-val" style="color:#059669">'+fmtMoney(tots.earnings)+'</div><div class="day-stat-lbl">Earnings</div></div>'
-      :'<div class="day-stat"><div class="day-stat-val">'+entries.length+'</div><div class="day-stat-lbl">Entries</div></div>')+
-  '</div>';
+  // Right pane: entries list
+  var rightHtml =
+    '<div class="d-add-entry-row">' +
+      '<div class="d-add-entry-title">' + fmtDate(dateS) + '</div>' +
+      '<button class="d-add-entry-btn" id="d-day-add">' +
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+        'Add Entry' +
+      '</button>' +
+    '</div>';
 
   if (!entries.length) {
-    html+=emptyState('No entries for this day','Tap + to log your hours.');
+    rightHtml += emptyState('No entries for this day', 'Tap + to log your hours.');
   } else {
-    entries.forEach(function(e) { html+=buildEntryCard(e,calcEntry(e,settings),settings); });
+    entries.forEach(function(e) { rightHtml += buildEntryCard(e, calcEntry(e, settings), settings); });
   }
-  html+='<div class="version-stamp">Field Tools · OT Tracker · v1.0</div>';
-  mc.innerHTML=html;
+  rightHtml += '<div class="version-stamp">Field Tools · OT Tracker · v1.0</div>';
 
-  mc.querySelector('#day-prev').addEventListener('click',function(){ state.date=addDays(state.date,-1); render(); });
-  mc.querySelector('#day-next').addEventListener('click',function(){ state.date=addDays(state.date,1);  render(); });
-  var tp=mc.querySelector('#day-today');
-  if (tp) tp.addEventListener('click',function(){ state.date=todayStr(); render(); });
+  var html = '<div class="day-shell">' +
+    '<div class="day-l">' + leftHtml + '</div>' +
+    '<div class="day-r">' + rightHtml + '</div>' +
+  '</div>';
+
+  mc.innerHTML = html;
+
+  mc.querySelector('#day-prev').addEventListener('click', function() { state.date = addDays(state.date, -1); render(); });
+  mc.querySelector('#day-next').addEventListener('click', function() { state.date = addDays(state.date,  1); render(); });
+  var tp = mc.querySelector('#day-today');
+  if (tp) tp.addEventListener('click', function() { state.date = todayStr(); render(); });
+  var da = mc.querySelector('#d-day-add');
+  if (da) da.addEventListener('click', function() { openSheet(null); });
   wireCards(mc);
 }
 
-// ── Week View ─────────────────────────────────────────────────────
-function renderWeek(mc) {
-  var settings=loadSettings(), hr=parseFloat(settings.hourlyRate)||0;
-  var ws=getWeekStart(state.date, settings.weekStart||'sun');
-  var we=addDays(ws,6), today=todayStr();
-  var dates=[], allEntries=[], entryMap={};
-  for (var i=0;i<7;i++) { var d=addDays(ws,i); dates.push(d); entryMap[d]=[]; }
-  loadEntries().forEach(function(e){ if(entryMap[e.date]) entryMap[e.date].push(e); });
-  dates.forEach(function(d){ allEntries=allEntries.concat(entryMap[d]); });
-  var tots=totalsFor(allEntries,settings);
+// ── Biweekly Summary ──────────────────────────────────────────────
+function renderBiweekly(mc) {
+  var settings  = loadSettings();
+  var off       = state.ppOffset || 0;
+  var bounds    = ppBounds(off);
+  var allE      = loadEntries().filter(function(e) { return e.date >= bounds.start && e.date <= bounds.end; });
+  var tots      = totalsFor(allE, settings);
+  var hr        = parseFloat(settings.hourlyRate) || 0;
 
-  var html='<div class="view-header">'+
-    '<button class="view-nav-btn" id="wk-prev">&#8249;</button>'+
-    '<div class="view-header-center">'+
-      '<div class="view-header-title">'+fmtDateShort(ws)+' – '+fmtDateShort(we)+'</div>'+
-      '<div class="view-header-sub">Week '+isoWeek(parseDate(ws))+'</div>'+
-    '</div>'+
-    '<button class="today-pill" id="wk-today">Today</button>'+
-    '<button class="view-nav-btn" id="wk-next">&#8250;</button>'+
+  // Day map for calendar
+  var eMap = {};
+  allE.forEach(function(e) { if (!eMap[e.date]) eMap[e.date] = []; eMap[e.date].push(e); });
+
+  // Breakdown: cash OT and emergency OT separately
+  var cashM = 0, emerM = 0, normalOtM = 0, normalRegM = 0;
+  allE.forEach(function(e) {
+    var r = calcEntry(e, settings); if (!r) return;
+    var rt = e.rateType || e.otType || 'Normal';
+    if (rt === 'Cash')      cashM     += r.netM;
+    if (rt === 'Emergency') emerM     += r.netM;
+    if (rt === 'Normal')    { normalRegM += r.regM; normalOtM += r.otM; }
+  });
+  var totalOtM = normalOtM + cashM + tots.xpCredited + emerM;
+
+  var html = '<div class="page-wrap">' +
+    '<div class="view-header"><div class="view-header-center"><div class="view-header-title">Biweekly Summary</div></div></div>' +
+
+    '<div class="pp-toggle">' +
+      '<button class="pp-toggle-btn' + (off === 0 ? ' active' : '') + '" id="pp-cur">Current Period</button>' +
+      '<button class="pp-toggle-btn' + (off === -1 ? ' active' : '') + '" id="pp-prev-pp">Previous Period</button>' +
+    '</div>' +
+
+    '<div class="bw-period-label">' + fmtDate(bounds.start) + ' &ndash; ' + fmtDate(bounds.end) + '</div>' +
+
+    ppCalGrid(bounds, eMap, settings) +
+
+    '<div class="bw-totals-row">' +
+      '<div class="bw-total-stat"><div class="bw-total-val">' + hFmt(tots.netM) + '</div><div class="bw-total-lbl">Hrs Worked</div></div>' +
+      '<div class="bw-total-stat"><div class="bw-total-val" style="color:#f87171">' + hFmt(totalOtM) + '</div><div class="bw-total-lbl">OT Hrs</div></div>' +
+      (hr > 0
+        ? '<div class="bw-total-stat"><div class="bw-total-val" style="color:#34d399">' + fmtMoney(tots.earnings) + '</div><div class="bw-total-lbl">Earnings</div></div>'
+        : '<div class="bw-total-stat"><div class="bw-total-val">' + allE.length + '</div><div class="bw-total-lbl">Entries</div></div>') +
+    '</div>' +
+
+    '<div class="bw-cards">' +
+
+      bwCard('Regular Hours', hFmt(normalRegM), 'bw-badge-blue', 'Regular',
+        'Normal type entries within the ' + (settings.otThresholdHrs || 8) + '-hr/day threshold') +
+
+      bwCard('Overtime Hours', hFmt(normalOtM + cashM + emerM), 'bw-badge-red', 'Overtime',
+        'Normal OT + Cash + Emergency (excl. XP)') +
+
+      bwCard('XP Hours', hFmt(tots.xpRaw), 'bw-badge-green', 'XP',
+        hFmt(tots.xpRaw) + ' worked → ' + hFmt(tots.xpCredited) + ' credited (1.5×)') +
+
+      bwCard('Emergency Hours', hFmt(emerM), 'bw-badge-orange', 'Emergency',
+        'Immediate OT at per-entry emergency rate') +
+
+      bwCard('Comp Time Earned', hFmt(tots.xpCredited), 'bw-badge-green', 'Comp Time',
+        'XP hours credited at 1.5× conversion') +
+
+      '<div class="bw-card bw-full">' +
+        '<span class="bw-card-badge bw-badge-navy">Total Entries</span>' +
+        '<div class="bw-card-val">' + allE.length + '</div>' +
+        '<div class="bw-card-lbl">across this pay period</div>' +
+      '</div>' +
+
+    '</div>' +
+
+    '<button class="export-btn" id="export-bw">' +
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+      'Export Pay Period PDF' +
+    '</button>' +
+
+  '<div class="version-stamp">Field Tools · OT Tracker · v1.0</div></div>';
+
+  mc.innerHTML = html;
+  mc.querySelector('#pp-cur').addEventListener('click',     function() { state.ppOffset = 0;  savePpOffset(0);  render(); });
+  mc.querySelector('#pp-prev-pp').addEventListener('click', function() { state.ppOffset = -1; savePpOffset(-1); render(); });
+  mc.querySelector('#export-bw').addEventListener('click',  function() { exportPDF('period', bounds.start, bounds.end); });
+  mc.querySelectorAll('[data-pp-day]').forEach(function(cell) {
+    cell.addEventListener('click', function() { state.date = this.dataset.ppDay; state.view = 'day'; render(); });
+  });
+}
+
+function bwCard(title, val, badgeClass, badgeLabel, sub) {
+  return '<div class="bw-card">' +
+    '<span class="bw-card-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
+    '<div class="bw-card-val">' + val + '</div>' +
+    '<div class="bw-card-lbl">' + title + '</div>' +
+    (sub ? '<div class="bw-card-sub">' + sub + '</div>' : '') +
   '</div>';
+}
 
-  html+='<div class="week-grid">';
-  dates.forEach(function(dateS, idx) {
-    var d=parseDate(dateS), dow=d.getDay();
-    var isWeekend=(dow===0||dow===6), isToday=(dateS===today);
-    var dayE=entryMap[dateS], dayT=totalsFor(dayE,settings), hasOT=dayT.otM>0;
-    var cls='week-row'+(isToday?' today-row':'')+(isWeekend&&!isToday?' weekend-row':'');
-    html+='<div class="'+cls+'" data-goto="'+dateS+'" style="animation-delay:'+(idx*30)+'ms">'+
-      '<div class="week-day-col"><div class="week-dow">'+DAYS_SH[dow]+'</div><div class="week-date">'+d.getDate()+'</div></div>'+
-      '<div class="week-middle">'+
-        (dayE.length>0
-          ?'<div class="week-entry-preview">'+dayE.length+' entr'+(dayE.length===1?'y':'ies')+(dayE[0].otType?' · '+dayE[0].otType:'')+'</div>'
-          :'<div class="week-no-entry">No entries</div>')+
-      '</div>'+
-      '<div class="week-hrs-col">'+
-        (dayT.netM>0
-          ?'<div class="week-hrs'+(hasOT?' has-ot':'')+'">'+hFmt(dayT.netM)+'</div>'+(hasOT?'<div class="week-ot-badge">+'+hFmt(dayT.otM)+' OT</div>':'')
-          :'<div class="week-no-hrs">—</div>')+
-      '</div>'+
+function ppCalGrid(bounds, eMap, settings) {
+  var today    = todayStr();
+  var DOW      = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var startD   = parseDate(bounds.start);
+  var startDow = startD.getDay(); // 0=Sun … 6=Sat
+
+  // DOW header — columns aligned to start day of the PP
+  var hdr = '<div class="pp-cal-header">';
+  for (var d = 0; d < 7; d++) hdr += '<div class="pp-dow">' + DOW[(startDow + d) % 7] + '</div>';
+  hdr += '</div>';
+
+  var cells = '';
+  for (var i = 0; i < 14; i++) {
+    var cur  = new Date(bounds.start + 'T00:00:00');
+    cur.setDate(cur.getDate() + i);
+    var ds    = dateStr(cur);
+    var dayE  = eMap[ds] || [];
+    var dayT  = totalsFor(dayE, settings);
+    var isFut = ds > today;
+    var isTod = ds === today;
+    var hasOt = dayT.otM > 0;
+
+    // Unique rate types for dot indicators
+    var rtSet = {};
+    dayE.forEach(function(e) { rtSet[e.rateType || e.otType || 'Normal'] = true; });
+    var dots = '';
+    if (rtSet['Normal'])    dots += '<span class="pp-cal-dot dot-Normal"></span>';
+    if (rtSet['XP'])        dots += '<span class="pp-cal-dot dot-XP"></span>';
+    if (rtSet['Cash'])      dots += '<span class="pp-cal-dot dot-Cash"></span>';
+    if (rtSet['Emergency']) dots += '<span class="pp-cal-dot dot-Emergency"></span>';
+
+    var cls = 'pp-cal-cell' +
+      (isTod        ? ' pp-today'       : '') +
+      (isFut        ? ' pp-future'      : '') +
+      (dayE.length  ? ' pp-has-entries' : '') +
+      (hasOt        ? ' pp-has-ot'      : '');
+
+    cells += '<div class="' + cls + '"' + (isFut ? '' : ' data-pp-day="' + ds + '"') + '>' +
+      '<div class="pp-cal-dn">' + cur.getDate() + '</div>' +
+      (dayE.length ? '<div class="pp-cal-hrs">' + hFmt(dayT.netM) + 'h</div>' : '') +
+      (hasOt ? '<div class="pp-cal-ot">OT ' + hFmt(dayT.otM) + 'h</div>' : '') +
+      (dots ? '<div class="pp-cal-dots">' + dots + '</div>' : '') +
     '</div>';
-  });
-  html+='</div>';
+  }
+  return hdr + '<div class="pp-cal">' + cells + '</div>';
+}
 
-  html+='<div class="totals-card">'+
-    '<div class="totals-stat"><div class="totals-val">'+hFmt(tots.netM)+'</div><div class="totals-lbl">Total Hrs</div></div>'+
-    '<div class="totals-stat"><div class="totals-val" style="color:#34d399">'+hFmt(tots.otM)+'</div><div class="totals-lbl">OT Hrs</div></div>'+
-    (hr>0
-      ?'<div class="totals-stat"><div class="totals-val" style="color:#fbbf24">'+fmtMoney(tots.earnings)+'</div><div class="totals-lbl">Earnings</div></div>'
-      :'<div class="totals-stat"><div class="totals-val">'+allEntries.length+'</div><div class="totals-lbl">Entries</div></div>')+
-  '</div>';
-
-  html+='<div class="export-btn-wrap"><button class="export-btn" id="export-week">'+
-    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'+
-    'Export Week PDF</button></div>';
-
-  html+='<div class="version-stamp">Field Tools · OT Tracker · v1.0</div>';
-  mc.innerHTML=html;
-
-  mc.querySelector('#wk-prev').addEventListener('click',function(){ state.date=addDays(ws,-7); render(); });
-  mc.querySelector('#wk-next').addEventListener('click',function(){ state.date=addDays(ws,7);  render(); });
-  mc.querySelector('#wk-today').addEventListener('click',function(){ state.date=todayStr(); render(); });
-  mc.querySelectorAll('[data-goto]').forEach(function(row){
-    row.addEventListener('click',function(){ state.date=this.dataset.goto; state.view='day'; render(); });
-  });
-  mc.querySelector('#export-week').addEventListener('click',function(){ exportPDF('week',ws,we); });
+function savePpOffset(off) {
+  try { localStorage.setItem('ft_ts_ppoffset', String(off)); } catch(_) {}
 }
 
 // ── Month View ────────────────────────────────────────────────────
 function renderMonth(mc) {
-  var settings=loadSettings(), hr=parseFloat(settings.hourlyRate)||0;
-  var d=parseDate(state.date), yr=d.getFullYear(), mo=d.getMonth();
-  var today=todayStr(), weekStartDay=settings.weekStart||'sun';
-  var firstDay=new Date(yr,mo,1), lastDay=new Date(yr,mo+1,0);
-
-  var allEntries=loadEntries().filter(function(e){
-    var ed=parseDate(e.date); return ed&&ed.getFullYear()===yr&&ed.getMonth()===mo;
+  var settings = loadSettings(), hr = parseFloat(settings.hourlyRate) || 0;
+  var d = parseDate(state.date), yr = d.getFullYear(), mo = d.getMonth();
+  var today = todayStr(), weekStartDay = settings.weekStart || 'sun';
+  var firstDay = new Date(yr, mo, 1), lastDay = new Date(yr, mo + 1, 0);
+  var allE = loadEntries().filter(function(e) {
+    var ed = parseDate(e.date); return ed && ed.getFullYear() === yr && ed.getMonth() === mo;
   });
-  var tots=totalsFor(allEntries,settings);
-  var eMap={};
-  allEntries.forEach(function(e){ if(!eMap[e.date])eMap[e.date]=[]; eMap[e.date].push(e); });
+  var tots = totalsFor(allE, settings);
+  var eMap = {};
+  allE.forEach(function(e) { if (!eMap[e.date]) eMap[e.date] = []; eMap[e.date].push(e); });
 
-  var startDow=firstDay.getDay();
-  if (weekStartDay==='mon') startDow=(startDow+6)%7;
+  var startDow = firstDay.getDay();
+  if (weekStartDay === 'mon') startDow = (startDow + 6) % 7;
 
-  var html='<div class="view-header">'+
-    '<button class="view-nav-btn" id="mo-prev">&#8249;</button>'+
-    '<div class="view-header-center"><div class="view-header-title">'+MONTHS[mo]+' '+yr+'</div></div>'+
-    '<button class="today-pill" id="mo-today">Today</button>'+
-    '<button class="view-nav-btn" id="mo-next">&#8250;</button>'+
+  var html = '<div class="page-wrap"><div class="view-header">' +
+    '<button class="view-nav-btn" id="mo-prev">&#8249;</button>' +
+    '<div class="view-header-center"><div class="view-header-title">' + MONTHS[mo] + ' ' + yr + '</div></div>' +
+    '<button class="today-pill" id="mo-today">Today</button>' +
+    '<button class="view-nav-btn" id="mo-next">&#8250;</button>' +
   '</div>';
 
-  var dowLabels=weekStartDay==='mon'?['M','T','W','T','F','S','S']:['S','M','T','W','T','F','S'];
-  html+='<div class="cal-grid-header">';
-  dowLabels.forEach(function(l){ html+='<div class="cal-dow">'+l+'</div>'; });
-  html+='</div><div class="cal-grid">';
+  var dowLabels = weekStartDay === 'mon' ? ['M','T','W','T','F','S','S'] : ['S','M','T','W','T','F','S'];
+  html += '<div class="cal-grid-header">';
+  dowLabels.forEach(function(l) { html += '<div class="cal-dow">' + l + '</div>'; });
+  html += '</div><div class="cal-grid">';
 
-  for (var i=0;i<startDow;i++) html+='<div class="cal-cell other-month"></div>';
-
-  for (var day=1;day<=lastDay.getDate();day++) {
-    var ds=yr+'-'+pad(mo+1)+'-'+pad(day);
-    var dw=new Date(yr,mo,day).getDay();
-    var isWeekend=(dw===0||dw===6), isToday=(ds===today);
-    var dayE=eMap[ds]||[], dayT=totalsFor(dayE,settings);
-    var hasEntry=dayE.length>0, hasOT=dayT.otM>0;
-    var cls='cal-cell'+(isToday?' today':'')+(isWeekend&&!isToday?' weekend':'')+(hasEntry?' has-entry':'')+(hasOT?' has-ot':'');
-    html+='<div class="'+cls+'" data-goto="'+ds+'">'+day+(hasEntry?'<div class="cal-hrs">'+hFmt(dayT.netM)+'</div>':'')+'</div>';
+  for (var i = 0; i < startDow; i++) html += '<div class="cal-cell other-month"></div>';
+  for (var day = 1; day <= lastDay.getDate(); day++) {
+    var ds = yr + '-' + pad(mo + 1) + '-' + pad(day);
+    var dw = new Date(yr, mo, day).getDay();
+    var isWkd = (dw === 0 || dw === 6), isToday = (ds === today);
+    var dayE = eMap[ds] || [], dayT = totalsFor(dayE, settings);
+    var cls = 'cal-cell' + (isToday ? ' today' : '') + (isWkd && !isToday ? ' weekend' : '') +
+              (dayE.length ? ' has-entry' : '') + (dayT.otM > 0 ? ' has-ot' : '');
+    html += '<div class="' + cls + '" data-goto="' + ds + '"><span class="cal-dn">' + day + '</span>' +
+      (dayE.length ? '<div class="cal-hrs">' + hFmt(dayT.netM) + '</div>' : '') + '</div>';
   }
+  var total = startDow + lastDay.getDate(), rows = Math.ceil(total / 7);
+  for (var j = 0; j < rows * 7 - total; j++) html += '<div class="cal-cell other-month"></div>';
+  html += '</div>';
 
-  var total=startDow+lastDay.getDate(), rows=Math.ceil(total/7);
-  for (var j=0;j<rows*7-total;j++) html+='<div class="cal-cell other-month"></div>';
-  html+='</div>';
-
-  html+='<div class="totals-card">'+
-    '<div class="totals-stat"><div class="totals-val">'+hFmt(tots.netM)+'</div><div class="totals-lbl">Total Hrs</div></div>'+
-    '<div class="totals-stat"><div class="totals-val" style="color:#34d399">'+hFmt(tots.otM)+'</div><div class="totals-lbl">OT Hrs</div></div>'+
-    (hr>0
-      ?'<div class="totals-stat"><div class="totals-val" style="color:#fbbf24">'+fmtMoney(tots.earnings)+'</div><div class="totals-lbl">Earnings</div></div>'
-      :'<div class="totals-stat"><div class="totals-val">'+allEntries.length+'</div><div class="totals-lbl">Entries</div></div>')+
+  html += '<div class="totals-card">' +
+    '<div class="totals-stat"><div class="totals-val">' + hFmt(tots.netM) + '</div><div class="totals-lbl">Total Hrs</div></div>' +
+    '<div class="totals-stat"><div class="totals-val" style="color:#f87171">' + hFmt(tots.otM) + '</div><div class="totals-lbl">OT Hrs</div></div>' +
+    (hr > 0
+      ? '<div class="totals-stat"><div class="totals-val" style="color:#34d399">' + fmtMoney(tots.earnings) + '</div><div class="totals-lbl">Earnings</div></div>'
+      : '<div class="totals-stat"><div class="totals-val">' + allE.length + '</div><div class="totals-lbl">Entries</div></div>') +
   '</div>';
 
-  var msDate=yr+'-'+pad(mo+1)+'-01';
-  var meDate=yr+'-'+pad(mo+1)+'-'+pad(lastDay.getDate());
-  html+='<div class="export-btn-wrap"><button class="export-btn" id="export-month">'+
-    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'+
-    'Export Month PDF</button></div>';
+  var msDate = yr + '-' + pad(mo + 1) + '-01';
+  var meDate = yr + '-' + pad(mo + 1) + '-' + pad(lastDay.getDate());
+  html += '<button class="export-btn" id="export-month">' +
+    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+    'Export Month PDF</button>';
 
-  html+='<div class="version-stamp">Field Tools · OT Tracker · v1.0</div>';
-  mc.innerHTML=html;
+  html += '<div class="version-stamp">Field Tools · OT Tracker · v1.0</div></div>';
+  mc.innerHTML = html;
 
-  mc.querySelector('#mo-prev').addEventListener('click',function(){ var nd=new Date(yr,mo-1,1); state.date=dateStr(nd); render(); });
-  mc.querySelector('#mo-next').addEventListener('click',function(){ var nd=new Date(yr,mo+1,1); state.date=dateStr(nd); render(); });
-  mc.querySelector('#mo-today').addEventListener('click',function(){ state.date=todayStr(); render(); });
-  mc.querySelectorAll('[data-goto]').forEach(function(cell){
-    cell.addEventListener('click',function(){ state.date=this.dataset.goto; state.view='day'; render(); });
+  mc.querySelector('#mo-prev').addEventListener('click', function() { state.date = dateStr(new Date(yr, mo - 1, 1)); render(); });
+  mc.querySelector('#mo-next').addEventListener('click', function() { state.date = dateStr(new Date(yr, mo + 1, 1)); render(); });
+  mc.querySelector('#mo-today').addEventListener('click', function() { state.date = todayStr(); render(); });
+  mc.querySelectorAll('[data-goto]').forEach(function(cell) {
+    cell.addEventListener('click', function() { state.date = this.dataset.goto; state.view = 'day'; render(); });
   });
-  mc.querySelector('#export-month').addEventListener('click',function(){ exportPDF('month',msDate,meDate); });
+  mc.querySelector('#export-month').addEventListener('click', function() { exportPDF('month', msDate, meDate); });
 }
 
 // ── Settings View ─────────────────────────────────────────────────
 function renderSettings(mc) {
-  var s=loadSettings();
-  var html='<div style="height:16px"></div>';
+  var s = loadSettings();
+  var html = '<div class="page-wrap"><div style="height:18px"></div>';
 
-  html+='<div class="settings-section"><div class="settings-lbl">Pay &amp; Rates</div><div class="settings-card">'+
-    settingsRow('Hourly Rate','Leave at 0 to hide earnings','<input type="number" id="s-rate" min="0" max="999" step="0.01" value="'+s.hourlyRate+'">')+
-    settingsRow('OT Rate Multiplier','e.g. 1.5 = time and a half','<input type="number" id="s-mult" min="1" max="4" step="0.25" value="'+s.otMultiplier+'">')+
-    settingsRow('OT Threshold (hrs)','Hours per day before OT kicks in','<input type="number" id="s-thresh" min="1" max="24" step="0.5" value="'+s.otThresholdHrs+'">')+
-    '</div></div>';
-
-  html+='<div class="settings-section"><div class="settings-lbl">Defaults</div><div class="settings-card">'+
-    settingsRow('Default Break','Auto-filled on new entries','<input type="number" id="s-brk" min="0" max="120" step="5" value="'+s.breakDefault+'">')+
-    settingsRow('Time Format','','<select id="s-tfmt"><option value="12"'+(s.timeFormat==='12'?' selected':'')+'>12-hour</option><option value="24"'+(s.timeFormat==='24'?' selected':'')+'>24-hour</option></select>')+
-    settingsRow('Week Starts On','','<select id="s-wkst"><option value="sun"'+(s.weekStart==='sun'?' selected':'')+'>Sunday</option><option value="mon"'+(s.weekStart==='mon'?' selected':'')+'>Monday</option></select>')+
-    settingsRow('Default View','','<select id="s-dview"><option value="day"'+(s.defaultView==='day'?' selected':'')+'>Day</option><option value="week"'+(s.defaultView==='week'?' selected':'')+'>Week</option><option value="month"'+(s.defaultView==='month'?' selected':'')+'>Month</option></select>')+
-    settingsRow('Theme','Switch light or dark mode','<button type="button" class="settings-toggle-btn" id="s-theme">'+(document.documentElement.hasAttribute('data-dark')?'Dark':'Light')+'</button>')+
+  html += '<div class="settings-section"><div class="settings-lbl">Pay &amp; Rates</div><div class="settings-card">' +
+    sRow('Hourly Rate', 'Used for Normal and Cash earnings (set 0 to hide)', '<input type="number" id="s-rate" min="0" max="999" step="0.01" value="' + s.hourlyRate + '">') +
+    sRow('OT Multiplier', 'Applied to Normal and Cash overtime (e.g. 1.5×)', '<input type="number" id="s-mult" min="1" max="4" step="0.25" value="' + s.otMultiplier + '">') +
+    sRow('OT Threshold (hrs)', 'Daily hours before Normal type triggers OT', '<input type="number" id="s-thresh" min="1" max="24" step="0.5" value="' + s.otThresholdHrs + '">') +
   '</div></div>';
 
-  html+='<div class="settings-section"><div class="settings-lbl">Data</div>'+
-    '<button class="danger-btn" id="clear-data">Clear All Entries</button></div>';
+  html += '<div class="settings-section"><div class="settings-lbl">Defaults</div><div class="settings-card">' +
+    sRow('Default Break', 'Auto-filled on new entries (minutes)', '<input type="number" id="s-brk" min="0" max="120" step="15" value="' + s.breakDefault + '">') +
+    sRow('Time Format', '', '<select id="s-tfmt"><option value="12"' + (s.timeFormat === '12' ? ' selected' : '') + '>12-hour</option><option value="24"' + (s.timeFormat === '24' ? ' selected' : '') + '>24-hour</option></select>') +
+    sRow('Week Starts On', '', '<select id="s-wkst"><option value="sun"' + (s.weekStart === 'sun' ? ' selected' : '') + '>Sunday</option><option value="mon"' + (s.weekStart === 'mon' ? ' selected' : '') + '>Monday</option></select>') +
+    sRow('Default View', '', '<select id="s-dview"><option value="day"' + (s.defaultView === 'day' ? ' selected' : '') + '>Day</option><option value="biweekly"' + (s.defaultView === 'biweekly' ? ' selected' : '') + '>Biweekly</option><option value="month"' + (s.defaultView === 'month' ? ' selected' : '') + '>Month</option></select>') +
+  '</div></div>';
 
-  html+='<div class="settings-section"><div class="settings-card">'+
-    '<div class="about-text">Field Tools · Overtime Tracker &amp; Timesheet · v1.0<br>Part of the NJ DOT Field Tools suite.<br>All data stored locally on this device.</div></div></div>';
+  html += '<div class="settings-section"><div class="settings-lbl">Data</div><div class="settings-card">' +
+    sRow('Export Backup', 'Save all entries as a JSON file you can restore later',
+      '<button class="entry-act" id="export-json" style="white-space:nowrap">Export JSON</button>') +
+    sRow('Import Backup', 'Restore entries from a previously exported JSON file',
+      '<label class="entry-act" style="cursor:pointer;white-space:nowrap" for="import-json-file">Import JSON<input type="file" id="import-json-file" accept=".json" style="display:none"></label>') +
+  '</div>' +
+  '<button class="danger-btn" id="clear-data" style="margin-top:10px">Clear All Entries</button>' +
+  '</div>';
 
-  html+='<div class="version-stamp">Field Tools · OT Tracker · v1.0</div>';
-  mc.innerHTML=html;
+  html += '<div class="settings-section"><div class="settings-card">' +
+    '<div class="about-text">Field Tools · OT Tracker &amp; Timesheet · v1.0<br>' +
+    'Part of the NJ DOT Field Tools suite.<br>' +
+    'All data stored locally on this device.<br>' +
+    'Theme controlled by the Home screen.</div>' +
+  '</div></div>';
+
+  html += '<div class="version-stamp">Field Tools · OT Tracker · v1.0</div></div>';
+  mc.innerHTML = html;
 
   function saveS() {
-    var ns=loadSettings();
-    ns.hourlyRate     = parseFloat(document.getElementById('s-rate').value)||0;
-    ns.otMultiplier   = parseFloat(document.getElementById('s-mult').value)||1.5;
-    ns.otThresholdHrs = parseFloat(document.getElementById('s-thresh').value)||8;
-    ns.breakDefault   = parseInt(document.getElementById('s-brk').value)||30;
+    var ns = loadSettings();
+    ns.hourlyRate     = parseFloat(document.getElementById('s-rate').value)   || 0;
+    ns.otMultiplier   = parseFloat(document.getElementById('s-mult').value)   || 1.5;
+    ns.otThresholdHrs = parseFloat(document.getElementById('s-thresh').value) || 8;
+    ns.breakDefault   = parseInt(document.getElementById('s-brk').value)      || 30;
     ns.timeFormat     = document.getElementById('s-tfmt').value;
     ns.weekStart      = document.getElementById('s-wkst').value;
     ns.defaultView    = document.getElementById('s-dview').value;
     storeSettings(ns);
-    showToast('Settings saved','ok',1400);
+    showToast('Settings saved', 'ok', 1400);
   }
-
-  ['s-rate','s-mult','s-thresh','s-brk'].forEach(function(id){
-    var el=document.getElementById(id);
-    el.addEventListener('change',saveS);
-    el.addEventListener('blur',saveS);
+  ['s-rate','s-mult','s-thresh','s-brk'].forEach(function(id) {
+    document.getElementById(id).addEventListener('change', saveS);
   });
-  ['s-tfmt','s-wkst','s-dview'].forEach(function(id){
-    document.getElementById(id).addEventListener('change',saveS);
+  ['s-tfmt','s-wkst','s-dview'].forEach(function(id) {
+    document.getElementById(id).addEventListener('change', saveS);
   });
-  document.getElementById('s-theme').addEventListener('click',function(){
-    document.getElementById('dark-tog').click();
-    this.textContent=document.documentElement.hasAttribute('data-dark')?'Dark':'Light';
-  });
-  document.getElementById('clear-data').addEventListener('click',function(){
+  document.getElementById('export-json').addEventListener('click', function() { exportJSON(); });
+  document.getElementById('import-json-file').addEventListener('change', function() { importJSON(this); this.value = ''; });
+  document.getElementById('clear-data').addEventListener('click', function() {
     if (!confirm('Delete ALL entries? This cannot be undone.')) return;
-    storeEntries([]); showToast('All entries cleared','info');
+    storeEntries([]);
+    showToast('All entries cleared', 'info');
   });
 }
 
-function settingsRow(main, sub, control) {
-  return '<div class="settings-row"><div class="settings-row-label"><div class="settings-row-main">'+main+'</div>'+(sub?'<div class="settings-row-sub">'+sub+'</div>':'')+
-    '</div>'+control+'</div>';
+// Fixed: each sRow call returns a string; closing divs are concatenated outside the call
+function sRow(main, sub, control) {
+  return '<div class="settings-row">' +
+    '<div class="settings-row-label">' +
+      '<div class="settings-row-main">' + main + '</div>' +
+      (sub ? '<div class="settings-row-sub">' + sub + '</div>' : '') +
+    '</div>' +
+    control +
+  '</div>';
 }
 
-// ── Entry card HTML ───────────────────────────────────────────────
+// ── Entry card builder ────────────────────────────────────────────
 function buildEntryCard(entry, r, settings) {
-  var tf=(settings||{}).timeFormat||'12';
-  var hr=parseFloat((settings||{}).hourlyRate)||0;
-  var type=entry.otType||'XP';
-  var dotCls='dot-'+type;
-  var badgeCls='badge-'+type;
-  var timeStr=fmtTime(entry.start,tf)+' – '+fmtTime(entry.stop,tf)+(entry.overnight?' 🌙':'');
-  var netHrs=r?hFmt(r.netM):'—';
-  var hrsColor=r&&r.otM>0?'color:var(--accent)':'color:var(--text)';
+  var tf = (settings || {}).timeFormat || '12';
+  var hr = parseFloat((settings || {}).hourlyRate) || 0;
+  var rt = entry.rateType || entry.otType || 'Normal';
+  var timeStr = fmtTime(entry.start, tf) + ' – ' + fmtTime(entry.stop, tf);
+  var netHrs  = r ? hFmt(r.netM) : '—';
+  var hrsColor = (r && r.otM > 0) ? 'color:var(--red)' : 'color:var(--text)';
 
-  return '<div class="entry-card" data-eid="'+esc(entry.id)+'">'+
-    '<div class="entry-row">'+
-      '<div class="entry-type-dot '+dotCls+'"></div>'+
-      '<div class="entry-main">'+
-        '<div class="entry-type-badge '+badgeCls+'">'+type+'</div>'+
-        '<div class="entry-time-row">'+timeStr+'</div>'+
-        (entry.notes?'<div class="entry-notes">'+esc(entry.notes)+'</div>':'')+
-      '</div>'+
-      '<div class="entry-hrs-col"><div class="entry-hrs-big" style="'+hrsColor+'">'+netHrs+'</div><div class="entry-hrs-lbl">hours</div></div>'+
-      '<div class="entry-chevron">&#8250;</div>'+
-    '</div>'+
-    '<div class="entry-detail">'+
-      '<div class="detail-grid">'+
-        '<div class="detail-item"><span class="detail-lbl">Start</span><span class="detail-val">'+fmtTime(entry.start,tf)+'</span></div>'+
-        '<div class="detail-item"><span class="detail-lbl">Stop</span><span class="detail-val">'+fmtTime(entry.stop,tf)+'</span></div>'+
-        '<div class="detail-item"><span class="detail-lbl">Break</span><span class="detail-val">'+(entry.breakMin?entry.breakMin+' min':'None')+'</span></div>'+
-        '<div class="detail-item"><span class="detail-lbl">Net Hours</span><span class="detail-val" style="color:var(--accent)">'+netHrs+'</span></div>'+
-        (r&&r.otM>0?'<div class="detail-item"><span class="detail-lbl">Overtime</span><span class="detail-val" style="color:#059669">'+hFmt(r.otM)+' hrs</span></div>':'')+
-        (r&&hr>0?'<div class="detail-item"><span class="detail-lbl">Earnings</span><span class="detail-val" style="color:#059669">'+fmtMoney(r.earnings)+'</span></div>':'')+
-        (entry.job?'<div class="detail-item"><span class="detail-lbl">Job #</span><span class="detail-val">'+esc(entry.job)+'</span></div>':'')+
-        (entry.act?'<div class="detail-item"><span class="detail-lbl">Activity</span><span class="detail-val">'+esc(entry.act)+'</span></div>':'')+
-        (entry.notes?'<div class="detail-item detail-full"><span class="detail-lbl">Notes</span><span class="detail-val">'+esc(entry.notes)+'</span></div>':'')+
-      '</div>'+
-      '<div class="entry-act-row">'+
-        '<button class="entry-act" data-edit="'+esc(entry.id)+'">Edit</button>'+
-        '<button class="entry-act del" data-del="'+esc(entry.id)+'">Delete</button>'+
-      '</div>'+
-    '</div>'+
+  return '<div class="entry-card" data-eid="' + esc(entry.id) + '">' +
+    '<div class="entry-row">' +
+      '<div class="entry-type-dot dot-' + rt + '"></div>' +
+      '<div class="entry-main">' +
+        '<div class="entry-type-badge badge-' + rt + '">' + rt + '</div>' +
+        '<div class="entry-time-row">' + timeStr + '</div>' +
+        '<div class="entry-shift-tag">' + shiftLabel(entry.start) + '</div>' +
+        (entry.notes ? '<div class="entry-notes">' + esc(entry.notes) + '</div>' : '') +
+      '</div>' +
+      '<div class="entry-hrs-col"><div class="entry-hrs-big" style="' + hrsColor + '">' + netHrs + '</div><div class="entry-hrs-lbl">hours</div></div>' +
+      '<div class="entry-chevron">&#8250;</div>' +
+    '</div>' +
+    '<div class="entry-detail">' +
+      '<div class="detail-grid">' +
+        '<div class="detail-item"><span class="detail-lbl">Start</span><span class="detail-val">' + fmtTime(entry.start, tf) + '</span></div>' +
+        '<div class="detail-item"><span class="detail-lbl">Stop</span><span class="detail-val">' + fmtTime(entry.stop, tf) + '</span></div>' +
+        '<div class="detail-item"><span class="detail-lbl">Break</span><span class="detail-val">' + (entry.breakMin ? entry.breakMin + ' min' : 'None') + '</span></div>' +
+        '<div class="detail-item"><span class="detail-lbl">Net Hours</span><span class="detail-val" style="color:var(--accent)">' + netHrs + '</span></div>' +
+        (r && r.otM > 0 ? '<div class="detail-item"><span class="detail-lbl">OT Hours</span><span class="detail-val" style="color:var(--red)">' + hFmt(r.otM) + '</span></div>' : '') +
+        (r && rt === 'XP' ? '<div class="detail-item"><span class="detail-lbl">XP Credited</span><span class="detail-val" style="color:var(--green)">' + hFmt(r.xpCredited) + ' hrs</span></div>' : '') +
+        (rt === 'Emergency' && entry.emergencyRate ? '<div class="detail-item"><span class="detail-lbl">Emergency Rate</span><span class="detail-val" style="color:var(--orange)">' + fmtMoney(parseFloat(entry.emergencyRate)) + '/hr</span></div>' : '') +
+        (r && hr > 0 && rt !== 'XP' ? '<div class="detail-item"><span class="detail-lbl">Earnings</span><span class="detail-val" style="color:var(--green)">' + fmtMoney(r.earnings) + '</span></div>' : '') +
+        (entry.job    ? '<div class="detail-item"><span class="detail-lbl">Job #</span><span class="detail-val">' + esc(entry.job) + '</span></div>' : '') +
+        (entry.act    ? '<div class="detail-item"><span class="detail-lbl">Activity</span><span class="detail-val">' + esc(entry.act) + '</span></div>' : '') +
+        (entry.notes  ? '<div class="detail-item detail-full"><span class="detail-lbl">Notes</span><span class="detail-val">' + esc(entry.notes) + '</span></div>' : '') +
+      '</div>' +
+      '<div class="entry-act-row">' +
+        '<button class="entry-act" data-edit="' + esc(entry.id) + '">Edit</button>' +
+        '<button class="entry-act del" data-del="' + esc(entry.id) + '">Delete</button>' +
+      '</div>' +
+    '</div>' +
   '</div>';
 }
 
 function wireCards(mc) {
   mc.querySelectorAll('.entry-card').forEach(function(card) {
-    card.querySelector('.entry-row').addEventListener('click',function(){ card.classList.toggle('expanded'); });
-    var eb=card.querySelector('[data-edit]');
-    if (eb) eb.addEventListener('click',function(e){
-      e.stopPropagation();
-      var entry=loadEntries().find(function(x){return x.id===this.dataset.edit;},this);
+    card.querySelector('.entry-row').addEventListener('click', function() { card.classList.toggle('expanded'); });
+    var eb = card.querySelector('[data-edit]');
+    if (eb) eb.addEventListener('click', function(ev) {
+      ev.stopPropagation();
+      var id = this.dataset.edit;
+      var entry = loadEntries().find(function(x) { return x.id === id; });
       if (entry) openSheet(entry);
     });
-    var db=card.querySelector('[data-del]');
-    if (db) db.addEventListener('click',function(e){
-      e.stopPropagation();
-      var id=this.dataset.del;
+    var db = card.querySelector('[data-del]');
+    if (db) db.addEventListener('click', function(ev) {
+      ev.stopPropagation();
+      var id = this.dataset.del;
       if (!confirm('Delete this entry?')) return;
-      storeEntries(loadEntries().filter(function(x){return x.id!==id;}));
-      card.style.transition='opacity 180ms ease, transform 180ms ease';
-      card.style.opacity='0'; card.style.transform='translateX(12px)';
-      setTimeout(render,190);
-      showToast('Entry deleted','info');
+      storeEntries(loadEntries().filter(function(x) { return x.id !== id; }));
+      card.style.transition = 'opacity 180ms ease, transform 180ms ease';
+      card.style.opacity = '0'; card.style.transform = 'translateX(12px)';
+      setTimeout(render, 190);
+      showToast('Entry deleted', 'info');
     });
   });
 }
 
 function emptyState(title, desc) {
-  return '<div class="empty">'+
-    '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'+
-    '<div class="empty-title">'+title+'</div><div class="empty-desc">'+desc+'</div></div>';
+  return '<div class="empty">' +
+    '<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' +
+    '<div class="empty-title">' + title + '</div><div class="empty-desc">' + desc + '</div></div>';
+}
+
+// ── Time picker helpers ───────────────────────────────────────────
+function buildHourOptions() {
+  var out = '';
+  for (var h = 0; h < 24; h++) {
+    var ap = h < 12 ? 'AM' : 'PM', h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    out += '<option value="' + pad(h) + '">' + h12 + ' ' + ap + '</option>';
+  }
+  return out;
+}
+function populateHourSelects() {
+  var opts = buildHourOptions();
+  ['f-start-h','f-stop-h'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el && el.options.length === 0) el.innerHTML = opts;
+  });
+}
+function getTimeVal(pfx) {
+  var h = document.getElementById(pfx + '-h'), m = document.getElementById(pfx + '-m');
+  if (!h || !m || h.value === '') return '';
+  return h.value + ':' + m.value;
+}
+function setTimeVal(pfx, val) {
+  if (!val) return;
+  var p = val.split(':');
+  var hEl = document.getElementById(pfx + '-h'), mEl = document.getElementById(pfx + '-m');
+  if (hEl) hEl.value = pad(parseInt(p[0]));
+  if (mEl) { var rawM = parseInt(p[1]); mEl.value = pad(Math.round(rawM / 15) * 15 % 60); }
 }
 
 // ── Bottom Sheet ──────────────────────────────────────────────────
 function openSheet(entry) {
-  var settings=loadSettings();
-  editingId=entry?entry.id:null;
-  document.getElementById('sheet-title').textContent=entry?'Edit Entry':'Log Entry';
+  var settings = loadSettings();
+  editingId = entry ? entry.id : null;
+  document.getElementById('sheet-title').textContent = entry ? 'Edit Entry' : 'Log Entry';
 
-  document.querySelectorAll('[name="ot-type"]').forEach(function(r){r.checked=false;});
-  document.getElementById('type-XP').checked=true;
-  document.getElementById('shift-day').checked=true;
-  document.getElementById('f-date').value=state.date||todayStr();
-  document.getElementById('f-start').value='';
-  document.getElementById('f-stop').value='';
-  document.getElementById('f-meal').value=settings.breakDefault||30;
-  document.getElementById('f-job').value='';
-  document.getElementById('f-act').value='';
-  document.getElementById('f-notes').value='';
-  setMealActive(parseInt(settings.breakDefault)||30);
+  // Reset
+  document.querySelectorAll('[name="rate-type"]').forEach(function(r) { r.checked = false; });
+  document.getElementById('f-date').value   = state.date || todayStr();
+  setTimeVal('f-start', '');
+  setTimeVal('f-stop',  '');
+  document.getElementById('f-meal').value   = settings.breakDefault || 30;
+  document.getElementById('f-emg-rate').value = '';
+  document.getElementById('f-job').value    = '';
+  document.getElementById('f-act').value    = '';
+  document.getElementById('f-notes').value  = '';
+  setMealActive(parseInt(settings.breakDefault) || 30);
+  toggleEmgRate(false);
 
   if (entry) {
-    var tr=document.getElementById('type-'+(entry.otType||'XP'));
-    if (tr) tr.checked=true;
-    document.getElementById('shift-'+(entry.overnight?'night':'day')).checked=true;
-    document.getElementById('f-date').value=entry.date||todayStr();
-    document.getElementById('f-start').value=entry.start||'';
-    document.getElementById('f-stop').value=entry.stop||'';
-    document.getElementById('f-meal').value=entry.breakMin!=null?entry.breakMin:settings.breakDefault;
-    document.getElementById('f-job').value=entry.job||'';
-    document.getElementById('f-act').value=entry.act||'';
-    document.getElementById('f-notes').value=entry.notes||'';
-    setMealActive(parseInt(entry.breakMin)||0);
+    var rt = entry.rateType || entry.otType || 'Normal';
+    var rtEl = document.getElementById('rt-' + rt);
+    if (rtEl) rtEl.checked = true;
+    document.getElementById('f-date').value = entry.date || todayStr();
+    setTimeVal('f-start', entry.start || '');
+    setTimeVal('f-stop',  entry.stop  || '');
+    document.getElementById('f-meal').value = entry.breakMin != null ? entry.breakMin : settings.breakDefault;
+    document.getElementById('f-emg-rate').value = entry.emergencyRate || '';
+    document.getElementById('f-job').value   = entry.job    || '';
+    document.getElementById('f-act').value   = entry.act    || '';
+    document.getElementById('f-notes').value = entry.notes  || '';
+    setMealActive(parseInt(entry.breakMin) || 0);
+    toggleEmgRate(rt === 'Emergency');
+  } else {
+    // Default to Normal
+    var defEl = document.getElementById('rt-Normal');
+    if (defEl) defEl.checked = true;
   }
 
   updateCalc();
   document.getElementById('sheet-overlay').classList.add('open');
   document.getElementById('sheet').classList.add('open');
-  document.body.style.overflow='hidden';
+  document.body.style.overflow = 'hidden';
+}
+
+function toggleEmgRate(show) {
+  var wrap = document.getElementById('emg-rate-wrap');
+  if (wrap) wrap.style.display = show ? '' : 'none';
 }
 
 function setMealActive(val) {
-  document.querySelectorAll('.meal-q').forEach(function(q){ q.classList.toggle('active',parseInt(q.dataset.min)===val); });
+  document.querySelectorAll('.meal-q').forEach(function(q) {
+    q.classList.toggle('active', parseInt(q.dataset.min) === val);
+  });
 }
 
 function closeSheet() {
   document.getElementById('sheet-overlay').classList.remove('open');
   document.getElementById('sheet').classList.remove('open');
-  document.body.style.overflow='';
-  editingId=null;
+  document.body.style.overflow = '';
+  editingId = null;
 }
 
 function saveEntry() {
-  var otType=(document.querySelector('[name="ot-type"]:checked')||{}).value||'XP';
-  var overnight=document.getElementById('shift-night').checked;
-  var date=document.getElementById('f-date').value;
-  var start=document.getElementById('f-start').value;
-  var stop=document.getElementById('f-stop').value;
-  var breakMin=parseInt(document.getElementById('f-meal').value)||0;
+  var rtEl = document.querySelector('[name="rate-type"]:checked');
+  if (!rtEl) { showToast('Please select a rate type', 'err'); return; }
+  var rt   = rtEl.value;
+  var date = document.getElementById('f-date').value;
+  var start = getTimeVal('f-start');
+  var stop  = getTimeVal('f-stop');
+  var breakMin = parseInt(document.getElementById('f-meal').value) || 0;
+  var emerRate = parseFloat(document.getElementById('f-emg-rate').value) || 0;
 
-  if (!date)  { showToast('Please enter a date','err');       return; }
-  if (!start) { showToast('Please enter a start time','err'); return; }
-  if (!stop)  { showToast('Please enter a stop time','err');  return; }
+  if (!date)  { showToast('Please enter a date', 'err');         return; }
+  if (!start) { showToast('Please select a start time', 'err');  return; }
+  if (!stop)  { showToast('Please select a stop time', 'err');   return; }
+  if (rt === 'Emergency' && emerRate <= 0) { showToast('Emergency Rate ($/hr) is required', 'err'); return; }
 
-  var s=t2m(start), e=t2m(stop);
-  var dur=e-s; if(overnight||dur<0) dur+=1440;
-  var netM=dur-breakMin;
-  if (netM<0) { showToast('Invalid time range — try Night Shift for midnight crossings','err'); return; }
+  var s = t2m(start), e = t2m(stop);
+  var dur = e - s; if (dur <= 0) dur += 1440;
+  var netM = dur - breakMin;
+  if (netM <= 0) { showToast('Invalid time range — stop must be after start', 'err'); return; }
 
-  var entry={
-    id:editingId||('e'+Date.now()),
-    date:date, start:start, stop:stop, breakMin:breakMin, overnight:overnight,
-    otType:otType,
-    job:document.getElementById('f-job').value.trim(),
-    act:document.getElementById('f-act').value.trim(),
-    notes:document.getElementById('f-notes').value.trim()
+  var entry = {
+    id: editingId || ('e' + Date.now()),
+    date: date, start: start, stop: stop, breakMin: breakMin,
+    rateType: rt, emergencyRate: rt === 'Emergency' ? emerRate : 0,
+    job:   document.getElementById('f-job').value.trim(),
+    act:   document.getElementById('f-act').value.trim(),
+    notes: document.getElementById('f-notes').value.trim()
   };
 
-  var all=loadEntries();
+  var all = loadEntries();
   if (editingId) {
-    var idx=-1;
-    for (var i=0;i<all.length;i++) if(all[i].id===editingId){idx=i;break;}
-    if (idx>=0) all[idx]=entry; else all.push(entry);
+    var idx = -1;
+    for (var i = 0; i < all.length; i++) { if (all[i].id === editingId) { idx = i; break; } }
+    if (idx >= 0) all[idx] = entry; else all.push(entry);
   } else { all.push(entry); }
   storeEntries(all);
   closeSheet();
-  state.date=date; state.view='day';
+  state.date = date; state.view = 'day';
   render();
-  showToast((editingId?'Updated · ':'Saved · ')+hFmt(netM)+' hrs','ok',2400);
+  showToast((editingId ? 'Updated · ' : 'Saved · ') + hFmt(netM) + ' hrs (' + rt + ')', 'ok', 2600);
 }
 
-// ── Live calc ─────────────────────────────────────────────────────
+// ── Live calc display ─────────────────────────────────────────────
 function updateCalc() {
-  var start=document.getElementById('f-start').value;
-  var stop=document.getElementById('f-stop').value;
-  var meal=parseInt(document.getElementById('f-meal').value)||0;
-  var overnight=document.getElementById('shift-night').checked;
-  var box=document.getElementById('calc-box');
-  var settings=loadSettings(), tf=settings.timeFormat||'12';
+  var start = getTimeVal('f-start'), stop = getTimeVal('f-stop');
+  var meal  = parseInt(document.getElementById('f-meal').value) || 0;
+  var rtEl  = document.querySelector('[name="rate-type"]:checked');
+  var rt    = rtEl ? rtEl.value : 'Normal';
+  var box   = document.getElementById('calc-box');
+  var settings = loadSettings(), tf = settings.timeFormat || '12';
+  var emerRate = parseFloat(document.getElementById('f-emg-rate').value) || 0;
 
-  if (!start||!stop) {
-    box.className='calc-box empty';
-    box.innerHTML='<div class="calc-hint">Enter start and stop times to calculate hours.</div>';
+  if (!start || !stop) {
+    box.className = 'calc-box empty';
+    box.innerHTML = '<div class="calc-hint">Select start and stop times to calculate hours.</div>';
     return;
   }
-  var s=t2m(start), e=t2m(stop);
-  var dur=e-s; if(overnight||dur<0) dur+=1440;
-  var netM=dur-meal;
-  if (netM<0) {
-    box.className='calc-box error';
-    box.innerHTML='<div class="calc-err">⚠ Stop time before start — toggle Night Shift if crossing midnight.</div>';
+
+  var s = t2m(start), e = t2m(stop);
+  var dur = e - s; if (dur <= 0) dur += 1440;
+  var netM = dur - meal;
+  if (netM <= 0) {
+    box.className = 'calc-box error';
+    box.innerHTML = '<div class="calc-err">⚠ Stop time must be after start time.</div>';
     return;
   }
-  var thresh=(parseFloat(settings.otThresholdHrs)||8)*60;
-  var otM=Math.max(0,netM-thresh);
-  var hr=parseFloat(settings.hourlyRate)||0;
-  var earnings=hr>0?(Math.min(netM,thresh)/60*hr+otM/60*hr*(parseFloat(settings.otMultiplier)||1.5)):0;
 
-  box.className='calc-box ready';
-  box.innerHTML=
-    '<div class="calc-big">'+hFmt(netM)+'<span style="font-size:14px;font-weight:500;opacity:0.7"> h</span></div>'+
-    '<div class="calc-detail">'+
-      fmtTime(start,tf)+' → '+fmtTime(stop,tf)+(overnight?' <em style="font-size:10px">(next day)</em>':'')+
-      (meal>0?'<br>−'+meal+' min break':'')+'<br>'+
-      (otM>0?'<strong style="color:#059669">+'+hFmt(otM)+' OT</strong>':'<strong>'+hFmt(netM)+' reg</strong>')+
-      (hr>0?' · <strong style="color:#059669">'+fmtMoney(earnings)+'</strong>':'')+
-    '</div>';
+  var shift    = detectShift(start);
+  var thresh   = (parseFloat(settings.otThresholdHrs) || 8) * 60;
+  var hr       = parseFloat(settings.hourlyRate) || 0;
+  var otMult   = parseFloat(settings.otMultiplier) || 1.5;
+
+  var detail = fmtTime(start, tf) + ' → ' + fmtTime(stop, tf) + '<br>';
+  if (meal > 0) detail += '−' + meal + ' min break<br>';
+
+  if (rt === 'Normal') {
+    var regM = Math.min(netM, thresh), otM = Math.max(0, netM - thresh);
+    detail += '<span style="color:var(--accent);font-weight:700">' + hFmt(regM) + ' regular hrs</span>';
+    if (otM > 0) detail += ' + <span style="color:var(--red);font-weight:700">' + hFmt(otM) + ' OT</span>';
+    if (hr > 0)  detail += ' = <span style="color:var(--green);font-weight:700">' + fmtMoney(regM/60*hr + otM/60*hr*otMult) + '</span>';
+  } else if (rt === 'XP') {
+    detail += '<span class="xp-color">' + hFmt(netM) + ' hrs → ' + hFmt(netM * 1.5) + ' hrs credited (1.5×)</span>';
+  } else if (rt === 'Cash') {
+    detail += '<span class="cash-color">' + hFmt(netM) + ' hrs counts as overtime</span>';
+    if (hr > 0) detail += ' · <span style="color:var(--green);font-weight:700">' + fmtMoney(netM/60*hr*otMult) + '</span>';
+  } else if (rt === 'Emergency') {
+    detail += '<span class="emg-color">' + hFmt(netM) + ' hrs — overtime';
+    if (emerRate > 0) detail += ' at ' + fmtMoney(emerRate) + '/hr = <span style="color:var(--green);font-weight:700">' + fmtMoney(netM/60*emerRate) + '</span>';
+    else detail += ' (enter emergency rate above)';
+    detail += '</span>';
+  }
+
+  detail += '<br><span class="shift-badge">' + shiftLabel(start) + '</span>';
+
+  box.className = 'calc-box ready';
+  box.innerHTML =
+    '<div class="calc-big">' + hFmt(netM) + '<span style="font-size:14px;font-weight:500;opacity:0.7"> h</span></div>' +
+    '<div class="calc-detail">' + detail + '</div>';
 }
 
 // ── PDF Export ────────────────────────────────────────────────────
 function exportPDF(period, startDate, endDate) {
-  var jsPDFClass=(window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
-  if (!jsPDFClass) { showToast('PDF library loading — try again','info'); return; }
+  var jsPDFClass = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+  if (!jsPDFClass) { showToast('PDF library loading — try again', 'info'); return; }
 
-  var settings=loadSettings(), tf=settings.timeFormat||'12';
-  var hr=parseFloat(settings.hourlyRate)||0;
-  var entries=loadEntries().filter(function(e){ return e.date>=startDate&&e.date<=endDate; });
-  entries.sort(function(a,b){ return a.date<b.date?-1:1; });
+  var settings = loadSettings(), tf = settings.timeFormat || '12';
+  var entries = loadEntries().filter(function(e) { return e.date >= startDate && e.date <= endDate; });
+  entries.sort(function(a, b) { return a.date < b.date ? -1 : 1; });
 
-  var doc=new jsPDFClass({orientation:'portrait',unit:'mm',format:'letter'});
+  var doc = new jsPDFClass({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+  doc.setFontSize(16); doc.setFont(undefined, 'bold');
+  doc.text('OT Tracker — ' + (period === 'period' ? 'Pay Period' : 'Monthly') + ' Report', 14, 20);
+  doc.setFontSize(10); doc.setFont(undefined, 'normal');
+  doc.text('Period: ' + fmtDate(startDate) + ' – ' + fmtDate(endDate), 14, 28);
+  doc.text('Generated: ' + new Date().toLocaleDateString(), 14, 34);
 
-  doc.setFontSize(16); doc.setFont(undefined,'bold');
-  doc.text('OT Tracker — '+(period==='week'?'Weekly':'Monthly')+' Report',14,20);
-  doc.setFontSize(10); doc.setFont(undefined,'normal');
-  doc.text('Period: '+fmtDate(startDate)+' – '+fmtDate(endDate),14,28);
-  doc.text('Generated: '+new Date().toLocaleDateString(),14,34);
-
-  var head=[['Date','Start','Stop','Break','Hrs','OT','Type','Notes']];
-  var body=[], totNetM=0, totOtM=0, totEarn=0;
+  var head = [['Date','Start','Stop','Break','Hrs','OT Hrs','Type','Emg Rate','Notes']];
+  var body = [], totNetM = 0, totOtM = 0, totEarn = 0;
 
   entries.forEach(function(e) {
-    var r=calcEntry(e,settings);
-    if(r){totNetM+=r.netM; totOtM+=r.otM; totEarn+=r.earnings;}
+    var r = calcEntry(e, settings);
+    if (r) { totNetM += r.netM; totOtM += r.otM; totEarn += r.earnings; }
+    var rt = e.rateType || e.otType || 'Normal';
     body.push([
-      fmtDateShort(e.date),
-      fmtTime(e.start,tf),
-      fmtTime(e.stop,tf),
-      (e.breakMin||0)+' min',
-      r?hFmt(r.netM):'—',
-      (r&&r.otM>0)?hFmt(r.otM):'—',
-      e.otType||'XP',
-      e.notes||''
+      fmtDateShort(e.date), fmtTime(e.start, tf), fmtTime(e.stop, tf),
+      (e.breakMin || 0) + 'm',
+      r ? hFmt(r.netM) : '—',
+      (r && r.otM > 0) ? hFmt(r.otM) : '—',
+      rt,
+      (rt === 'Emergency' && e.emergencyRate) ? fmtMoney(parseFloat(e.emergencyRate)) : '',
+      e.notes || ''
     ]);
   });
-  body.push(['TOTAL','','','',hFmt(totNetM),hFmt(totOtM),(hr>0?fmtMoney(totEarn):''),'']);
+  body.push(['TOTAL','','','', hFmt(totNetM), hFmt(totOtM), '', parseFloat(settings.hourlyRate) > 0 ? fmtMoney(totEarn) : '', '']);
 
   doc.autoTable({
-    startY:40, head:head, body:body, theme:'striped',
-    headStyles:{fillColor:[30,41,57],textColor:255,fontStyle:'bold'},
-    styles:{fontSize:9,cellPadding:2},
-    columnStyles:{7:{cellWidth:38}},
-    didParseCell:function(data){
-      if(data.row.index===body.length-1&&data.section==='body') data.cell.styles.fontStyle='bold';
+    startY: 40, head: head, body: body, theme: 'striped',
+    headStyles: { fillColor: [30, 41, 57], textColor: 255, fontStyle: 'bold' },
+    styles: { fontSize: 8, cellPadding: 2 },
+    columnStyles: { 8: { cellWidth: 32 } },
+    didParseCell: function(data) {
+      if (data.row.index === body.length - 1 && data.section === 'body') data.cell.styles.fontStyle = 'bold';
     }
   });
 
-  doc.save('OT-Report-'+startDate+'-to-'+endDate+'.pdf');
-  showToast('PDF exported!','ok',2000);
+  doc.save('OT-Report-' + startDate + '-to-' + endDate + '.pdf');
+  showToast('PDF exported!', 'ok', 2000);
 }
 
 // ── Utilities ─────────────────────────────────────────────────────
 function showToast(msg, type, dur) {
-  var ct=document.getElementById('toast-ct');
-  if (!ct) return;
-  var t=document.createElement('div');
-  t.className='toast '+(type||'info');
-  t.textContent=msg;
+  var ct = document.getElementById('toast-ct'); if (!ct) return;
+  var t = document.createElement('div');
+  t.className = 'toast ' + (type || 'info');
+  t.textContent = msg;
   ct.appendChild(t);
-  setTimeout(function(){t.classList.add('out');setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},240);},dur||2200);
+  setTimeout(function() { t.classList.add('out'); setTimeout(function() { if (t.parentNode) t.parentNode.removeChild(t); }, 240); }, dur || 2200);
 }
-function esc(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Sidebar PP mini-summary ───────────────────────────────────────
+function updateSidebarPP() {
+  var el = document.getElementById('d-pp-mini');
+  if (!el) return;
+  var settings = loadSettings();
+  var bounds = ppBounds(0); // always current PP in sidebar
+  var allE = loadEntries().filter(function(e) { return e.date >= bounds.start && e.date <= bounds.end; });
+  var tots = totalsFor(allE, settings);
+  // Compute regular hours (Normal entries within threshold)
+  var regM = 0;
+  allE.forEach(function(e) { var r = calcEntry(e, settings); if (r) regM += r.regM; });
+  var hr = parseFloat(settings.hourlyRate) || 0;
+  el.innerHTML =
+    '<div class="d-pp-mini-lbl">Current Pay Period</div>' +
+    '<div class="d-pp-row"><span class="d-pp-key">Regular</span><span class="d-pp-val">' + hFmt(regM) + 'h</span></div>' +
+    '<div class="d-pp-row"><span class="d-pp-key">Overtime</span><span class="d-pp-val" style="color:var(--red)">' + hFmt(tots.otM) + 'h</span></div>' +
+    (tots.xpCredited > 0 ? '<div class="d-pp-row"><span class="d-pp-key">Comp Time</span><span class="d-pp-val" style="color:var(--green)">' + hFmt(tots.xpCredited) + 'h</span></div>' : '') +
+    (hr > 0 ? '<div class="d-pp-row"><span class="d-pp-key">Est. Earnings</span><span class="d-pp-val" style="color:var(--green)">' + fmtMoney(tots.earnings) + '</span></div>' : '') +
+    '<div class="d-pp-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border-lo)"><span class="d-pp-key">Entries</span><span class="d-pp-val">' + allE.length + '</span></div>';
+}
+
+// ── JSON Backup / Restore ─────────────────────────────────────────
+function exportJSON() {
+  var data = {
+    version: 1,
+    exported: new Date().toISOString(),
+    entries: loadEntries(),
+    settings: loadSettings()
+  };
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href   = url;
+  a.download = 'OT-Tracker-Backup-' + todayStr() + '.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+  showToast('Backup exported', 'ok', 2000);
+}
+
+function importJSON(input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      var data = JSON.parse(ev.target.result);
+      if (!Array.isArray(data.entries)) throw new Error('Invalid format');
+      if (!confirm('Import ' + data.entries.length + ' entries? This will MERGE with existing entries (duplicates by ID are skipped).')) return;
+      var existing = loadEntries();
+      var existingIds = {};
+      existing.forEach(function(e) { existingIds[e.id] = true; });
+      var added = 0;
+      data.entries.forEach(function(e) {
+        if (!e.id || existingIds[e.id]) return;
+        existing.push(e); added++;
+      });
+      storeEntries(existing);
+      if (data.settings) storeSettings(Object.assign(loadSettings(), data.settings));
+      showToast('Imported ' + added + ' new entries', 'ok', 2600);
+      render();
+    } catch(err) {
+      showToast('Import failed — invalid file', 'err');
+    }
+  };
+  reader.readAsText(input.files[0]);
+}
 
 // ── Boot ──────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded',function() {
-  setTimeout(function(){ document.documentElement.classList.remove('entering-from-hub'); },500);
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() { document.documentElement.classList.remove('entering-from-hub'); }, 500);
 
-  var settings=loadSettings();
-  state.view=settings.defaultView||'day';
-  state.date=todayStr();
+  // Inherit theme live from Hub
+  window.addEventListener('storage', function(ev) {
+    if (ev.key !== 'field_dark_mode') return;
+    if (ev.newValue === '1') document.documentElement.setAttribute('data-dark', '');
+    else document.documentElement.removeAttribute('data-dark');
+  });
+
+  // Populate hour dropdowns
+  populateHourSelects();
+
+  var settings = loadSettings();
+  state.view = settings.defaultView || 'day';
+  state.date = todayStr();
+  try { var sOff = localStorage.getItem('ft_ts_ppoffset'); if (sOff !== null) state.ppOffset = parseInt(sOff) || 0; } catch(_) {}
   render();
 
-  // Nav tabs
-  document.querySelectorAll('.nav-tab').forEach(function(tab){
-    tab.addEventListener('click',function(){ state.view=this.dataset.view; render(); });
+  // Nav tabs (mobile bottom nav)
+  document.querySelectorAll('.nav-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() { state.view = this.dataset.view; render(); });
   });
 
-  // FAB
-  document.getElementById('fab').addEventListener('click',function(){ openSheet(null); });
-
-  // Sheet
-  document.getElementById('sheet-close').addEventListener('click',closeSheet);
-  document.getElementById('sheet-overlay').addEventListener('click',closeSheet);
-  document.getElementById('form-cancel').addEventListener('click',closeSheet);
-  document.getElementById('form-save').addEventListener('click',saveEntry);
-
-  // Calc listeners
-  ['f-start','f-stop','f-meal'].forEach(function(id){
-    var el=document.getElementById(id);
-    el.addEventListener('input',updateCalc);
-    el.addEventListener('change',updateCalc);
+  // Desktop sidebar nav items
+  document.querySelectorAll('.d-nav-item').forEach(function(item) {
+    item.addEventListener('click', function() { state.view = this.dataset.view; render(); });
   });
-  document.querySelectorAll('[name="shift-type"]').forEach(function(r){ r.addEventListener('change',updateCalc); });
+
+  // Desktop sidebar "Log Entry" button
+  var dSidebarAdd = document.getElementById('d-sidebar-add');
+  if (dSidebarAdd) dSidebarAdd.addEventListener('click', function() { openSheet(null); });
+
+  // FAB (mobile)
+  document.getElementById('fab').addEventListener('click', function() { openSheet(null); });
+
+  // Sheet controls
+  document.getElementById('sheet-close').addEventListener('click', closeSheet);
+  document.getElementById('sheet-overlay').addEventListener('click', closeSheet);
+  document.getElementById('form-cancel').addEventListener('click', closeSheet);
+  document.getElementById('form-save').addEventListener('click', saveEntry);
+
+  // Rate type change → toggle emergency rate field + update calc
+  document.querySelectorAll('[name="rate-type"]').forEach(function(r) {
+    r.addEventListener('change', function() {
+      toggleEmgRate(this.value === 'Emergency');
+      updateCalc();
+    });
+  });
+
+  // Time & break changes → update calc
+  ['f-start-h','f-start-m','f-stop-h','f-stop-m','f-meal','f-emg-rate'].forEach(function(id) {
+    var el = document.getElementById(id); if (!el) return;
+    el.addEventListener('change', updateCalc);
+    el.addEventListener('input',  updateCalc);
+  });
 
   // Meal quick buttons
-  document.querySelectorAll('.meal-q').forEach(function(btn){
-    btn.addEventListener('click',function(){
-      document.getElementById('f-meal').value=this.dataset.min;
+  document.querySelectorAll('.meal-q').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.getElementById('f-meal').value = this.dataset.min;
       setMealActive(parseInt(this.dataset.min));
       updateCalc();
     });
   });
 
-  // Back button — exact match to other tools
-  (function(){
-    var link=document.querySelector('.hub-back');
-    if (!link) return;
-    link.addEventListener('click',function(e){
-      if (e.metaKey||e.ctrlKey||e.shiftKey||e.button===1) return;
+  // Back button animation — exact match to other tools
+  (function() {
+    var link = document.querySelector('.hub-back'); if (!link) return;
+    link.addEventListener('click', function(e) {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
       e.preventDefault();
-      try { sessionStorage.setItem('ft_returning_to_hub','1'); } catch(_) {}
+      try { sessionStorage.setItem('ft_returning_to_hub', '1'); } catch(_) {}
       document.documentElement.classList.add('exiting-to-hub');
-      setTimeout(function(){ window.location.href=link.href; },360);
+      setTimeout(function() { window.location.href = link.href; }, 360);
     });
   })();
 
-  // Dark toggle
-  document.getElementById('dark-tog').addEventListener('click',function(){
-    var dark=document.documentElement.hasAttribute('data-dark');
-    if (dark){ document.documentElement.removeAttribute('data-dark'); localStorage.setItem('field_dark_mode','0'); }
-    else      { document.documentElement.setAttribute('data-dark','');  localStorage.setItem('field_dark_mode','1'); }
-  });
-
   // Smart header hide
-  var topbar=document.getElementById('topbar');
-  var lastY=0, tick=false, dnStart=null, over=false;
-  topbar.addEventListener('mouseenter',function(){ over=true;  });
-  topbar.addEventListener('mouseleave',function(){ over=false; });
-  document.getElementById('hov-zone').addEventListener('mouseenter',function(){ topbar.classList.remove('header-hidden'); });
-  window.addEventListener('scroll',function(){
-    if(tick)return; tick=true;
-    requestAnimationFrame(function(){
-      var y=window.scrollY;
-      if(y>lastY&&y>80){ if(!dnStart)dnStart=Date.now(); if(Date.now()-dnStart>1000&&!over)topbar.classList.add('header-hidden'); }
-      else { dnStart=null; topbar.classList.remove('header-hidden'); }
-      lastY=y; tick=false;
+  var topbar = document.getElementById('topbar');
+  var lastY = 0, tick = false, dnStart = null, over = false;
+  topbar.addEventListener('mouseenter', function() { over = true;  });
+  topbar.addEventListener('mouseleave', function() { over = false; });
+  document.getElementById('hov-zone').addEventListener('mouseenter', function() { topbar.classList.remove('header-hidden'); });
+  window.addEventListener('scroll', function() {
+    if (tick) return; tick = true;
+    requestAnimationFrame(function() {
+      var y = window.scrollY;
+      if (y > lastY && y > 80) { if (!dnStart) dnStart = Date.now(); if (Date.now() - dnStart > 1000 && !over) topbar.classList.add('header-hidden'); }
+      else { dnStart = null; topbar.classList.remove('header-hidden'); }
+      lastY = y; tick = false;
     });
-  },{passive:true});
-  window.addEventListener('mousemove',function(e){ if(e.clientY<=14)topbar.classList.remove('header-hidden'); });
-  window.addEventListener('touchstart',function(e){ if(e.touches[0].clientY<=30)topbar.classList.remove('header-hidden'); },{passive:true});
+  }, { passive: true });
+  window.addEventListener('mousemove',  function(e) { if (e.clientY <= 14) topbar.classList.remove('header-hidden'); });
+  window.addEventListener('touchstart', function(e) { if (e.touches[0].clientY <= 30) topbar.classList.remove('header-hidden'); }, { passive: true });
 
-  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('../service-worker.js').catch(function(){}); }
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('../service-worker.js').catch(function() {}); }
 });
 </script>
 </body>
