@@ -231,8 +231,8 @@
     "6":"Local Route", "7":"Local Street", "8":"Ramp / Connector"
   };
   var currentMode = 'state';
-  var stateSet = { "1":1, "2":1, "3":1, "4":1, "5":1 };
-  var localSet  = { "6":1, "7":1, "8":1 };
+  var stateSet = { "1":1, "2":1, "3":1, "4":1, "5":1, "8":1 };
+  var localSet  = { "6":1, "7":1 };
   function modeAllowsSubtype(sub) {
     var s = String(sub || '');
     return currentMode === 'state' ? !!stateSet[s] : !!localSet[s];
@@ -243,11 +243,11 @@
     if (!bState || !bLocal) return;
     if (currentMode === 'state') {
       bState.classList.add('active'); bLocal.classList.remove('active');
-      document.getElementById('hero-desc').textContent = 'Uses GPS to find your nearest state-maintained milepost — Interstate, US, NJ Route, Parkway, and County Routes.';
+      document.getElementById('hero-desc').textContent = 'Uses GPS to find your nearest state-maintained milepost — Interstate, US, NJ Route, Parkway, County Routes, and highway ramps.';
       document.getElementById('status').textContent = 'Mode: State Routes. Tap "Find My Milepost" to get started.';
     } else {
       bLocal.classList.add('active'); bState.classList.remove('active');
-      document.getElementById('hero-desc').textContent = 'Uses GPS to find your nearest local-road milepost — local streets, ramps, and connectors.';
+      document.getElementById('hero-desc').textContent = 'Uses GPS to find your nearest local-road milepost — local streets and connectors.';
       document.getElementById('status').textContent = 'Mode: Local Routes. Tap "Find My Milepost" to get started.';
     }
   }
