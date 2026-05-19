@@ -65,8 +65,8 @@ Work Order Website/
 │       ├── index.json               # Tile index for Road Milemarker Finder (filtered state routes only)
 │       └── chunks/*.json            # Per-tile milepost chunks loaded lazily near user GPS
 ├── icons/
-│   ├── icon-192.png                 # PWA app icon (dark navy + amber bridge arch)
-│   └── icon-512.png                 # PWA app icon (larger)
+│   ├── icon-192.png                 # PWA app icon (192×192) — NJDOT bridge + bar chart, dark navy #001e4d bg, no pre-baked rounding
+│   └── icon-512.png                 # PWA app icon (512×512) — same design, maskable, corners filled solid navy
 ├── pages/
 │   ├── njsearch.html                # Bridge Navigator (1,440 lines)
 │   ├── njfuel.html                  # Fuel Station Finder (1,305 lines)
