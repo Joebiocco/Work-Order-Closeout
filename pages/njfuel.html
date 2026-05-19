@@ -805,7 +805,7 @@
     if (typeof L === 'undefined') return;
     var el = document.getElementById('map');
     if (!el) return;
-    fuelMap = L.map('map').setView([40.1, -74.5], 8);
+    fuelMap = L.map('map', { wheelDebounceTime: 200 }).setView([40.1, -74.5], 8);
     var streetLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
       attribution: 'Map data &copy; Google', subdomains: '0123', maxZoom: 20
     });
