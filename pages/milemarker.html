@@ -57,6 +57,12 @@
     #retry-btn { display:none; } /* hidden until first locate succeeds */
     #retry-btn.visible { display:inline-flex; }
 
+    /* Mode toggle — segmented control */
+    .mode-toggle { display:inline-flex; gap:0; background:var(--border-lo); border-radius:10px; padding:3px; margin-top:14px; }
+    .mode-btn { font-family:var(--sans); font-size:13px; font-weight:600; padding:7px 16px; border:none; background:transparent; color:var(--muted); border-radius:8px; cursor:pointer; transition:background 0.15s,color 0.15s,box-shadow 0.15s; white-space:nowrap; }
+    .mode-btn.active { background:var(--surface); color:var(--accent); box-shadow:0 1px 4px rgba(0,0,0,0.12); }
+    html[data-dark] .mode-btn.active { box-shadow:0 1px 4px rgba(0,0,0,0.4); }
+
     .status-wrap { margin-top:12px; display:flex; align-items:center; gap:8px; min-height:22px; }
     .status-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; background:var(--muted); transition:background 0.2s; }
     .status-dot.active { background:#1a56db; animation:pulse 1.4s ease infinite; }
@@ -130,8 +136,12 @@
 
 <div class="wrap">
   <section class="hero">
-    <h1>Nearest State Route Milepost</h1>
-    <p>Uses GPS to find your nearest official state-maintained route milepost (Interstate, US, NJ Route, County). Local roads are excluded.</p>
+    <h1>Nearest Milepost Finder</h1>
+    <p id="hero-desc">Uses GPS to find your nearest official milepost. Select a mode below, then tap Find.</p>
+    <div class="mode-toggle" role="group" aria-label="Route type">
+      <button class="mode-btn" id="mode-state">State Routes</button>
+      <button class="mode-btn" id="mode-local">Local Routes</button>
+    </div>
     <div class="actions">
       <button class="btn btn-primary" id="find-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-3px;margin-right:6px"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
@@ -215,7 +225,32 @@
   }
   function byId(id){ return document.getElementById(id); }
 
-  var routeTypes = { "1":"Interstate", "2":"US Route", "3":"NJ State Highway", "5":"County Route" };
+  var routeTypes = {
+    "1":"Interstate", "2":"US Route", "3":"NJ State Highway",
+    "4":"Authority / Parkway / Expressway", "5":"County Route",
+    "6":"Local Route", "7":"Local Street", "8":"Ramp / Connector"
+  };
+  var currentMode = 'state';
+  var stateSet = { "1":1, "2":1, "3":1, "4":1, "5":1 };
+  var localSet  = { "6":1, "7":1, "8":1 };
+  function modeAllowsSubtype(sub) {
+    var s = String(sub || '');
+    return currentMode === 'state' ? !!stateSet[s] : !!localSet[s];
+  }
+  function updateModeButtons() {
+    var bState = document.getElementById('mode-state');
+    var bLocal = document.getElementById('mode-local');
+    if (!bState || !bLocal) return;
+    if (currentMode === 'state') {
+      bState.classList.add('active'); bLocal.classList.remove('active');
+      document.getElementById('hero-desc').textContent = 'Uses GPS to find your nearest state-maintained milepost — Interstate, US, NJ Route, Parkway, and County Routes.';
+      document.getElementById('status').textContent = 'Mode: State Routes. Tap "Find My Milepost" to get started.';
+    } else {
+      bLocal.classList.add('active'); bState.classList.remove('active');
+      document.getElementById('hero-desc').textContent = 'Uses GPS to find your nearest local-road milepost — local streets, ramps, and connectors.';
+      document.getElementById('status').textContent = 'Mode: Local Routes. Tap "Find My Milepost" to get started.';
+    }
+  }
   var idx = null;
   var chunkCache = {};
   var tileSize = 0.1;
@@ -354,9 +389,12 @@
           var best = null;
           for (var x=0; x<all.length; x++) {
             var p = all[x];
+            if (!modeAllowsSubtype(p[4])) continue;
             var d = hav(lat, lon, p[0], p[1]);
             if (!best || d < best._dist) { best = p; best._dist = d; }
           }
+          // If points exist but none matched the current mode, expand radius once more
+          if (!best && all.length && r < 3) { r++; return step(); }
           return { best: best, points: all };
         });
       }
@@ -370,11 +408,11 @@
     if (!navigator.geolocation) { setStatus('Geolocation is not supported on this browser.', 'err'); byId('find-btn').disabled = false; return; }
     navigator.geolocation.getCurrentPosition(function(pos){
       var lat = pos.coords.latitude, lon = pos.coords.longitude;
-      setStatus('Searching nearby route tiles…', 'active');
+      setStatus('Searching nearby ' + (currentMode === 'state' ? 'state-route' : 'local-route') + ' tiles…', 'active');
       findNearest(lat, lon).then(function(result){
         byId('find-btn').disabled = false;
         byId('retry-btn').classList.add('visible');
-        if (!result || !result.best) { setStatus('No state-route milepost found near this location.', 'err'); return; }
+        if (!result || !result.best) { setStatus('No ' + (currentMode === 'state' ? 'state-route' : 'local-route') + ' milepost found near this location.', 'err'); return; }
         var best = result.best;
         var dirInfo = nearestDirFromRoute(best, result.points || []);
         setResult(best, lat, lon, dirInfo);
@@ -420,6 +458,9 @@
 
   document.getElementById('find-btn').addEventListener('click', doLocate);
   document.getElementById('retry-btn').addEventListener('click', doLocate);
+  document.getElementById('mode-state').addEventListener('click', function() { currentMode = 'state'; updateModeButtons(); });
+  document.getElementById('mode-local').addEventListener('click', function() { currentMode = 'local'; updateModeButtons(); });
+  updateModeButtons();
 
   // Clean up stale transition classes on bfcache restore
   window.addEventListener('pageshow', function() {
