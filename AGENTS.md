@@ -24,7 +24,7 @@
 
 > **Purpose:** This file is the authoritative quick-reference for the NJDOT Field Tools project. Read this FIRST before reading any HTML file. It contains every architectural decision, storage key, design token, and critical constraint so we can make changes without re-reading 6,800+ lines of HTML.
 >
-> **Last updated:** 2026-05-19 · v1.7
+> **Last updated:** 2026-05-20 · v1.8
 >
 > **Live site:** `https://joebiocco.github.io/NJDOT-Field-Tools-Hub/`
 > **Repo:** `https://github.com/Joebiocco/NJDOT-Field-Tools-Hub` (renamed from `Work-Order-Closeout`)
@@ -93,7 +93,9 @@ Work Order Website/
 | Key | File(s) | Format | Purpose |
 |---|---|---|---|
 | `ft_bridge_bookmarks` | njsearch | `JSON.stringify(["structNum1", "structNum2"])` | Array of bookmarked Structure_Number strings |
+| `ft_bridge_guide_shown` | njsearch | int 0-2 | How many times Bridge Navigator tutorial has auto-shown |
 | `ft_fuel_bookmarks` | njfuel | `JSON.stringify(["lat,lng", ...])` | Composite coord keys via `_fuelKey(s)` helper |
+| `ft_fuel_guide_shown` | njfuel | int 0-2 | How many times Fuel Station Finder tutorial has auto-shown |
 | `wo_recent` | WorkOrderCloseout | JSON array (max 5) of recent session metadata | Each rec has `{wo, str, date, fname, route, direction, mp, startDate, endDate, priority, photoKey}` — PHOTOS NOT INCLUDED HERE |
 | `workorder_draft` | WorkOrderCloseout | Full session JSON snapshot | Single auto-saved draft |
 | `field_dark_mode` | all pages | `"1"` if dark mode on | Theme preference |
@@ -340,15 +342,30 @@ Two parallel implementations, identical behavior:
 - 1 match → auto-opens detail
 - Multiple matches → bottom-sheet picker sorted by distance
 - Distances always in US units (ft / mi)
+- Visible structure numbers are formatted as `XXXX-XXX` via `formatStructureNumber()` while raw `Structure_Number` values remain unchanged for search, bookmarks, data keys, and analytics.
+- Bridge detail header name and fields under the map are copyable: click/tap copies only the displayed value/name (not labels), with an animated "Copied" state.
+- Bridge detail header has a Share button: desktop copies structure number/name/route/milepost plus a Google Maps pin link; mobile opens an SMS compose link with the same line-by-line text.
+- Bridge Navigator tutorial uses the standard guide modal pattern, auto-shows first two visits via `ft_bridge_guide_shown`, and can be reopened with the header `?` button.
 
 ### Fuel Station Finder
 
-- Locate button always visible, re-labels to "Update My Location" after first success
+- Locate button always visible and labeled "Update My Location"
 - ALWAYS requests fresh location (no localStorage cache — users may be moving)
+- Fuel finder auto-requests location on first page load; the browser permission prompt appears immediately when permission has not already been granted
+- Fuel locate progress is shown inside the `Update My Location` button (`.locating` + `.locate-spin`), not as visible status text below the controls
 - Map uses `fuelMap.invalidateSize()` after location + 350ms delay (mobile layout shift fix)
 - "Hide Closed" toggle on results header — label dynamic ("Show Closed" when hidden)
+- Results header keeps "Stations sorted by distance" in a stable title row; filters sit below in a structured row with two side-by-side fuel type filters (`Unleaded`, `Diesel`) plus the closed-station toggle
+- Closed-station toggle uses `.closed-dot` as a status indicator: gray when closed stations are hidden, red when closed stations are visible
 - Tooltip on station pin: dark-navy themed, `pointer-events: none`, offset `-36px` so it doesn't cover other pins
 - Active station tooltip auto-opens on `highlightStation()`
+- Post-location state keeps the NJDOT Fuel Stations control panel in normal document flow; it does not float over station cards
+- User GPS marker uses a pulsing `L.divIcon` (`makeUserPulseIcon()`), while station pins remain standard blue/gold SVG pins
+- Station cards split fuel availability into individual chips, include a distance badge, and provide a coordinate copy button with animated copied feedback
+- Station hours split schedule days like `M-F` into a separate `Mon-Fri` badge above the time text
+- KML exports include both "Export Visible" (currently rendered/visible set, respecting filters/bookmark view) and "Export All" (full station list); both show a toast after export
+- After location success, `scrollFuelBookmarksIntoView()` scrolls to the bookmark card; ordinary filter re-renders do not auto-scroll
+- Fuel Station Finder tutorial uses the standard guide modal pattern, auto-shows first two visits via `ft_fuel_guide_shown`, and can be reopened with the header `?` button
 
 ### Road Milemarker Finder
 

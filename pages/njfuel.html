@@ -72,6 +72,23 @@
       border-radius: 100px;
       letter-spacing: 0.06em;
     }
+    .topbar-spacer { flex: 1; }
+    .topbar-help {
+      background: none;
+      border: 1.5px solid rgba(229,179,59,0.28);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #E5B33B;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .topbar-help:hover { background: rgba(229,179,59,0.10); border-color: #E5B33B; }
+    .topbar-help svg { width: 16px; height: 16px; }
 
     /* Two-panel layout */
     .main-layout {
@@ -108,6 +125,7 @@
       .state-badge { display: none; }
       #page-logo { height: 32px !important; }
       .topbar-back { padding: 4px 10px 4px 7px; font-size: 11px; }
+      .topbar-help { width: 30px; height: 30px; }
       .public-notice { padding: 5px 12px; font-size: 10px; }
       .left-panel { padding: 14px; }
     }
@@ -131,6 +149,7 @@
       border-radius: var(--radius-lg);
       padding: 24px;
       margin-bottom: 20px;
+      transition: padding var(--transition), box-shadow var(--transition), border-color var(--transition);
     }
     .hero-title {
       font-size: 18px;
@@ -143,10 +162,29 @@
       margin-bottom: 18px;
       line-height: 1.5;
     }
-
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .hero-actions .btn,
+    .hero-actions .btn-export {
+      justify-content: center;
+      text-align: center;
+    }
+    .hero-actions .btn { flex: 1 1 100%; }
+    .hero-export-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 8px;
+      width: 100%;
+    }
     .btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
       padding: 10px 20px;
       border: none;
@@ -161,14 +199,28 @@
     .btn:disabled { opacity: 0.55; cursor: not-allowed; }
     .btn-primary { background: var(--accent); color: #fff; }
     .btn-primary:not(:disabled):hover { background: #1649c0; box-shadow: 0 2px 8px rgba(26,86,219,0.25); }
+    .btn.locating {
+      pointer-events: none;
+      opacity: 0.82;
+    }
+    @keyframes locateSpin { to { transform: rotate(360deg); } }
+    .locate-spin {
+      width: 15px;
+      height: 15px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: locateSpin 0.75s linear infinite;
+      flex-shrink: 0;
+    }
 
     .status-msg {
       margin-top: 14px;
       font-size: 13px;
       color: var(--muted);
-      display: none;
+      display: none !important;
     }
-    .status-msg.visible { display: flex; align-items: center; gap: 8px; }
+    .status-msg.visible { display: none !important; }
     .spinner {
       width: 16px; height: 16px;
       border: 2px solid var(--border);
@@ -196,13 +248,46 @@
     #results-section.visible { display: block; }
 
     .results-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
       margin-bottom: 12px;
     }
-    .results-title { font-size: 14px; font-weight: 600; color: var(--text); }
-    .results-count { font-size: 12px; color: var(--muted); }
+    .results-title-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 20px;
+    }
+    .results-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .results-count {
+      min-width: 112px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .results-controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+    .fuel-filter-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 8px;
+      min-width: 180px;
+    }
 
     .station-card {
       background: var(--surface);
@@ -211,9 +296,9 @@
       border-radius: var(--radius);
       padding: 14px 16px;
       margin-bottom: 8px;
-      transition: border-color var(--transition), box-shadow var(--transition);
+      transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
     }
-    .station-card:hover { border-color: #93b4f5; border-top-color: var(--accent); box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+    .station-card:hover { border-color: #93b4f5; border-top-color: var(--accent); box-shadow: 0 8px 18px rgba(0,0,0,0.10); transform: translateY(-1px); }
 
     .station-top {
       display: flex;
@@ -241,6 +326,26 @@
 
     .station-meta { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
     .station-meta strong { color: var(--muted2); font-weight: 500; }
+    .station-address {
+      font-size: 12px;
+      color: var(--muted2);
+      line-height: 1.45;
+      margin-bottom: 10px;
+    }
+    .station-card-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 8px 0 10px;
+    }
+    .fuel-chip-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
 
     .station-fuel {
       display: inline-flex;
@@ -256,6 +361,21 @@
       border-radius: 100px;
       height: 22px;
       box-sizing: border-box;
+    }
+    .station-fuel.diesel {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+      color: #1d4ed8;
+    }
+    html[data-dark] .station-fuel {
+      background: rgba(34,197,94,0.12);
+      border-color: rgba(34,197,94,0.35);
+      color: #86efac;
+    }
+    html[data-dark] .station-fuel.diesel {
+      background: rgba(59,130,246,0.14);
+      border-color: rgba(59,130,246,0.36);
+      color: #93c5fd;
     }
 
     .station-actions { display: flex; gap: 8px; }
@@ -321,6 +441,20 @@
       border-radius: 100px; letter-spacing: 0.04em; white-space: nowrap;
     }
     .station-card.is-closed { opacity: 0.55; border-top-color: #C9971A; }
+    .hours-days {
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: 4px;
+      padding: 2px 7px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--muted2);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
     .hours-val { font-size: 12px; color: var(--muted2); line-height: 1.55; }
     .coords-row {
       display: flex; align-items: center; gap: 5px;
@@ -331,9 +465,61 @@
     }
     .coords-row .coords-text { flex: 1; }
     .coords-row .fuel-bookmark-btn { margin-left: auto; }
+    .coord-copy-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--muted2);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
+    }
+    .coord-copy-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lo); }
+    .coord-copy-btn svg { width: 12px; height: 12px; }
+    .coord-copy-btn.copied {
+      color: #166534;
+      border-color: #86efac;
+      background: #f0fdf4;
+      animation: coordCopyPulse 360ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .coord-copy-btn.copied::after {
+      content: 'Copied';
+      position: absolute;
+      right: 50%;
+      bottom: calc(100% + 7px);
+      transform: translateX(50%);
+      background: #1e2939;
+      color: #fff;
+      border: 1px solid rgba(229,179,59,0.55);
+      border-radius: 5px;
+      padding: 3px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+      box-shadow: 0 5px 14px rgba(0,0,0,0.22);
+      animation: coordLabelPop 520ms cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      z-index: 40;
+    }
+    @keyframes coordCopyPulse {
+      0% { transform: scale(1); }
+      45% { transform: scale(1.16); }
+      100% { transform: scale(1); }
+    }
+    @keyframes coordLabelPop {
+      0% { opacity: 0; transform: translateX(50%) translateY(5px) scale(0.96); }
+      20%, 82% { opacity: 1; transform: translateX(50%) translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateX(50%) translateY(-3px) scale(0.98); }
+    }
     .filter-toggle {
       display: inline-flex; align-items: center; justify-content: center; gap: 5px;
-      padding: 0 12px; height: 26px; border-radius: 100px;
+      padding: 0 12px; height: 30px; border-radius: 100px;
       font-family: var(--sans); font-size: 11px; font-weight: 600;
       cursor: pointer; border: 1px solid var(--border);
       background: var(--surface); color: var(--muted2);
@@ -342,6 +528,30 @@
     }
     .filter-toggle:hover { background: var(--bg); border-color: #93b4f5; }
     .filter-toggle.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .fuel-filter-toggle {
+      height: 30px;
+      padding: 0 10px;
+      min-width: 0;
+      width: 100%;
+    }
+    .fuel-filter-toggle:not(.active) {
+      color: var(--muted);
+      background: var(--surface);
+      border-color: var(--border);
+    }
+    .closed-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #9ca3af;
+      box-shadow: 0 0 0 2px rgba(156,163,175,0.14);
+      flex-shrink: 0;
+      transition: background 0.14s, box-shadow 0.14s;
+    }
+    .filter-toggle.closed-visible .closed-dot {
+      background: #dc2626;
+      box-shadow: 0 0 0 2px rgba(220,38,38,0.16);
+    }
     .btn-sm-nav { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
     .btn-sm-nav:hover { background: #dcfce7; }
     .btn-export {
@@ -350,8 +560,9 @@
       font-family: var(--sans); font-size: 12px; font-weight: 600;
       cursor: pointer; border: 1px solid var(--border);
       background: var(--bg); color: var(--muted2);
-      text-decoration: none; margin-top: 10px;
+      text-decoration: none;
       transition: background 0.14s, border-color 0.14s;
+      min-height: 34px;
     }
     .btn-export:hover { background: var(--border-lo); border-color: #93b4f5; color: var(--text); }
     .export-hint { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.5; }  
@@ -395,6 +606,56 @@
     /* Station card fade-in */
     @keyframes stationFade { from { opacity: 0; transform: translateY(10px) scale(0.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
     .station-card { animation: stationFade 460ms cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+    .user-pulse-marker {
+      position: relative;
+      width: 28px;
+      height: 28px;
+    }
+    .user-pulse-marker::before {
+      content: '';
+      position: absolute;
+      inset: 5px;
+      border-radius: 50%;
+      background: #16a34a;
+      border: 3px solid #fff;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+      z-index: 2;
+    }
+    .user-pulse-marker::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(22,163,74,0.28);
+      animation: userPulse 1.7s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+    @keyframes userPulse {
+      0% { transform: scale(0.75); opacity: 0.9; }
+      80%, 100% { transform: scale(1.65); opacity: 0; }
+    }
+    .fuel-toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 1200;
+      max-width: min(320px, calc(100vw - 36px));
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      background: #1e2939;
+      border: 1px solid rgba(229,179,59,0.55);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+      opacity: 0;
+      transform: translateY(10px) scale(0.98);
+      pointer-events: none;
+      transition: opacity 220ms cubic-bezier(0.16, 1, 0.3, 1), transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .fuel-toast.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
 
     /* Respect reduced-motion preference */
     @media (prefers-reduced-motion: reduce) {
@@ -488,6 +749,7 @@
     .locate-pill:active,
     .bookmark-btn:active,
     .fuel-bookmark-btn:active,
+    .coord-copy-btn:active,
     .bookmark-filter:active,
     .fuel-bookmark-filter:active,
     .install-trigger:active,
@@ -550,6 +812,47 @@
     .leaflet-tooltip-top:before { display: none !important; }  /* hide the tail since tooltip is far from pin */
     .leaflet-tooltip-pane { z-index: 650 !important; }
 
+    @media (max-width: 700px) {
+      .hero-actions .btn,
+      .hero-actions .btn-export {
+        justify-content: center;
+      }
+      .results-header {
+        gap: 9px;
+      }
+      .results-title-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .results-count {
+        min-width: 0;
+        text-align: left;
+      }
+      .results-controls {
+        grid-template-columns: 1fr;
+        gap: 7px;
+      }
+      .fuel-filter-group {
+        min-width: 0;
+        width: 100%;
+      }
+      #closed-toggle {
+        width: 100%;
+      }
+      .station-card-row {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .station-actions {
+        flex-wrap: wrap;
+      }
+      .station-actions .btn-sm {
+        flex: 1 1 130px;
+        justify-content: center;
+      }
+    }
+
   
     /* Smart header hide/reveal on scroll */
     #topbar {
@@ -603,6 +906,150 @@
       flex: 1;
     }
 
+    .guide-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 220ms ease;
+    }
+    .guide-overlay.open { opacity: 1; pointer-events: auto; }
+    .guide-modal {
+      background: var(--surface);
+      border-radius: 18px;
+      width: min(520px, calc(100vw - 24px));
+      max-height: min(680px, calc(100vh - 40px));
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+      transform: translateY(14px) scale(0.98);
+      transition: transform 280ms cubic-bezier(0.22,1,0.36,1);
+      overflow: hidden;
+    }
+    .guide-overlay.open .guide-modal { transform: none; }
+    .guide-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px 14px;
+      border-bottom: 1.5px solid var(--border-lo);
+      flex-shrink: 0;
+    }
+    .guide-header-title { font-size: 16px; font-weight: 700; }
+    .guide-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+    .guide-close:hover { color: var(--text); }
+    .guide-slides { overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; }
+    .guide-slide {
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--border-lo);
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .guide-slide:last-child { border-bottom: none; }
+    .guide-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      font-weight: 800;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .gi-blue { background: var(--accent-lo); }
+    .gi-green { background: rgba(16,185,129,0.12); }
+    .gi-orange { background: rgba(245,158,11,0.12); }
+    .gi-red { background: rgba(220,38,38,0.10); }
+    .gi-navy { background: rgba(30,41,57,0.08); }
+    html[data-dark] .gi-navy { background: rgba(255,255,255,0.06); }
+    .guide-slide-body { flex: 1; min-width: 0; }
+    .guide-slide-title { font-size: 14px; font-weight: 700; margin-bottom: 5px; }
+    .guide-slide-text { font-size: 13px; color: var(--muted2); line-height: 1.55; }
+    .guide-slide-text strong { color: var(--text); }
+    .guide-pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .guide-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.03em;
+    }
+    .gp-blue { background: var(--accent-lo); color: var(--accent); }
+    .gp-green { background: rgba(16,185,129,0.12); color: #059669; }
+    .gp-orange { background: rgba(245,158,11,0.12); color: #b45309; }
+    .gp-red { background: rgba(220,38,38,0.10); color: #dc2626; }
+    .guide-footer {
+      padding: 14px 20px;
+      border-top: 1.5px solid var(--border-lo);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      gap: 10px;
+    }
+    .guide-footer-note { font-size: 11px; color: var(--muted); }
+    .guide-done {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: 10px 22px;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+    .guide-done:hover { background: #1647b8; }
+    .guide-done:active { transform: scale(0.97); }
+
+    @media (max-width: 520px) {
+      .guide-modal {
+        width: calc(100vw - 18px);
+        max-height: calc(100vh - 26px);
+        border-radius: 14px;
+      }
+      .guide-header { padding: 15px 16px 12px; }
+      .guide-header-title { font-size: 15px; line-height: 1.25; }
+      .guide-slide { padding: 16px; gap: 11px; }
+      .guide-icon { width: 34px; height: 34px; border-radius: 10px; font-size: 15px; }
+      .guide-slide-title { font-size: 13px; }
+      .guide-slide-text { font-size: 12px; line-height: 1.5; }
+      .guide-footer { padding: 12px 16px; }
+    }
+    @media (max-width: 380px) {
+      .guide-modal {
+        width: calc(100vw - 12px);
+        max-height: calc(100vh - 18px);
+      }
+      .guide-slide { padding: 14px; gap: 9px; }
+      .guide-icon { width: 30px; height: 30px; font-size: 14px; }
+      .guide-pill { font-size: 10px; padding: 3px 8px; }
+      .guide-footer { align-items: stretch; flex-direction: column; }
+      .guide-done { width: 100%; }
+    }
+    @media (max-width: 330px) {
+      .guide-slide { display: block; }
+      .guide-icon { margin-bottom: 8px; }
+      .guide-header-title { font-size: 14px; }
+    }
+
   </style>
   <script>if(localStorage.getItem("field_dark_mode")==="1")document.documentElement.setAttribute("data-dark","");</script>
   <script>try{if(sessionStorage.getItem('ft_opening_from_hub')==='1'){sessionStorage.removeItem('ft_opening_from_hub');document.documentElement.classList.add('entering-from-hub');setTimeout(function(){document.documentElement.classList.remove('entering-from-hub');},420);}}catch(_){}</script>
@@ -627,6 +1074,10 @@
   <img id="page-logo" alt="" style="height:38px;width:auto;object-fit:contain;flex-shrink:0;" />
   <h1>Fuel Station Finder</h1>
   <span class="state-badge">NEW JERSEY</span>
+  <div class="topbar-spacer"></div>
+  <button class="topbar-help" id="open-guide" aria-label="Help & Guide">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.2-3 4.1"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  </button>
 </div>
 
 <div class="main-layout">
@@ -634,22 +1085,28 @@
   <div class="hero-card">
     <div class="hero-title">NJDOT Fuel Stations</div>
     <div class="hero-desc">Find the nearest NJDOT fuel stations sorted by distance from your current location. Includes unleaded and diesel stations across New Jersey.</div>
-    <button class="btn btn-primary" id="locate-btn" onclick="startLocate()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" opacity=".3"/></svg>
-      Find Nearest Stations
-    </button>
+    <div class="hero-actions">
+      <button class="btn btn-primary" id="locate-btn" onclick="startLocate()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" opacity=".3"/></svg>
+        Update My Location
+      </button>
+      <div class="hero-export-row">
+        <button class="btn-export" onclick="exportVisibleKML()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export Visible
+        </button>
+        <button class="btn-export" onclick="exportAllKML()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+          Export All
+        </button>
+      </div>
+    </div>
     <div class="status-msg" id="status-msg">
       <div class="spinner"></div>
       <span id="status-text">Getting your location…</span>
     </div>
     <div class="error-msg" id="error-msg"></div>
-    <div style="border-top:1px solid var(--border-lo);margin-top:16px;padding-top:14px">
-      <button class="btn-export" onclick="exportKML()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Export All Stations (.kml)
-      </button>
-      <div class="export-hint">Import into <a href="https://mymaps.google.com" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">Google My Maps</a> to save all 74 pins to your account.</div>
-    </div>
+    <div class="export-hint">Import into <a href="https://mymaps.google.com" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">Google My Maps</a> to save the current visible station list to your account.</div>
   </div>
 
   <!-- Bookmarks card (own container, after hero card) -->
@@ -666,11 +1123,17 @@
 
   <div id="results-section">
     <div class="results-header">
-      <div class="results-title">Stations sorted by distance</div>
-      <div style="display:flex;align-items:center;gap:8px">
+      <div class="results-title-row">
+        <div class="results-title">Stations sorted by distance</div>
         <div class="results-count" id="results-count"></div>
+      </div>
+      <div class="results-controls">
+        <div class="fuel-filter-group" aria-label="Fuel filters">
+          <button class="filter-toggle fuel-filter-toggle active" id="unleaded-toggle" onclick="toggleFuelTypeFilter('unleaded')">Unleaded</button>
+          <button class="filter-toggle fuel-filter-toggle active" id="diesel-toggle" onclick="toggleFuelTypeFilter('diesel')">Diesel</button>
+        </div>
         <button class="filter-toggle" id="closed-toggle" onclick="toggleClosedFilter()">
-          <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#9ca3af"/></svg><span id="closed-toggle-label">Show Closed</span>
+          <span class="closed-dot" aria-hidden="true"></span><span id="closed-toggle-label">Show Closed</span>
         </button>
       </div>
     </div>
@@ -679,6 +1142,62 @@
 </div> <!-- /left-panel -->
 <div class="map-panel"><div id="map"></div></div>
 </div> <!-- /main-layout -->
+<div class="fuel-toast" id="fuel-toast" role="status" aria-live="polite"></div>
+
+<div class="guide-overlay" id="guide-overlay" role="dialog" aria-modal="true" aria-label="Fuel Station Finder Guide">
+  <div class="guide-modal">
+    <div class="guide-header">
+      <div class="guide-header-title">How to Use Fuel Station Finder</div>
+      <button class="guide-close" id="guide-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="guide-slides">
+      <div class="guide-slide">
+        <div class="guide-icon gi-blue">1</div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Start with Your Location</div>
+          <div class="guide-slide-text">The page requests your current GPS location when it opens. Use <strong>Update My Location</strong> anytime you need a fresh position in the field.</div>
+        </div>
+      </div>
+      <div class="guide-slide">
+        <div class="guide-icon gi-green">2</div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Read the Map and Station List</div>
+          <div class="guide-slide-text">Stations are sorted by distance from you. The pulsing marker shows your location, and selecting a station card centers the map on that station pin.</div>
+        </div>
+      </div>
+      <div class="guide-slide">
+        <div class="guide-icon gi-orange">3</div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Filter What You Need</div>
+          <div class="guide-slide-text">Use the fuel filters and <strong>Show Closed</strong> control to narrow the list and map to the stations that matter for the current trip.</div>
+          <div class="guide-pill-row">
+            <span class="guide-pill gp-blue">Unleaded</span>
+            <span class="guide-pill gp-green">Diesel</span>
+            <span class="guide-pill gp-red">Closed</span>
+          </div>
+        </div>
+      </div>
+      <div class="guide-slide">
+        <div class="guide-icon gi-navy">4</div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Save Important Stations</div>
+          <div class="guide-slide-text">Tap the star on a station card to bookmark it. Your <strong>My Bookmarks</strong> area stays near the top so saved stations are easy to revisit.</div>
+        </div>
+      </div>
+      <div class="guide-slide">
+        <div class="guide-icon gi-red">5</div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Directions, Coordinates, and Exports</div>
+          <div class="guide-slide-text">Use <strong>Directions</strong> or <strong>Google Maps</strong> for navigation, copy coordinates from a station card, and export either the visible filtered list or the full station list for Google My Maps.</div>
+        </div>
+      </div>
+    </div>
+    <div class="guide-footer">
+      <div class="guide-footer-note">Tap <strong>?</strong> in the header anytime to reopen this guide.</div>
+      <button class="guide-done" id="guide-done">Got it</button>
+    </div>
+  </div>
+</div>
 
 <script>
   // ── Data (embedded inline) ──
@@ -688,6 +1207,7 @@
 
   // Map state
   let currentStations = [];
+  let renderedStations = [];
   // -- Fuel station bookmarks (localStorage-backed) --
   var FUEL_BOOKMARK_KEY = 'ft_fuel_bookmarks';
   function _fuelKey(s) {
@@ -832,6 +1352,16 @@
     });
   }
 
+  function makeUserPulseIcon() {
+    return L.divIcon({
+      className: '',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -18],
+      html: '<div class="user-pulse-marker"></div>'
+    });
+  }
+
   function placeAllMarkers(stations) {
     stationMarkers.forEach(function(m) { if (m) fuelMap.removeLayer(m); });
     stationMarkers = [];
@@ -845,7 +1375,7 @@
     });
   }
 
-  function highlightStation(idx) {
+  function highlightStation(idx, cardIdx) {
     stationMarkers.forEach(function(m, i) {
       if (!m) return;
       m.setIcon(makePinIcon(i === idx ? '#E5B33B' : '#1a56db', i === idx));
@@ -853,10 +1383,16 @@
       else m.closeTooltip();
     });
     activeCardIndex = idx;
+    if (cardIdx == null) {
+      var activeStation = currentStations[idx];
+      var activeKey = _fuelKey(activeStation);
+      cardIdx = renderedStations.findIndex(function(s) { return _fuelKey(s) === activeKey; });
+      if (cardIdx < 0) cardIdx = idx;
+    }
     var cards = document.querySelectorAll('.station-card');
-    cards.forEach(function(c, i) { c.classList.toggle('active', i === idx); });
-    if (cards[idx]) {
-      cards[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    cards.forEach(function(c, i) { c.classList.toggle('active', i === cardIdx); });
+    if (cards[cardIdx]) {
+      cards[cardIdx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }
 
@@ -864,10 +1400,13 @@
     if (!fuelMap || !stations[idx]) return;
     var s = stations[idx];
     fuelMap.setView([s.latitude, s.longitude], 15, { animate: true });
-    highlightStation(idx);
+    var key = _fuelKey(s);
+    var markerIdx = currentStations.findIndex(function(st) { return _fuelKey(st) === key; });
+    highlightStation(markerIdx >= 0 ? markerIdx : idx, idx);
   }
 
   var hideClosed = true; // hide closed by default
+  var fuelTypeFilters = { unleaded: true, diesel: true };
 
   function formatAddress(a) {
     if (!a) return '';
@@ -915,15 +1454,39 @@
       .trim();
   }
 
+  function stationDays(raw) {
+    if (!raw) return '';
+    var h = String(raw).toLowerCase();
+    if (/m-f|mon.?fri|weekday/.test(h)) return 'Mon-Fri';
+    return '';
+  }
+
+  function stripScheduleDays(s) {
+    return String(s || '')
+      .replace(/\s*(?:m-f|mon\.?\s*[-\u2013]?\s*fri|weekdays?)\s*$/i, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
   function formatHours(raw) {
     if (!raw) return '';
     var s = raw.trim();
     if (/open\s*24\s*hr/i.test(s)) return 'Open 24 Hours';
     if (/unmanned/i.test(s)) return 'Unmanned Site';
     if (/^(unleaded|diesel)/i.test(s)) {
-      return s.split(/,\s*/).map(function(p) { return cleanSegment(p.trim()); }).join('<br>');
+      return s.split(/,\s*/).map(function(p) { return cleanSegment(stripScheduleDays(p.trim())); }).join('<br>');
     }
-    return cleanSegment(s);
+    return cleanSegment(stripScheduleDays(s));
+  }
+
+  function fuelChips(raw) {
+    var fuel = String(raw || '').toLowerCase();
+    var chips = [];
+    var icon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 22V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M3 11h12"/><path d="M15 6h2l4 4v12h-6V6z"/></svg>';
+    if (/unleaded/.test(fuel)) chips.push('<span class="station-fuel">' + icon + 'Unleaded</span>');
+    if (/diesel/.test(fuel)) chips.push('<span class="station-fuel diesel">' + icon + 'Diesel</span>');
+    if (!chips.length && raw) chips.push('<span class="station-fuel">' + icon + escHtml(raw) + '</span>');
+    return chips.join('');
   }
 
   function openBadge(raw) {
@@ -937,12 +1500,20 @@
   function applyClosedFilter() {
     var btn = document.getElementById('closed-toggle');
     if (btn) btn.classList.toggle('active', hideClosed);
+    if (btn) btn.classList.toggle('closed-visible', !hideClosed);
     var lbl = document.getElementById('closed-toggle-label');
     if (lbl) lbl.textContent = hideClosed ? 'Show Closed' : 'Hide Closed';
+    var unBtn = document.getElementById('unleaded-toggle');
+    var diBtn = document.getElementById('diesel-toggle');
+    if (unBtn) unBtn.classList.toggle('active', !!fuelTypeFilters.unleaded);
+    if (diBtn) diBtn.classList.toggle('active', !!fuelTypeFilters.diesel);
     var cards = document.querySelectorAll('.station-card');
     var shown = 0, total = cards.length;
     cards.forEach(function(c) {
-      if (hideClosed && c.classList.contains('is-closed')) {
+      var s = renderedStations[parseInt(c.getAttribute('data-idx'), 10)];
+      var hiddenByClosed = hideClosed && c.classList.contains('is-closed');
+      var hiddenByFuel = s && !stationPassesFuelFilters(s);
+      if (hiddenByClosed || hiddenByFuel) {
         c.style.display = 'none';
       } else {
         c.style.display = '';
@@ -952,10 +1523,26 @@
     currentStations.forEach(function(s, i) {
       var m = stationMarkers[i];
       if (!m) return;
-      m.setOpacity((hideClosed && isOpenNow(s.hours) === false) ? 0 : 1);
+      var hideMarker = (hideClosed && isOpenNow(s.hours) === false) || !stationPassesFuelFilters(s);
+      if (fuelBookmarkFilterOn) hideMarker = hideMarker || getFuelBookmarks().indexOf(_fuelKey(s)) === -1;
+      m.setOpacity(hideMarker ? 0 : 1);
     });
     var countEl = document.getElementById('results-count');
-    if (countEl) countEl.textContent = hideClosed ? (shown + ' of ' + total + ' stations') : (total + ' stations');
+    if (countEl) countEl.textContent = shown === total ? (total + ' stations') : (shown + ' of ' + total + ' stations');
+  }
+
+  function stationHasFuel(s, type) {
+    return String((s && s.fuel) || '').toLowerCase().indexOf(type) !== -1;
+  }
+
+  function stationPassesFuelFilters(s) {
+    var wantsUnleaded = !!fuelTypeFilters.unleaded;
+    var wantsDiesel = !!fuelTypeFilters.diesel;
+    if (wantsUnleaded && wantsDiesel) return true;
+    if (!wantsUnleaded && !wantsDiesel) return true;
+    if (wantsUnleaded && stationHasFuel(s, 'unleaded')) return true;
+    if (wantsDiesel && stationHasFuel(s, 'diesel')) return true;
+    return false;
   }
 
   function toggleClosedFilter() {
@@ -963,9 +1550,21 @@
     applyClosedFilter();
   }
 
-  function exportKML() {
+  function toggleFuelTypeFilter(type) {
+    fuelTypeFilters[type] = !fuelTypeFilters[type];
+    if (!fuelTypeFilters.unleaded && !fuelTypeFilters.diesel) {
+      fuelTypeFilters[type] = true;
+    }
+    applyClosedFilter();
+  }
+
+  function downloadFuelKML(exportStations, filename, docName, toastLabel) {
+    if (!exportStations.length) {
+      showFuelToast('No visible stations to export.');
+      return;
+    }
     var ex = function(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
-    var marks = stationsData.map(function(s) {
+    var marks = exportStations.map(function(s) {
       return '<Placemark>' +
         '<name>' + ex(s.location) + '</name>' +
         '<description><![CDATA[' +
@@ -979,14 +1578,36 @@
     }).join('\n  ');
     var kml = '<?xml version="1.0" encoding="UTF-8"?>\n' +
       '<kml xmlns="http://www.opengis.net/kml/2.2"><Document>\n' +
-      '<name>NJDOT Fuel Stations</name>\n  ' + marks + '\n</Document></kml>';
+      '<name>' + ex(docName) + '</name>\n  ' + marks + '\n</Document></kml>';
     var blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
-    a.href = url; a.download = 'njdot_fuel_stations.kml';
+    a.href = url; a.download = filename;
     document.body.appendChild(a); a.click();
     document.body.removeChild(a);
     setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+    showFuelToast('Exported ' + exportStations.length + ' ' + toastLabel + '.');
+  }
+
+  function exportVisibleKML() {
+    downloadFuelKML(getVisibleStationsForExport(), 'njdot_visible_fuel_stations.kml', 'NJDOT Fuel Stations - Visible List', 'visible stations');
+  }
+
+  function exportAllKML() {
+    downloadFuelKML(stationsData.slice(), 'njdot_all_fuel_stations.kml', 'NJDOT Fuel Stations - All Stations', 'stations');
+  }
+
+  function exportKML() {
+    exportVisibleKML();
+  }
+
+  function getVisibleStationsForExport() {
+    var cards = Array.from(document.querySelectorAll('.station-card'));
+    if (!cards.length) return stationsData.slice();
+    return cards
+      .filter(function(card) { return card.style.display !== 'none'; })
+      .map(function(card) { return renderedStations[parseInt(card.getAttribute('data-idx'), 10)]; })
+      .filter(Boolean);
   }
 
   function escHtml(s) {
@@ -1013,16 +1634,82 @@
     el.classList.toggle('visible', !!text);
   }
 
+  function locateButtonHTML() {
+    return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" opacity=".3"/></svg> Update My Location';
+  }
+
+  function setLocateLoading(on) {
+    var btn = document.getElementById('locate-btn');
+    if (!btn) return;
+    if (on) {
+      btn.classList.add('locating');
+      btn.innerHTML = '<span class="locate-spin"></span> Locating...';
+      btn.disabled = true;
+    } else {
+      btn.classList.remove('locating');
+      btn.innerHTML = locateButtonHTML();
+      btn.disabled = false;
+    }
+  }
+
+  var fuelToastTimer = null;
+  function showFuelToast(text) {
+    var el = document.getElementById('fuel-toast');
+    if (!el) return;
+    el.textContent = text;
+    el.classList.add('visible');
+    clearTimeout(fuelToastTimer);
+    fuelToastTimer = setTimeout(function() {
+      el.classList.remove('visible');
+    }, 2400);
+  }
+
+  function fallbackCopyText(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); }
+    catch(e) {}
+    document.body.removeChild(ta);
+  }
+
+  function copyFuelCoords(btn) {
+    var text = btn ? btn.getAttribute('data-coords') : '';
+    if (!text) return;
+    var done = function() {
+      btn.classList.remove('copied');
+      void btn.offsetWidth;
+      btn.classList.add('copied');
+      setTimeout(function() { btn.classList.remove('copied'); }, 900);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(function() {
+        fallbackCopyText(text);
+        done();
+      });
+    } else {
+      fallbackCopyText(text);
+      done();
+    }
+  }
+
+  var locateInProgress = false;
   function startLocate() {
-    const btn = document.getElementById('locate-btn');
-    btn.disabled = true;
+    if (locateInProgress) return;
+    locateInProgress = true;
+    setLocateLoading(true);
     setError('');
-    setStatus('Getting your location…', true);
+    setStatus('', false);
 
     if (!navigator.geolocation) {
       setStatus('', false);
       setError('Geolocation is not supported by your browser.');
-      btn.disabled = false;
+      locateInProgress = false;
+      setLocateLoading(false);
       return;
     }
 
@@ -1040,6 +1727,7 @@
     setStatus('Loading station data…', true);
 
     try {
+      var hadUserMarker = !!userMarker;
       const stations = await loadData();
       const sorted = stations
         .map(s => ({ ...s, dist: haversineMiles(userLat, userLng, s.latitude, s.longitude) }))
@@ -1052,27 +1740,26 @@
       placeAllMarkers(sorted);
       // User location marker
       if (userMarker) fuelMap.removeLayer(userMarker);
-      userMarker = L.marker([userLat, userLng], { icon: makePinIcon('#16a34a', true) })
-        .bindTooltip('Your location', { permanent: false, direction: 'top', offset: [0, -36] })
+      userMarker = L.marker([userLat, userLng], { icon: makeUserPulseIcon(), zIndexOffset: 1000 })
+        .bindTooltip('Your location', { permanent: false, direction: 'top', offset: [0, -22] })
         .addTo(fuelMap);
-      fuelMap.setView([userLat, userLng], 10, { animate: false });
+      fuelMap.setView([userLat, userLng], 10, { animate: hadUserMarker, duration: 0.8 });
       // Re-enable the locate button so the user can re-search if they've moved
       var lbtn = document.getElementById('locate-btn');
       if (lbtn) {
-        lbtn.disabled = false;
         lbtn.style.display = '';
-        if (!lbtn._relabeled) {
-          lbtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" opacity=".3"/></svg> Update My Location';
-          lbtn._relabeled = true;
-        }
       }
+      setLocateLoading(false);
+      locateInProgress = false;
+      scrollFuelBookmarksIntoView();
       // Force Leaflet to recalculate map size (mobile layout shift can collapse it)
       setTimeout(function() { if (fuelMap) fuelMap.invalidateSize(true); }, 50);
       setTimeout(function() { if (fuelMap) fuelMap.invalidateSize(true); }, 350);
     } catch(e) {
       setStatus('', false);
       setError('Failed to load station data. Check your connection.');
-      document.getElementById('locate-btn').disabled = false;
+      locateInProgress = false;
+      setLocateLoading(false);
     }
   }
 
@@ -1084,12 +1771,14 @@
       3: 'Location request timed out.'
     };
     setError(msgs[err.code] || 'Location error.');
-    document.getElementById('locate-btn').disabled = false;
+    locateInProgress = false;
+    setLocateLoading(false);
   }
 
   function renderStations(stations) {
     var section = document.getElementById('results-section');
     var list = document.getElementById('stations-list');
+    renderedStations = stations.slice();
     document.getElementById('results-count').textContent = stations.length + ' stations';
 
     list.innerHTML = stations.map(function(s, idx) {
@@ -1100,11 +1789,13 @@
       var closedClass = openState === false ? ' is-closed' : '';
       var fmtAddr = formatAddress(s.address);
       var fmtHours = formatHours(s.hours);
+      var days = stationDays(s.hours);
       var phone = s['phone Number'] ? s['phone Number'].trim() : '';
       var lat = s.latitude.toFixed(5);
       var lng = s.longitude.toFixed(5);
+      var coordText = lat + ', ' + lng;
       return (
-        '<div class="station-card' + closedClass + (isFuelBookmarked(_fuelKey(s)) ? ' is-bookmarked' : '') + '" data-idx="' + idx + '" onclick="focusMapOnStation(' + idx + ', currentStations)">' +
+        '<div class="station-card' + closedClass + (isFuelBookmarked(_fuelKey(s)) ? ' is-bookmarked' : '') + '" data-idx="' + idx + '" onclick="focusMapOnStation(' + idx + ', renderedStations)">' +
           '<div class="station-top">' +
             '<div class="station-name">' + escHtml(s.location) + '</div>' +
             '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">' +
@@ -1112,16 +1803,14 @@
               '<span class="station-county">' + escHtml(s.county) + ' Co.</span>' +
             '</div>' +
           '</div>' +
-          (fmtAddr ? '<div class="station-meta"><strong>Address:</strong> ' + escHtml(fmtAddr) + '</div>' : '') +
-          '<div style="display:flex;align-items:center;gap:8px;margin:8px 0;flex-wrap:nowrap">' +
-            '<span class="station-fuel">' +
-              '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 22V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M3 11h12"/><path d="M15 6h2l4 4v12h-6V6z"/></svg>' +
-              escHtml(s.fuel) +
-            '</span>' +
+          (fmtAddr ? '<div class="station-address">' + escHtml(fmtAddr) + '</div>' : '') +
+          '<div class="station-card-row">' +
+            '<div class="fuel-chip-row">' + fuelChips(s.fuel) + '</div>' +
             (dist ? '<span class="dist-badge">' + dist + '</span>' : '') +
           '</div>' +
           '<div style="margin-bottom:10px">' +
             '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:3px">Hours</div>' +
+            (days ? '<div class="hours-days">' + escHtml(days) + '</div>' : '') +
             '<div class="hours-val">' + fmtHours + '</div>' +
           '</div>' +
           (phone ? '<div class="station-meta" style="margin-bottom:10px"><strong>Phone:</strong> ' + escHtml(phone) + '</div>' : '') +
@@ -1137,7 +1826,10 @@
           '</div>' +
           '<div class="coords-row">' +
             '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>' +
-            '<span class="coords-text">' + lat + ', ' + lng + '</span>' +
+            '<span class="coords-text">' + coordText + '</span>' +
+            '<button type="button" class="coord-copy-btn" data-coords="' + escHtml(coordText) + '" title="Copy coordinates" onclick="event.stopPropagation(); copyFuelCoords(this);">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>' +
+            '</button>' +
             (function(){
               var bm = isFuelBookmarked(_fuelKey(s));
               var filled = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
@@ -1151,25 +1843,28 @@
 
     section.classList.add('visible');
     applyClosedFilter();
-    // Delay scroll until layout has settled after results-section became visible
+  }
+
+  function scrollFuelBookmarksIntoView() {
     var bmCard = document.querySelector('.bookmark-card');
-    var scrollTarget = bmCard || section;
-    requestAnimationFrame(function() {
+    if (!bmCard) return;
+    var scrollTarget = bmCard;
+    setTimeout(function() { requestAnimationFrame(function() {
       requestAnimationFrame(function() {
         var rect = scrollTarget.getBoundingClientRect();
-        var topOffset = 70;
         // On desktop the left-panel scrolls; on mobile the body scrolls
         var leftPanel = document.querySelector('.left-panel');
         if (leftPanel && getComputedStyle(leftPanel).overflowY === 'auto' && leftPanel.scrollHeight > leftPanel.clientHeight) {
           var lpRect = leftPanel.getBoundingClientRect();
+          var topOffset = 12;
           var newTop = leftPanel.scrollTop + (rect.top - lpRect.top) - topOffset;
           leftPanel.scrollTo({ top: Math.max(0, newTop), behavior: 'smooth' });
         } else {
-          var newTop2 = window.scrollY + rect.top - topOffset;
+          var newTop2 = window.scrollY + rect.top - 76;
           window.scrollTo({ top: Math.max(0, newTop2), behavior: 'smooth' });
         }
       });
-    });
+    }); }, 120);
   }
   // Initialize bookmark count display on load
   document.addEventListener('DOMContentLoaded', function() { updateFuelBookmarkCount(); });
@@ -1179,19 +1874,14 @@
   document.addEventListener('DOMContentLoaded', function() { initFuelMap(); });
   if (document.readyState !== 'loading') { setTimeout(initFuelMap, 0); }
 
-  // Auto-fetch location if the browser has already granted geolocation permission.
-  // Silent on subsequent visits — no extra clicks needed. First-time visitors still
-  // see the button, so the permission prompt only fires on their explicit action.
+  // Auto-fetch location on first load. The browser still owns the permission prompt;
+  // the button remains available afterward for a fresh update.
+  var autoLocateStarted = false;
   function _tryAutoLocate() {
+    if (autoLocateStarted) return;
+    autoLocateStarted = true;
     if (!navigator.geolocation) return;
-    if (!navigator.permissions || !navigator.permissions.query) return;
-    try {
-      navigator.permissions.query({ name: 'geolocation' }).then(function(result) {
-        if (result.state === 'granted') {
-          setTimeout(function() { startLocate(); }, 80);
-        }
-      }).catch(function() {});
-    } catch(e) {}
+    setTimeout(function() { startLocate(); }, 120);
   }
   document.addEventListener('DOMContentLoaded', _tryAutoLocate);
   if (document.readyState !== 'loading') { _tryAutoLocate(); }
@@ -1206,6 +1896,40 @@
       if (e.data && e.data.type === 'RELOAD') window.location.reload();
     });
   }
+
+  (function() {
+    var GUIDE_KEY = 'ft_fuel_guide_shown';
+    var guideOverlay = document.getElementById('guide-overlay');
+    var openBtn = document.getElementById('open-guide');
+    var closeBtn = document.getElementById('guide-close');
+    var doneBtn = document.getElementById('guide-done');
+    if (!guideOverlay || !openBtn) return;
+
+    function openGuide() {
+      guideOverlay.classList.add('open');
+    }
+    function closeGuide() {
+      guideOverlay.classList.remove('open');
+    }
+
+    openBtn.addEventListener('click', openGuide);
+    if (closeBtn) closeBtn.addEventListener('click', closeGuide);
+    if (doneBtn) doneBtn.addEventListener('click', closeGuide);
+    guideOverlay.addEventListener('click', function(e) {
+      if (e.target === guideOverlay) closeGuide();
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && guideOverlay.classList.contains('open')) closeGuide();
+    });
+
+    try {
+      var shown = parseInt(localStorage.getItem(GUIDE_KEY) || '0', 10);
+      if (shown < 2) {
+        localStorage.setItem(GUIDE_KEY, String(shown + 1));
+        setTimeout(openGuide, 650);
+      }
+    } catch(e) {}
+  })();
 
   // Hub-back slide-left transition
   (function() {
