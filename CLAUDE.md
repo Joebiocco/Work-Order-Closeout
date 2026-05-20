@@ -60,7 +60,10 @@ Work Order Website/
 ├── push.bat                         # Local helper: git add/commit/push
 ├── data/
 │   ├── njfuel.json                  # ~74 NJDOT fuel stations
-│   └── njstructures.json            # ~6,825 NJ bridge records (inline-embedded in njsearch.html too)
+│   ├── njstructures.json            # Bridge Navigator source archive/fallback; metadata + records[] wrapper
+│   └── bridges/
+│       ├── index.json               # Lightweight statewide Bridge Navigator index
+│       └── chunks/by-county/*.json  # Full bridge records lazy-loaded by county
 ├── icons/
 │   ├── icon-192.png                 # PWA app icon (192×192) — NJDOT bridge + bar chart, dark navy #001e4d bg, no pre-baked rounding
 │   └── icon-512.png                 # PWA app icon (512×512) — same design, maskable, corners filled solid navy
@@ -70,13 +73,29 @@ Work Order Website/
 │   └── WorkOrderCloseout.html       # Work Order tool (2,949 lines)
 ├── _archive/                        # old files, ignore
 ├── reference/                       # data sources, ignore
-└── scripts/                         # transient python helper scripts (ignore)
+├── scripts/                         # transient helper scripts
+└── tools/
+    └── validate-bridge-data.js      # Validates Bridge Navigator index/chunk data integrity
 ```
 
 **Backups (on Desktop, DO NOT TOUCH):**
 - `Work Order Website - Backup 2026-05-17` — permanent baseline backup
 - `Work Order Website - Backup 2026-05-17 (Pre-Analytics)` — pre-GA4 snapshot
 - `Work Order Website - Backup 2026-05-18` — pre-large-tasklist snapshot
+
+### Bridge source data
+
+- `data/njstructures.json` remains the Bridge Navigator source archive and fallback data file.
+- Current source shape: `{ metadata: { recordCount, generatedDate, source }, records: [...] }`.
+- Current local size is about 12.4 MB; `pages/njsearch.html` is about 541 KB after removing inline bridge records.
+- `records[].Structure_Number` preserves the exact raw value and remains the stable key for bookmarks, search, and future data migration.
+- Normal Bridge Navigator startup loads `../data/bridges/index.json` through `loadBridgeIndex()` and stores lightweight records in `bridgeIndex`.
+- `bridgeIndexByStructureNumber` maps raw `Structure_Number` values to index records for search, bookmarks, and GPS matching.
+- Full bridge records live in `data/bridges/chunks/by-county/*.json` and are lazy-loaded with `getFullBridgeRecord()` only when a bridge detail/share/copy view needs full fields.
+- `bridgeChunkCache` caches loaded county chunk promises in memory; chunks are not stored in localStorage or IndexedDB.
+- `data/njstructures.json` is loaded only by fallback code if the index cannot be loaded.
+- `pages/njsearch.html` no longer embeds `BRIDGES_DATA`; do not re-inline bridge records.
+- `service-worker.js` pre-caches `data/bridges/index.json`; county chunks are runtime-cached after first fetch. Do not pre-cache every county chunk unless explicitly approved.
 
 ---
 
@@ -323,11 +342,13 @@ Two parallel implementations, identical behavior:
 
 - Floating teal pill, fixed bottom-right
 - On click: `navigator.geolocation.getCurrentPosition` (always fresh, no caching)
+- GPS candidate matching scans the lightweight statewide `bridgeIndex`, not county chunks.
 - Per-bridge dynamic radius: `max(50m, structure_length_m + 40m GPS buffer)` — accounts for NBI coords being at one approach end
 - 0 matches → empty state with distance to nearest bridge
 - 1 match → auto-opens detail
 - Multiple matches → bottom-sheet picker sorted by distance
 - Distances always in US units (ft / mi)
+- Opening a search result, bookmark, or GPS-selected bridge lazy-loads the selected bridge's full county chunk before rendering copy/share/full detail fields.
 
 ### Fuel Station Finder
 

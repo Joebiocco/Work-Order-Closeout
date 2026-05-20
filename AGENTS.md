@@ -60,7 +60,10 @@ Work Order Website/
 ├── push.bat                         # Local helper: git add/commit/push
 ├── data/
 │   ├── njfuel.json                  # ~74 NJDOT fuel stations
-│   ├── njstructures.json            # Bridge Navigator source data; metadata + records[] wrapper
+│   ├── njstructures.json            # Bridge Navigator source archive/fallback; metadata + records[] wrapper
+│   ├── bridges/
+│   │   ├── index.json               # Lightweight statewide Bridge Navigator index
+│   │   └── chunks/by-county/*.json  # Full bridge records lazy-loaded by county
 │   └── mileposts/
 │       ├── index.json               # Tile index for Road Milemarker Finder (filtered state routes only)
 │       └── chunks/*.json            # Per-tile milepost chunks loaded lazily near user GPS
@@ -75,8 +78,10 @@ Work Order Website/
 │   └── WorkOrderCloseout.html       # Work Order tool (2,949 lines)
 ├── _archive/                        # old files, ignore
 ├── reference/                       # data sources, ignore
-└── scripts/
-    └── build-mileposts.ps1          # CSV -> filtered tile chunks for milemarker runtime
+├── scripts/
+│   └── build-mileposts.ps1          # CSV -> filtered tile chunks for milemarker runtime
+└── tools/
+    └── validate-bridge-data.js      # Validates Bridge Navigator index/chunk data integrity
 ```
 
 **Backups (on Desktop, DO NOT TOUCH):**
@@ -86,13 +91,17 @@ Work Order Website/
 
 ### Bridge source data
 
-- `data/njstructures.json` is the Bridge Navigator source of truth.
-- Current shape: `{ metadata: { recordCount, generatedDate, source }, records: [...] }`.
+- `data/njstructures.json` remains the Bridge Navigator source archive and fallback data file.
+- Current source shape: `{ metadata: { recordCount, generatedDate, source }, records: [...] }`.
 - `records[].Structure_Number` preserves the exact raw value and remains the stable key for bookmarks, search, and future data migration.
-- Bridge Navigator runtime loads `../data/njstructures.json` through `loadBridgeData()` and stores the full record array in `allBridges`.
+- Normal Bridge Navigator startup loads `../data/bridges/index.json` through `loadBridgeIndex()` and stores lightweight records in `bridgeIndex`.
+- `bridgeIndexByStructureNumber` maps raw `Structure_Number` values to index records for search, bookmarks, and GPS matching.
+- Full bridge records live in `data/bridges/chunks/by-county/*.json` and are lazy-loaded with `getFullBridgeRecord()` only when a bridge detail/share/copy view needs full fields.
+- `bridgeChunkCache` caches loaded county chunk promises in memory; chunks are not stored in localStorage or IndexedDB.
+- `data/njstructures.json` is loaded only by fallback code if the index cannot be loaded.
 - `pages/njsearch.html` no longer embeds `BRIDGES_DATA`; do not re-inline bridge records.
-- The temporary/manual test URL flag `?bridgeDataFail=1` simulates a failed bridge-data fetch and should show the data error state.
-- `service-worker.js` pre-caches `data/njstructures.json` with other local static JSON assets.
+- The temporary/manual test URL flag `?bridgeDataFail=1` simulates a failed index fetch and should use fallback bridge data if available.
+- `service-worker.js` pre-caches `data/bridges/index.json`; county chunks are runtime-cached after first fetch. Do not pre-cache every county chunk unless explicitly approved.
 
 ---
 
@@ -347,6 +356,7 @@ Two parallel implementations, identical behavior:
 
 - Floating teal pill, fixed bottom-right
 - On click: `navigator.geolocation.getCurrentPosition` (always fresh, no caching)
+- GPS candidate matching scans the lightweight statewide `bridgeIndex`, not county chunks.
 - Per-bridge dynamic radius: `max(50m, structure_length_m + 40m GPS buffer)` — accounts for NBI coords being at one approach end
 - 0 matches → empty state with distance to nearest bridge
 - 1 match → auto-opens detail
@@ -355,6 +365,7 @@ Two parallel implementations, identical behavior:
 - Visible structure numbers are formatted as `XXXX-XXX` via `formatStructureNumber()` while raw `Structure_Number` values remain unchanged for search, bookmarks, data keys, and analytics.
 - Bridge detail header name and fields under the map are copyable: click/tap copies only the displayed value/name (not labels), with an animated "Copied" state.
 - Bridge detail header has a Share button: desktop copies structure number/name/route/milepost plus a Google Maps pin link; mobile opens an SMS compose link with the same line-by-line text.
+- Opening a search result, bookmark, or GPS-selected bridge lazy-loads the selected bridge's full county chunk before rendering copy/share/full detail fields.
 - Bridge Navigator tutorial uses the standard guide modal pattern, auto-shows first two visits via `ft_bridge_guide_shown`, and can be reopened with the header `?` button.
 
 ### Fuel Station Finder

@@ -24,7 +24,7 @@ const LOCAL_ASSETS = [
   './pages/njfuel.html',
   './pages/WorkOrderCloseout.html',
   './data/njfuel.json',
-  './data/njstructures.json',
+  './data/bridges/index.json',
   './pages/timesheet.html',
   './pages/milemarker.html',
   './data/mileposts/index.json',
