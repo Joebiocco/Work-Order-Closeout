@@ -60,7 +60,7 @@ Work Order Website/
 ├── push.bat                         # Local helper: git add/commit/push
 ├── data/
 │   ├── njfuel.json                  # ~74 NJDOT fuel stations
-│   ├── njstructures.json            # Bridge records extracted from njsearch.html; metadata + records[] wrapper
+│   ├── njstructures.json            # Bridge Navigator source data; metadata + records[] wrapper
 │   └── mileposts/
 │       ├── index.json               # Tile index for Road Milemarker Finder (filtered state routes only)
 │       └── chunks/*.json            # Per-tile milepost chunks loaded lazily near user GPS
@@ -86,12 +86,13 @@ Work Order Website/
 
 ### Bridge source data
 
-- `data/njstructures.json` is generated from the embedded `BRIDGES_DATA` array in `pages/njsearch.html`.
+- `data/njstructures.json` is the Bridge Navigator source of truth.
 - Current shape: `{ metadata: { recordCount, generatedDate, source }, records: [...] }`.
-- `records[].Structure_Number` preserves the exact raw value from the embedded runtime data and remains the stable key for bookmarks, search, and future data migration.
-- Bridge Navigator runtime now attempts to load `../data/njstructures.json` first through `loadBridgeData()`, then falls back to inline `BRIDGES_DATA` if the fetch fails.
-- The embedded `BRIDGES_DATA` must stay in `pages/njsearch.html` until the chunked/indexed migration is implemented and tested.
-- The temporary/manual test URL flag `?bridgeDataFail=1` forces the JSON request path to use the embedded fallback.
+- `records[].Structure_Number` preserves the exact raw value and remains the stable key for bookmarks, search, and future data migration.
+- Bridge Navigator runtime loads `../data/njstructures.json` through `loadBridgeData()` and stores the full record array in `allBridges`.
+- `pages/njsearch.html` no longer embeds `BRIDGES_DATA`; do not re-inline bridge records.
+- The temporary/manual test URL flag `?bridgeDataFail=1` simulates a failed bridge-data fetch and should show the data error state.
+- `service-worker.js` pre-caches `data/njstructures.json` with other local static JSON assets.
 
 ---
 
