@@ -24,7 +24,7 @@
 
 > **Purpose:** This file is the authoritative quick-reference for the NJDOT Field Tools project. Read this FIRST before reading any HTML file. It contains every architectural decision, storage key, design token, and critical constraint so we can make changes without re-reading 6,800+ lines of HTML.
 >
-> **Last updated:** 2026-05-19 · v1.6
+> **Last updated:** 2026-05-20 · v1.9
 >
 > **Live site:** `https://joebiocco.github.io/NJDOT-Field-Tools-Hub/`
 > **Repo:** `https://github.com/Joebiocco/NJDOT-Field-Tools-Hub` (renamed from `Work-Order-Closeout`)
@@ -34,7 +34,7 @@
 
 ## 1. Project Overview
 
-A static internal PWA for NJ DOT field workers, hosted on GitHub Pages. **No backend.** Three current tools + three placeholder tiles for upcoming features.
+A static internal PWA for NJ DOT field workers, hosted on GitHub Pages. **No backend.** Five current tools + two placeholder tiles for upcoming features.
 
 **Audience:** NJ DOT field workers using phones and tablets in the field, plus desktop in the office.
 
@@ -68,9 +68,11 @@ Work Order Website/
 │   ├── icon-192.png                 # PWA app icon (192×192) — NJDOT bridge + bar chart, dark navy #001e4d bg, no pre-baked rounding
 │   └── icon-512.png                 # PWA app icon (512×512) — same design, maskable, corners filled solid navy
 ├── pages/
-│   ├── njsearch.html                # Bridge Navigator (1,440 lines)
-│   ├── njfuel.html                  # Fuel Station Finder (1,305 lines)
-│   └── WorkOrderCloseout.html       # Work Order tool (2,949 lines)
+│   ├── njsearch.html                # Bridge Navigator
+│   ├── njfuel.html                  # Fuel Station Finder
+│   ├── milemarker.html              # Road Milemarker Finder
+│   ├── timesheet.html               # Payroll Calculator & Timesheet
+│   └── WorkOrderCloseout.html       # Work Order tool
 ├── _archive/                        # old files, ignore
 ├── reference/                       # data sources, ignore
 ├── scripts/                         # transient helper scripts
@@ -287,7 +289,7 @@ JS behavior (in every page):
 ### Caching strategy
 
 ```js
-const CACHE = 'ft-v1.0-2026-05-18';  // BUMP this on every push that should force refresh
+const CACHE = 'ft-v1.9-2026-05-20';  // BUMP this on every push that should force refresh
 
 // HTML pages → NETWORK-FIRST (always latest, cache as offline fallback)
 // Static files (icons, JSON, manifest) → CACHE-FIRST (rarely change)

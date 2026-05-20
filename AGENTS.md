@@ -24,7 +24,7 @@
 
 > **Purpose:** This file is the authoritative quick-reference for the NJDOT Field Tools project. Read this FIRST before reading any HTML file. It contains every architectural decision, storage key, design token, and critical constraint so we can make changes without re-reading 6,800+ lines of HTML.
 >
-> **Last updated:** 2026-05-20 · v1.8
+> **Last updated:** 2026-05-20 · v1.9
 >
 > **Live site:** `https://joebiocco.github.io/NJDOT-Field-Tools-Hub/`
 > **Repo:** `https://github.com/Joebiocco/NJDOT-Field-Tools-Hub` (renamed from `Work-Order-Closeout`)
@@ -298,7 +298,7 @@ JS behavior (in every page):
 ### Caching strategy
 
 ```js
-const CACHE = 'ft-v1.1-2026-05-18';  // BUMP this on every push that should force refresh
+const CACHE = 'ft-v1.9-2026-05-20';  // BUMP this on every push that should force refresh
 
 // HTML pages → NETWORK-FIRST (always latest, cache as offline fallback)
 // Static files (icons, JSON, manifest) → CACHE-FIRST (rarely change)
