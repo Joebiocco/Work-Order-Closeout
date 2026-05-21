@@ -98,6 +98,75 @@
       border-bottom: 2px solid var(--border);
     }
 
+    :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+      outline: 3px solid rgba(229,179,59,0.95);
+      outline-offset: 3px;
+      box-shadow: 0 0 0 5px rgba(26,86,219,0.18);
+    }
+    html[data-dark] :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+      outline-color: #FEE9A1;
+      box-shadow: 0 0 0 5px rgba(254,233,161,0.16);
+    }
+
+    .home-controls {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .continue-card,
+    .tool-search-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border-lo);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .continue-card {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .continue-card.show { display: flex; }
+    .continue-kicker,
+    .tool-search-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted2);
+    }
+    .continue-title { margin-top: 3px; font-weight: 800; color: var(--text); }
+    .continue-btn {
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      border-radius: var(--radius-sm);
+      padding: 9px 13px;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .tool-search-card { display: grid; gap: 8px; }
+    .tool-search-input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      font-size: 14px;
+      padding: 11px 12px;
+    }
+    .tools-empty {
+      display: none;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      padding: 22px 12px 6px;
+    }
+    .tools-empty.show { display: block; }
+
     /* Tool grid */
     .tool-grid {
       display: grid;
@@ -601,6 +670,21 @@
     <div class="hero-desc">Quick access to bridge lookup, fuel stations, and work order documentation tools.</div>
   </div>
 
+  <div class="home-controls">
+    <div id="continue-card" class="continue-card" aria-label="Continue last used tool">
+      <div>
+        <div class="continue-kicker">Continue</div>
+        <div id="continue-title" class="continue-title"></div>
+      </div>
+      <a id="continue-link" class="continue-btn" href="#">Open</a>
+    </div>
+    <div class="tool-search-card">
+      <label class="tool-search-label" for="tool-filter">Search tools</label>
+      <input id="tool-filter" class="tool-search-input" type="search" placeholder="Filter tools by name, description, or category" autocomplete="off">
+      <div id="tools-empty" class="tools-empty">No tools found.</div>
+    </div>
+  </div>
+
   <div class="section-label">Tools</div>
   <div class="tool-grid">
 
@@ -637,7 +721,7 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="12" y1="7" x2="12" y2="13"/></svg>
       </div>
       <div class="card-body">
-        <div class="card-title">Road Milemarker Finder</div>
+        <div class="card-title">Road Milepost Finder</div>
         <div class="card-desc">GPS-based lookup for nearest Interstate, US, NJ State, or County route milepost.</div>
       </div>
       <div class="card-footer">
@@ -714,7 +798,7 @@
 
 </div>
 
-<div class="page-footer">Field Tools &mdash; Internal Use &middot; <span class="version-stamp" title="Build version — if you spot a user with an older version, ask them to refresh">v1.9 &middot; 2026-05-20</span></div>
+<div class="page-footer">Field Tools &mdash; Internal Use &middot; <span class="version-stamp" title="Build version — if you spot a user with an older version, ask them to refresh">v1.10 &middot; 2026-05-21</span></div>
 
 <!-- Install App Banner -->
 <div id="install-banner" class="install-banner" role="banner" aria-live="polite">
@@ -763,13 +847,20 @@
     }, 150);
     setTimeout(function(){d.classList.remove('theme-transitioning');},450);
   });}
-  // Last used badge
+  // Last used badge + compact Continue section
   try{
     var last=localStorage.getItem('ft_last');
     if(last){
-      var map={njsearch:'pages/njsearch.html',njfuel:'pages/njfuel.html',closeout:'pages/WorkOrderCloseout.html',milemarker:'pages/milemarker.html'};
-      var href=map[last];
-      if(href){
+      var toolMap={
+        njsearch:{href:'pages/njsearch.html',title:'Bridge Navigator'},
+        njfuel:{href:'pages/njfuel.html',title:'NJ Fuel Station Finder'},
+        closeout:{href:'pages/WorkOrderCloseout.html',title:'Work Order Closeout'},
+        milemarker:{href:'pages/milemarker.html',title:'Road Milepost Finder'},
+        timesheet:{href:'pages/timesheet.html',title:'Payroll Calculator'}
+      };
+      var info=toolMap[last];
+      if(info){
+        var href=info.href;
         var card=document.querySelector('a[href="'+href+'"]');
         if(card){
           var footer=card.querySelector('.card-footer');
@@ -780,9 +871,38 @@
             footer.insertBefore(badge,footer.children[footer.children.length-1]);
           }
         }
+        var cont=document.getElementById('continue-card');
+        var contTitle=document.getElementById('continue-title');
+        var contLink=document.getElementById('continue-link');
+        if(cont && contTitle && contLink){
+          contTitle.textContent=info.title;
+          contLink.href=info.href;
+          contLink.setAttribute('aria-label','Open last used tool: '+info.title);
+          cont.classList.add('show');
+        }
       }
     }
   }catch(e){}
+  (function(){
+    var input=document.getElementById('tool-filter');
+    var empty=document.getElementById('tools-empty');
+    if(!input) return;
+    var cards=Array.prototype.slice.call(document.querySelectorAll('.tool-card'));
+    function hay(card){
+      return (card.textContent || '').toLowerCase() + ' ' + (card.getAttribute('data-tags') || '').toLowerCase();
+    }
+    function applyFilter(){
+      var q=(input.value || '').trim().toLowerCase();
+      var visible=0;
+      cards.forEach(function(card){
+        var match=!q || hay(card).indexOf(q) !== -1;
+        card.style.display=match ? '' : 'none';
+        if(match) visible++;
+      });
+      if(empty) empty.classList.toggle('show', visible === 0);
+    }
+    input.addEventListener('input', applyFilter);
+  })();
   // Service worker
   if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js').catch(function(){});}
 

@@ -24,7 +24,7 @@
 
 > **Purpose:** This file is the authoritative quick-reference for the NJDOT Field Tools project. Read this FIRST before reading any HTML file. It contains every architectural decision, storage key, design token, and critical constraint so we can make changes without re-reading 6,800+ lines of HTML.
 >
-> **Last updated:** 2026-05-20 · v1.9
+> **Last updated:** 2026-05-21 · v1.10
 >
 > **Live site:** `https://joebiocco.github.io/NJDOT-Field-Tools-Hub/`
 > **Repo:** `https://github.com/Joebiocco/NJDOT-Field-Tools-Hub` (renamed from `Work-Order-Closeout`)
@@ -45,7 +45,7 @@ A static internal PWA for NJ DOT field workers, hosted on GitHub Pages. **No bac
 
 **Geolocation behaviour (current — do not break):**
 - Fuel finder **auto-fetches location on page load** if `navigator.permissions.query({name:'geolocation'}).state === 'granted'`. First-time visitors still see the button so the permission prompt only fires on their click. After the prompt is granted once, subsequent visits are silent.
-- Bridge navigator's "Find My Bridge" pill stays manual (single-purpose locator, not a continuous discovery feature).
+- Bridge navigator's "Find Near Me" pill stays manual (single-purpose locator, not a continuous discovery feature).
 - NEVER cache the lat/lng in localStorage with a TTL — workers may be moving and need a fresh fix every time.
 
 ---
@@ -65,7 +65,7 @@ Work Order Website/
 │   │   ├── index.json               # Lightweight statewide Bridge Navigator index
 │   │   └── chunks/by-county/*.json  # Full bridge records lazy-loaded by county
 │   └── mileposts/
-│       ├── index.json               # Tile index for Road Milemarker Finder (filtered state routes only)
+│       ├── index.json               # Tile index for Road Milepost Finder (filtered route classes only)
 │       └── chunks/*.json            # Per-tile milepost chunks loaded lazily near user GPS
 ├── icons/
 │   ├── icon-192.png                 # PWA app icon (192×192) — NJDOT bridge + bar chart, dark navy #001e4d bg, no pre-baked rounding
@@ -73,7 +73,7 @@ Work Order Website/
 ├── pages/
 │   ├── njsearch.html                # Bridge Navigator (1,440 lines)
 │   ├── njfuel.html                  # Fuel Station Finder (1,305 lines)
-│   ├── milemarker.html              # Road Milemarker Finder (GPS nearest route/milepost)
+│   ├── milemarker.html              # Road Milepost Finder (GPS nearest route/milepost)
 │   ├── timesheet.html               # Payroll Calculator & Timesheet — Day/Week/Month/Settings
 │   └── WorkOrderCloseout.html       # Work Order tool (2,949 lines)
 ├── _archive/                        # old files, ignore
@@ -91,11 +91,15 @@ Work Order Website/
 
 ### Bridge source data
 
-- `data/njstructures.json` remains the Bridge Navigator source archive and fallback data file.
+- `data/bridges/index.json` is the Bridge Navigator startup/search/GPS/bookmark index.
+- `data/bridges/chunks/by-county/*.json` holds complete original full bridge records for detail panels, copy/share fields, selected bookmark details, and selected GPS details.
+- `data/njstructures.json` remains the Bridge Navigator source archive and fallback data file only.
 - Current source shape: `{ metadata: { recordCount, generatedDate, source }, records: [...] }`.
 - `records[].Structure_Number` preserves the exact raw value and remains the stable key for bookmarks, search, and future data migration.
+- `ft_bridge_bookmarks` must remain an array of raw `Structure_Number` values. Do not store formatted `XXXX-XXX` values there and do not migrate/rename the key.
 - Normal Bridge Navigator startup loads `../data/bridges/index.json` through `loadBridgeIndex()` and stores lightweight records in `bridgeIndex`.
 - `bridgeIndexByStructureNumber` maps raw `Structure_Number` values to index records for search, bookmarks, and GPS matching.
+- Find Near Me / GPS bridge lookup must scan the statewide `bridgeIndex`; do not load county chunks to determine nearest GPS candidates.
 - Full bridge records live in `data/bridges/chunks/by-county/*.json` and are lazy-loaded with `getFullBridgeRecord()` only when a bridge detail/share/copy view needs full fields.
 - `bridgeChunkCache` caches loaded county chunk promises in memory; chunks are not stored in localStorage or IndexedDB.
 - `data/njstructures.json` is loaded only by fallback code if the index cannot be loaded.
@@ -118,7 +122,7 @@ Work Order Website/
 | `wo_recent` | WorkOrderCloseout | JSON array (max 5) of recent session metadata | Each rec has `{wo, str, date, fname, route, direction, mp, startDate, endDate, priority, photoKey}` — PHOTOS NOT INCLUDED HERE |
 | `workorder_draft` | WorkOrderCloseout | Full session JSON snapshot | Single auto-saved draft |
 | `field_dark_mode` | all pages | `"1"` if dark mode on | Theme preference |
-| `ft_last` | all pages | `"njsearch" \| "njfuel" \| "closeout" \| "milemarker"` | Last visited tool (used for home badge) |
+| `ft_last` | all pages | `"njsearch" \| "njfuel" \| "closeout" \| "milemarker" \| "timesheet"` | Last visited tool (used for the Home recent badge and Continue section) |
 | `ft_install_shown` | index | int 0-2 | How many times install popup has auto-shown on mobile |
 | `ft_bookmark_shown` | index | int 0-2 | How many times bookmark popup has auto-shown on desktop |
 | `ft_ts_entries` | timesheet | JSON array of overtime/timesheet entries | Local Day/Week/Month tracker entries with date, start/stop, break, type, job/activity, and notes |
@@ -196,9 +200,9 @@ html[data-dark] {
 | Bridge Navigator card | `#7c3aed` (purple) | `#a78bfa` | `card-border-purple`, `card-icon-purple`, `tag-nj` |
 | Fuel Station card | `#10b981` / `#059669` | same | `card-border-green`, `card-icon-green`, `tag-fuel` |
 | Work Order card | `#64748b` / `#475569` | same | `card-border-slate`, `card-icon-slate`, `tag-doc` |
-| Find My Bridge pill | `#0d9488` (teal) | `#2dd4bf` | On njsearch.html, distinct from cards |
+| Find Near Me pill | `#0d9488` (teal) | `#2dd4bf` | On njsearch.html, distinct from cards |
 | Coming Soon — Drainage | `#0891b2` (cyan) | `#67e8f9` | `card-icon-cyan`, `card-border-cyan` |
-| Road Milemarker Finder | `#b45309` / `#d97706` (warm amber) | `#fcd34d` | GPS map tool card. `card-icon-amber-soon` |
+| Road Milepost Finder | `#b45309` / `#d97706` (warm amber) | `#fcd34d` | GPS map tool card. `card-icon-amber-soon` |
 | Coming Soon — Emergency | `#be123c` (rose) | `#fb7185` | `card-icon-rose`, `card-border-rose` |
 | Condition: Good / Open | `#22c55e` / `#16a34a` | — | Map markers, badges |
 | Condition: Poor / Closed | `#dc2626` / `#9ca3af` | — | |
@@ -217,7 +221,7 @@ When asked to change the **header accent color**, sweep all hex variants togethe
 
 **DO NOT touch the following during accent sweeps:**
 - Bookmark stars (`.bookmark-btn`, `.fuel-bookmark-btn`, `.is-bookmarked` markers) — always amber `#f59e0b`
-- Road Milemarker Finder tile — always warm amber
+- Road Milepost Finder tile — always warm amber
 - Card border/icon colors for the 3 main tools (purple/green/slate)
 - The `--accent: #1a56db` deep blue (used for buttons/links, NOT the header)
 
@@ -298,7 +302,7 @@ JS behavior (in every page):
 ### Caching strategy
 
 ```js
-const CACHE = 'ft-v1.9-2026-05-20';  // BUMP this on every push that should force refresh
+const CACHE = 'ft-v1.10-2026-05-21';  // BUMP this on every push that should force refresh
 
 // HTML pages → NETWORK-FIRST (always latest, cache as offline fallback)
 // Static files (icons, JSON, manifest) → CACHE-FIRST (rarely change)
@@ -352,7 +356,7 @@ Two parallel implementations, identical behavior:
 - Downloaded HTML session export is an interactive app snapshot: clone the live document, reflect current input/textarea/select state into the clone, strip any prior restore block, then download with app scripts intact so users can reopen the saved HTML and regenerate PDFs. Do not reintroduce injected restore scripts; they can corrupt exports when script/body marker text appears inside source code. Startup must detect existing `.page-block` elements and wire them instead of always calling `buildPage()`, or reopened snapshots gain an extra blank page.
 - Tutorial modal matches Payroll Calculator's guide format. It auto-shows on the first two fresh Work Order visits via `ft_wo_guide_shown`; the header `?` button reopens it anytime. Tutorial must emphasize that Recent only keeps five sessions, users should save both the HTML session and PDF, the PDF is a flat record, and the saved HTML is the editable session. Mobile guide breakpoints at 520px, 380px, and 330px tune modal width, icon size, padding, and footer stacking for different phone widths.
 
-### Find My Bridge (njsearch.html)
+### Find Near Me / GPS bridge lookup (njsearch.html)
 
 - Floating teal pill, fixed bottom-right
 - On click: `navigator.geolocation.getCurrentPosition` (always fresh, no caching)
@@ -370,10 +374,10 @@ Two parallel implementations, identical behavior:
 
 ### Fuel Station Finder
 
-- Locate button always visible and labeled "Update My Location"
+- Locate button always visible. First label is "Find Near Me"; after a successful lookup it becomes "Refresh Location".
 - ALWAYS requests fresh location (no localStorage cache — users may be moving)
 - Fuel finder auto-requests location on first page load; the browser permission prompt appears immediately when permission has not already been granted
-- Fuel locate progress is shown inside the `Update My Location` button (`.locating` + `.locate-spin`), not as visible status text below the controls
+- Fuel locate progress is shown inside the location button (`.locating` + `.locate-spin`), not as visible status text below the controls
 - Map uses `fuelMap.invalidateSize()` after location + 350ms delay (mobile layout shift fix)
 - "Hide Closed" toggle on results header — label dynamic ("Show Closed" when hidden)
 - Results header keeps "Stations sorted by distance" in a stable title row; filters sit below in a structured row with two side-by-side fuel type filters (`Unleaded`, `Diesel`) plus the closed-station toggle
@@ -388,7 +392,7 @@ Two parallel implementations, identical behavior:
 - After location success, `scrollFuelBookmarksIntoView()` scrolls to the bookmark card; ordinary filter re-renders do not auto-scroll
 - Fuel Station Finder tutorial uses the standard guide modal pattern, auto-shows first two visits via `ft_fuel_guide_shown`, and can be reopened with the header `?` button
 
-### Road Milemarker Finder
+### Road Milepost Finder
 
 - Data source is preprocessed from the master CSV into `data/mileposts/`.
 - Allowed route classes only: Interstate (`ROUTE_SUBT=1`), US Route (`2`), NJ State Highway (`3`), County Route (`5`).

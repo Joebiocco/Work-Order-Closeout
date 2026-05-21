@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Road Milemarker Finder - Field Tools</title>
+  <title>Road Milepost Finder - Field Tools</title>
   <meta name="theme-color" content="#E5B33B">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -54,8 +54,10 @@
     .btn:active { transform:scale(0.97); }
     .btn-primary { background:#1a56db; border-color:#1a56db; color:#fff; }
     .btn-primary:hover { background:#1647b8; border-color:#1647b8; box-shadow:0 4px 14px rgba(26,86,219,0.3); }
-    #retry-btn { display:none; } /* hidden until first locate succeeds */
+    #retry-btn { display:none; }
     #retry-btn.visible { display:inline-flex; }
+    :where(a, button, input, select, textarea, [tabindex]):focus-visible { outline:3px solid rgba(229,179,59,0.95); outline-offset:3px; box-shadow:0 0 0 5px rgba(26,86,219,0.18); }
+    html[data-dark] :where(a, button, input, select, textarea, [tabindex]):focus-visible { outline-color:#FEE9A1; box-shadow:0 0 0 5px rgba(254,233,161,0.16); }
 
     /* Mode toggle — segmented control */
     .mode-toggle { display:inline-flex; gap:0; background:var(--border-lo); border-radius:10px; padding:3px; margin-top:14px; }
@@ -145,27 +147,27 @@
     Home
   </a>
   <div class="topbar-div"></div>
-  <span id="topbar-title">Road Milemarker Finder</span>
+  <span id="topbar-title">Road Milepost Finder</span>
 </div>
 
 <div class="wrap">
   <section class="hero">
     <h1>Nearest Milepost Finder</h1>
-    <p id="hero-desc">Uses GPS to find your nearest official milepost. Select a mode below, then tap Find.</p>
+    <p id="hero-desc">Uses GPS to find your nearest official milepost. Select a mode below, then tap Find Near Me.</p>
     <div class="mode-toggle" role="group" aria-label="Route type">
-      <button class="mode-btn" id="mode-state">State Routes</button>
-      <button class="mode-btn" id="mode-local">Local Routes</button>
+      <button class="mode-btn" id="mode-state">State / US / Interstate</button>
+      <button class="mode-btn" id="mode-local">County Routes</button>
     </div>
     <div class="actions">
       <button class="btn btn-primary" id="find-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-3px;margin-right:6px"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-        Find My Milepost
+        <span id="find-btn-label">Find Near Me</span>
       </button>
-      <button class="btn" id="retry-btn">🔄 Refresh Location</button>
+      <button class="btn" id="retry-btn" aria-label="Refresh location">Refresh Location</button>
     </div>
     <div class="status-wrap">
       <div class="status-dot" id="status-dot"></div>
-      <div id="status">Tap "Find My Milepost" to get started.</div>
+      <div id="status" role="status" aria-live="polite">Tap "Find Near Me" to get started.</div>
     </div>
   </section>
 
@@ -241,6 +243,8 @@
   function setStatus(msg, state) {
     statusEl.textContent = msg;
     statusDot.className = 'status-dot' + (state ? ' ' + state : '');
+    statusEl.setAttribute('role', state === 'err' ? 'alert' : 'status');
+    statusEl.setAttribute('aria-live', state === 'err' ? 'assertive' : 'polite');
   }
   function byId(id){ return document.getElementById(id); }
 
@@ -263,11 +267,13 @@
     if (currentMode === 'state') {
       bState.classList.add('active'); bLocal.classList.remove('active');
       document.getElementById('hero-desc').textContent = 'Uses GPS to find your nearest state-maintained milepost — Interstate, US, NJ Route, Parkway, County Routes, and highway ramps.';
-      document.getElementById('status').textContent = 'Mode: State Routes. Tap "Find My Milepost" to get started.';
+      document.getElementById('hero-desc').textContent = 'Uses GPS to find your nearest State / US / Interstate milepost.';
+      document.getElementById('status').textContent = 'Mode: State / US / Interstate. Tap "Find Near Me" to get started.';
     } else {
       bLocal.classList.add('active'); bState.classList.remove('active');
       document.getElementById('hero-desc').textContent = 'Uses GPS to find your nearest local-road milepost — local streets and connectors.';
-      document.getElementById('status').textContent = 'Mode: Local Routes. Tap "Find My Milepost" to get started.';
+      document.getElementById('hero-desc').textContent = 'Uses GPS to find your nearest County Routes milepost.';
+      document.getElementById('status').textContent = 'Mode: County Routes. Tap "Find Near Me" to get started.';
     }
   }
   var idx = null;
@@ -444,11 +450,11 @@
     if (!navigator.geolocation) { setStatus('Geolocation is not supported on this browser.', 'err'); byId('find-btn').disabled = false; return; }
     navigator.geolocation.getCurrentPosition(function(pos){
       var lat = pos.coords.latitude, lon = pos.coords.longitude;
-      setStatus('Searching nearby ' + (currentMode === 'state' ? 'state-route' : 'local-route') + ' tiles…', 'active');
+      setStatus('Searching nearby ' + (currentMode === 'state' ? 'State / US / Interstate' : 'County Routes') + ' tiles…', 'active');
       findNearest(lat, lon).then(function(result){
         byId('find-btn').disabled = false;
-        byId('retry-btn').classList.add('visible');
-        if (!result || !result.best) { setStatus('No ' + (currentMode === 'state' ? 'state-route' : 'local-route') + ' milepost found near this location.', 'err'); return; }
+        var label = byId('find-btn-label'); if (label) label.textContent = 'Refresh Location';
+        if (!result || !result.best) { setStatus('No ' + (currentMode === 'state' ? 'State / US / Interstate' : 'County Routes') + ' milepost found near this location.', 'err'); return; }
         var best = result.best;
         var dirInfo = nearestDirFromRoute(best, result.points || []);
         setResult(best, lat, lon, dirInfo);
@@ -479,7 +485,7 @@
         nearestMarker.openPopup();
       }).catch(function() {
         byId('find-btn').disabled = false;
-        byId('retry-btn').classList.add('visible');
+        var label = byId('find-btn-label'); if (label) label.textContent = 'Refresh Location';
         if (location.protocol === 'file:') {
           setStatus('Could not load data. Use local server: http://127.0.0.1:8765/pages/milemarker.html', 'err');
         } else {

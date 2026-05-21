@@ -24,7 +24,7 @@
 
 > **Purpose:** This file is the authoritative quick-reference for the NJDOT Field Tools project. Read this FIRST before reading any HTML file. It contains every architectural decision, storage key, design token, and critical constraint so we can make changes without re-reading 6,800+ lines of HTML.
 >
-> **Last updated:** 2026-05-20 · v1.9
+> **Last updated:** 2026-05-21 · v1.10
 >
 > **Live site:** `https://joebiocco.github.io/NJDOT-Field-Tools-Hub/`
 > **Repo:** `https://github.com/Joebiocco/NJDOT-Field-Tools-Hub` (renamed from `Work-Order-Closeout`)
@@ -45,7 +45,7 @@ A static internal PWA for NJ DOT field workers, hosted on GitHub Pages. **No bac
 
 **Geolocation behaviour (current — do not break):**
 - Fuel finder **auto-fetches location on page load** if `navigator.permissions.query({name:'geolocation'}).state === 'granted'`. First-time visitors still see the button so the permission prompt only fires on their click. After the prompt is granted once, subsequent visits are silent.
-- Bridge navigator's "Find My Bridge" pill stays manual (single-purpose locator, not a continuous discovery feature).
+- Bridge navigator's "Find Near Me" pill stays manual (single-purpose locator, not a continuous discovery feature).
 - NEVER cache the lat/lng in localStorage with a TTL — workers may be moving and need a fresh fix every time.
 
 ---
@@ -70,7 +70,7 @@ Work Order Website/
 ├── pages/
 │   ├── njsearch.html                # Bridge Navigator
 │   ├── njfuel.html                  # Fuel Station Finder
-│   ├── milemarker.html              # Road Milemarker Finder
+│   ├── milemarker.html              # Road Milepost Finder
 │   ├── timesheet.html               # Payroll Calculator & Timesheet
 │   └── WorkOrderCloseout.html       # Work Order tool
 ├── _archive/                        # old files, ignore
@@ -87,12 +87,16 @@ Work Order Website/
 
 ### Bridge source data
 
-- `data/njstructures.json` remains the Bridge Navigator source archive and fallback data file.
+- `data/bridges/index.json` is the Bridge Navigator startup/search/GPS/bookmark index.
+- `data/bridges/chunks/by-county/*.json` holds complete original full bridge records for detail panels, copy/share fields, selected bookmark details, and selected GPS details.
+- `data/njstructures.json` remains the Bridge Navigator source archive and fallback data file only.
 - Current source shape: `{ metadata: { recordCount, generatedDate, source }, records: [...] }`.
 - Current local size is about 12.4 MB; `pages/njsearch.html` is about 541 KB after removing inline bridge records.
 - `records[].Structure_Number` preserves the exact raw value and remains the stable key for bookmarks, search, and future data migration.
+- `ft_bridge_bookmarks` must remain an array of raw `Structure_Number` values. Do not store formatted `XXXX-XXX` values there and do not migrate/rename the key.
 - Normal Bridge Navigator startup loads `../data/bridges/index.json` through `loadBridgeIndex()` and stores lightweight records in `bridgeIndex`.
 - `bridgeIndexByStructureNumber` maps raw `Structure_Number` values to index records for search, bookmarks, and GPS matching.
+- Find Near Me / GPS bridge lookup must scan the statewide `bridgeIndex`; do not load county chunks to determine nearest GPS candidates.
 - Full bridge records live in `data/bridges/chunks/by-county/*.json` and are lazy-loaded with `getFullBridgeRecord()` only when a bridge detail/share/copy view needs full fields.
 - `bridgeChunkCache` caches loaded county chunk promises in memory; chunks are not stored in localStorage or IndexedDB.
 - `data/njstructures.json` is loaded only by fallback code if the index cannot be loaded.
@@ -112,7 +116,7 @@ Work Order Website/
 | `wo_recent` | WorkOrderCloseout | JSON array (max 5) of recent session metadata | Each rec has `{wo, str, date, fname, route, direction, mp, startDate, endDate, priority, photoKey}` — PHOTOS NOT INCLUDED HERE |
 | `workorder_draft` | WorkOrderCloseout | Full session JSON snapshot | Single auto-saved draft |
 | `field_dark_mode` | all pages | `"1"` if dark mode on | Theme preference |
-| `ft_last` | all pages | `"njsearch" \| "njfuel" \| "closeout"` | Last visited tool (used for hub badge) |
+| `ft_last` | all pages | `"njsearch" \| "njfuel" \| "closeout" \| "milemarker" \| "timesheet"` | Last visited tool (used for the Home recent badge and Continue section) |
 | `ft_install_shown` | index | int 0-2 | How many times install popup has auto-shown on mobile |
 | `ft_bookmark_shown` | index | int 0-2 | How many times bookmark popup has auto-shown on desktop |
 
@@ -187,7 +191,7 @@ html[data-dark] {
 | Bridge Navigator card | `#7c3aed` (purple) | `#a78bfa` | `card-border-purple`, `card-icon-purple`, `tag-nj` |
 | Fuel Station card | `#10b981` / `#059669` | same | `card-border-green`, `card-icon-green`, `tag-fuel` |
 | Work Order card | `#64748b` / `#475569` | same | `card-border-slate`, `card-icon-slate`, `tag-doc` |
-| Find My Bridge pill | `#0d9488` (teal) | `#2dd4bf` | On njsearch.html, distinct from cards |
+| Find Near Me pill | `#0d9488` (teal) | `#2dd4bf` | On njsearch.html, distinct from cards |
 | Coming Soon — Drainage | `#0891b2` (cyan) | `#67e8f9` | `card-icon-cyan`, `card-border-cyan` |
 | Coming Soon — Milemarker | `#b45309` / `#d97706` (warm amber) | `#fcd34d` | Safety/warning theme. `card-icon-amber-soon` |
 | Coming Soon — Emergency | `#be123c` (rose) | `#fb7185` | `card-icon-rose`, `card-border-rose` |
@@ -289,7 +293,7 @@ JS behavior (in every page):
 ### Caching strategy
 
 ```js
-const CACHE = 'ft-v1.9-2026-05-20';  // BUMP this on every push that should force refresh
+const CACHE = 'ft-v1.10-2026-05-21';  // BUMP this on every push that should force refresh
 
 // HTML pages → NETWORK-FIRST (always latest, cache as offline fallback)
 // Static files (icons, JSON, manifest) → CACHE-FIRST (rarely change)
@@ -340,7 +344,7 @@ Two parallel implementations, identical behavior:
 - Restore flow on chip click: read `wo_recent` rec, fetch IDB snapshot by `photoKey`, restore page count + per-page text fields + photos
 - Per-page text fields keyed by `data-base` attribute (NOT `el.name` which includes page-number suffix that breaks on rebuild)
 
-### Find My Bridge (njsearch.html)
+### Find Near Me / GPS bridge lookup (njsearch.html)
 
 - Floating teal pill, fixed bottom-right
 - On click: `navigator.geolocation.getCurrentPosition` (always fresh, no caching)
@@ -354,7 +358,7 @@ Two parallel implementations, identical behavior:
 
 ### Fuel Station Finder
 
-- Locate button always visible, re-labels to "Update My Location" after first success
+- Locate button always visible. First label is "Find Near Me"; after a successful lookup it becomes "Refresh Location".
 - ALWAYS requests fresh location (no localStorage cache — users may be moving)
 - Map uses `fuelMap.invalidateSize()` after location + 350ms delay (mobile layout shift fix)
 - "Hide Closed" toggle on results header — label dynamic ("Show Closed" when hidden)

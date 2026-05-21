@@ -162,6 +162,15 @@ body {
 
 .btn:hover { background: rgba(255,255,255,0.15); }
 .btn.btn-active { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3); }
+:where(a, button, input, select, textarea, [tabindex], .drop-zone):focus-visible {
+  outline: 3px solid rgba(229,179,59,0.95);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px rgba(26,86,219,0.18);
+}
+html[data-dark] :where(a, button, input, select, textarea, [tabindex], .drop-zone):focus-visible {
+  outline-color: #FEE9A1;
+  box-shadow: 0 0 0 5px rgba(254,233,161,0.16);
+}
 /* btn-danger and btn-success: no hover — glow animation handles feedback */
 
 /* Click glow — smooth single pulse, fades out */
@@ -670,6 +679,19 @@ html[data-dark] .recent-storage-note.full { background: rgba(220,38,38,0.07); co
 .recent-photo-note {
   font-size: 10px; padding: 5px 16px; border-bottom: 1px solid var(--border);
   color: var(--muted); font-style: italic; background: transparent;
+}
+.local-storage-note {
+  font-size: 10px;
+  padding: 5px 16px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.save-storage-note {
+  max-width: 1100px;
+  margin: 10px auto 0;
+  padding: 0 16px;
+  font-size: 11px;
+  color: var(--muted);
 }
 .recent-close {
   background: none; border: none; cursor: pointer;
@@ -1181,27 +1203,27 @@ html[data-dark] .gi-navy { background: rgba(255,255,255,0.06); }
     </div>
     <nav class="topbar-actions">
       <span id="photo-badge" class="photo-badge">&#128247; 0 / 0</span>
-      <button class="btn btn-ghost" id="clearForm">
+      <button class="btn btn-ghost" id="clearForm" aria-label="Clear form">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z"/></svg>
         <span class="btn-label">Clear Form</span>
       </button>
-      <button class="btn btn-ghost btn-danger" id="removePage">
+      <button class="btn btn-ghost btn-danger" id="removePage" aria-label="Remove page">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
         <span class="btn-label">Remove Page</span>
       </button>
-      <button class="btn btn-ghost btn-success" id="addPageTop">
+      <button class="btn btn-ghost btn-success" id="addPageTop" aria-label="Add page">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
         <span class="btn-label">Add Page</span>
       </button>
-      <button class="btn" id="saveDraft">
+      <button class="btn" id="saveDraft" aria-label="Save session">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         <span class="btn-label">Save Session</span>
       </button>
-      <button class="btn" id="recentBtn" title="Recent Sessions">
+      <button class="btn" id="recentBtn" title="Recent Sessions" aria-label="Recent sessions">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <span class="btn-label">Recent</span>
       </button>
-      <button class="btn btn-primary" id="exportPdf">
+      <button class="btn btn-primary" id="exportPdf" aria-label="Export PDF">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Export PDF
       </button>
@@ -1210,6 +1232,7 @@ html[data-dark] .gi-navy { background: rgba(255,255,255,0.06); }
       </button>
     </nav>
   </header>
+  <div class="save-storage-note">Saved on this device only. Export a backup for long-term storage.</div>
 
   <!-- ── RECENT SESSIONS OVERLAY ─────────────────── -->
   <div id="recentOverlay" class="recent-overlay" role="dialog" aria-modal="true" aria-label="Recent Sessions">
@@ -1223,6 +1246,7 @@ html[data-dark] .gi-navy { background: rgba(255,255,255,0.06); }
       </div>
       <div id="recentStorageNote" class="recent-storage-note" style="display:none;"></div>
       <div class="recent-photo-note">&#128247; Photos are stored with each saved session.</div>
+      <div class="local-storage-note">Saved on this device only. Export a backup for long-term storage.</div>
       <div class="recent-panel-body" id="recentList">
         <span class="recent-empty">No recent sessions yet.</span>
       </div>
@@ -1301,7 +1325,7 @@ html[data-dark] .gi-navy { background: rgba(255,255,255,0.06); }
 
     <main id="pagesContainer" aria-live="polite"></main>
 
-    <button class="add-page-cta" id="addPage">
+    <button class="add-page-cta" id="addPage" aria-label="Add another page">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
       Add Documentation Page
     </button>
@@ -1644,7 +1668,7 @@ function renderRecent() {
         '<div class="recent-wo">'   + woLine  + '</div>' +
         (subLine ? '<div class="recent-meta">' + subLine + '</div>' : '') +
       '</div>' +
-      '<button class="recent-chip-remove" data-idx="' + i + '" title="Remove">×</button>' +
+      '<button class="recent-chip-remove" data-idx="' + i + '" title="Remove" aria-label="Remove recent session">×</button>' +
     '</div>';
   }).join('');
 
@@ -1779,6 +1803,8 @@ let toastTimer;
 function showToast(msg, type, ms) {
   ms = ms || 2000;
   toastEl.textContent = msg;
+  toastEl.setAttribute('role', type === 'err' ? 'alert' : 'status');
+  toastEl.setAttribute('aria-live', type === 'err' ? 'assertive' : 'polite');
   toastEl.className = 'toast show' + (type ? ' ' + type : '');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(function() { toastEl.className = 'toast'; }, ms);
@@ -2036,12 +2062,12 @@ function buildPhotoCard(num, pageNum) {
           '<strong>Tap or drag to upload</strong>' +
         '</div>' +
         '<div class="drop-btns">' +
-          '<button type="button" class="drop-btn-cam">📷 Camera</button>' +
-          '<button type="button" class="drop-btn-gal">🖼 Gallery</button>' +
+          '<button type="button" class="drop-btn-cam" aria-label="Add photo from camera">📷 Camera</button>' +
+          '<button type="button" class="drop-btn-gal" aria-label="Add photo from gallery">🖼 Gallery</button>' +
         '</div>' +
         '<div class="drop-preview">' +
           '<img alt="Photo ' + num + '" />' +
-          '<button class="clear-btn" type="button" title="Remove">✕</button>' +
+          '<button class="clear-btn" type="button" title="Remove" aria-label="Remove photo">✕</button>' +
         '</div>' +
       '</div>' +
       '<div class="photo-meta">' +
@@ -2079,7 +2105,7 @@ function buildPage() {
   block.innerHTML =
     '<div class="page-block-header">' +
       '<span class="page-badge">Page ' + n + ' of 1</span>' +
-      '<button class="page-remove-btn" type="button">Remove Page</button>' +
+      '<button class="page-remove-btn" type="button" aria-label="Remove page">Remove Page</button>' +
     '</div>' +
     '<div class="page-body">' +
       '<div>' +

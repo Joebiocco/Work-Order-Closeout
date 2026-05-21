@@ -197,6 +197,15 @@
       transition: background var(--transition), box-shadow var(--transition), opacity var(--transition);
     }
     .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+      outline: 3px solid rgba(229,179,59,0.95);
+      outline-offset: 3px;
+      box-shadow: 0 0 0 5px rgba(26,86,219,0.18);
+    }
+    html[data-dark] :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+      outline-color: #FEE9A1;
+      box-shadow: 0 0 0 5px rgba(254,233,161,0.16);
+    }
     .btn-primary { background: var(--accent); color: #fff; }
     .btn-primary:not(:disabled):hover { background: #1649c0; box-shadow: 0 2px 8px rgba(26,86,219,0.25); }
     .btn.locating {
@@ -1086,26 +1095,26 @@
     <div class="hero-title">NJDOT Fuel Stations</div>
     <div class="hero-desc">Find the nearest NJDOT fuel stations sorted by distance from your current location. Includes unleaded and diesel stations across New Jersey.</div>
     <div class="hero-actions">
-      <button class="btn btn-primary" id="locate-btn" onclick="startLocate()">
+      <button class="btn btn-primary" id="locate-btn" onclick="startLocate()" aria-label="Find Near Me">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" opacity=".3"/></svg>
-        Update My Location
+        <span id="locate-btn-label">Find Near Me</span>
       </button>
       <div class="hero-export-row">
-        <button class="btn-export" onclick="exportVisibleKML()">
+        <button class="btn-export" onclick="exportVisibleKML()" aria-label="Export Visible KML">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Export Visible
+          Export Visible KML
         </button>
-        <button class="btn-export" onclick="exportAllKML()">
+        <button class="btn-export" onclick="exportAllKML()" aria-label="Export All KML">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
-          Export All
+          Export All KML
         </button>
       </div>
     </div>
-    <div class="status-msg" id="status-msg">
+    <div class="status-msg" id="status-msg" role="status" aria-live="polite">
       <div class="spinner"></div>
       <span id="status-text">Getting your location…</span>
     </div>
-    <div class="error-msg" id="error-msg"></div>
+    <div class="error-msg" id="error-msg" role="alert" aria-live="assertive"></div>
     <div class="export-hint">Import into <a href="https://mymaps.google.com" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">Google My Maps</a> to save the current visible station list to your account.</div>
   </div>
 
@@ -1113,12 +1122,13 @@
   <div class="bookmark-card">
     <div class="bookmark-card-title">My Bookmarks</div>
     <div class="bookmark-row">
-      <span class="bookmark-count" id="fuel-bookmark-count">No bookmarked stations</span>
-      <button class="fuel-bookmark-filter" id="fuel-bookmark-filter-top" onclick="toggleFuelBookmarkFilter()">
+      <span class="bookmark-count" id="fuel-bookmark-count">No saved items yet.</span>
+      <button class="fuel-bookmark-filter" id="fuel-bookmark-filter-top" onclick="toggleFuelBookmarkFilter()" aria-label="Show Saved">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <span id="fuel-bookmark-filter-label-top">Show Bookmarks</span>
+        <span id="fuel-bookmark-filter-label-top">Show Saved</span>
       </button>
     </div>
+    <div class="bookmark-count" style="margin-top:8px;">Saved on this device only. Export a backup for long-term storage.</div>
   </div>
 
   <div id="results-section">
@@ -1155,7 +1165,7 @@
         <div class="guide-icon gi-blue">1</div>
         <div class="guide-slide-body">
           <div class="guide-slide-title">Start with Your Location</div>
-          <div class="guide-slide-text">The page requests your current GPS location when it opens. Use <strong>Update My Location</strong> anytime you need a fresh position in the field.</div>
+          <div class="guide-slide-text">The page requests your current GPS location when it opens. Use <strong>Refresh Location</strong> anytime you need a fresh position in the field.</div>
         </div>
       </div>
       <div class="guide-slide">
@@ -1240,7 +1250,8 @@
     var filled = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
     var empty  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
     btnEl.innerHTML = nowBookmarked ? filled : empty;
-    btnEl.title = nowBookmarked ? 'Remove bookmark' : 'Bookmark this station';
+    btnEl.title = nowBookmarked ? 'Saved' : 'Save';
+    btnEl.setAttribute('aria-label', nowBookmarked ? 'Saved station' : 'Save station');
     // Also toggle the card class
     var card = btnEl.closest('.station-card');
     if (card) card.classList.toggle('is-bookmarked', nowBookmarked);
@@ -1259,7 +1270,7 @@
   function updateFuelBookmarkCount() {
     var n = getFuelBookmarks().length;
     var el = document.getElementById('fuel-bookmark-count');
-    if (el) el.textContent = n === 0 ? 'No bookmarked stations' : (n + ' bookmarked station' + (n === 1 ? '' : 's'));
+    if (el) el.textContent = n === 0 ? 'No saved items yet.' : (n + ' saved station' + (n === 1 ? '' : 's'));
   }
   function toggleFuelBookmarkFilter() {
     fuelBookmarkFilterOn = !fuelBookmarkFilterOn;
@@ -1270,8 +1281,10 @@
     var flbl2 = document.getElementById('fuel-bookmark-filter-label-top');
     if (fbtn1) fbtn1.classList.toggle('active', fuelBookmarkFilterOn);
     if (fbtn2) fbtn2.classList.toggle('active', fuelBookmarkFilterOn);
-    if (flbl1) flbl1.textContent = fuelBookmarkFilterOn ? 'Showing Bookmarks' : 'Bookmarks';
-    if (flbl2) flbl2.textContent = fuelBookmarkFilterOn ? 'Showing Bookmarks' : 'Bookmarks';
+    if (flbl1) flbl1.textContent = 'Show Saved';
+    if (flbl2) flbl2.textContent = 'Show Saved';
+    if (fbtn1) fbtn1.setAttribute('aria-pressed', fuelBookmarkFilterOn ? 'true' : 'false');
+    if (fbtn2) fbtn2.setAttribute('aria-pressed', fuelBookmarkFilterOn ? 'true' : 'false');
 
     if (fuelBookmarkFilterOn) {
       // Load full station list if user hasn't fetched location yet
@@ -1292,11 +1305,11 @@
       var section = document.getElementById('results-section');
       var titleEl = document.querySelector('.results-title');
       if (titleEl) titleEl.textContent = bookmarked.length === 0
-        ? 'No bookmarked stations'
-        : 'Bookmarked stations (' + bookmarked.length + ')';
+        ? 'No saved items yet.'
+        : 'Saved stations (' + bookmarked.length + ')';
       if (bookmarked.length === 0) {
         document.getElementById('results-count').textContent = '';
-        document.getElementById('stations-list').innerHTML = '<div style="text-align:center;padding:32px 16px;color:var(--muted);"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.3;display:block;margin:0 auto 12px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><p style="font-size:13px;line-height:1.65;">No bookmarked stations yet.<br>Tap the star on a station to bookmark it.</p></div>';
+        document.getElementById('stations-list').innerHTML = '<div style="text-align:center;padding:32px 16px;color:var(--muted);"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.3;display:block;margin:0 auto 12px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><p style="font-size:13px;line-height:1.65;">No saved items yet.<br>Tap Save on an item to keep it here.<br><span style="font-size:12px;">Saved on this device only. Export a backup for long-term storage.</span></p></div>';
         section.classList.add('visible');
         section.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
@@ -1635,7 +1648,8 @@
   }
 
   function locateButtonHTML() {
-    return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" opacity=".3"/></svg> Update My Location';
+    var label = hasFuelLocated ? 'Refresh Location' : 'Find Near Me';
+    return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" opacity=".3"/></svg> <span id="locate-btn-label">' + label + '</span>';
   }
 
   function setLocateLoading(on) {
@@ -1648,6 +1662,7 @@
     } else {
       btn.classList.remove('locating');
       btn.innerHTML = locateButtonHTML();
+      btn.setAttribute('aria-label', hasFuelLocated ? 'Refresh Location' : 'Find Near Me');
       btn.disabled = false;
     }
   }
@@ -1698,6 +1713,7 @@
   }
 
   var locateInProgress = false;
+  var hasFuelLocated = false;
   function startLocate() {
     if (locateInProgress) return;
     locateInProgress = true;
@@ -1723,6 +1739,7 @@
   }
 
   async function onPosition(pos) {
+    hasFuelLocated = true;
     const { latitude: userLat, longitude: userLng } = pos.coords;
     setStatus('Loading station data…', true);
 
@@ -1827,14 +1844,14 @@
           '<div class="coords-row">' +
             '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>' +
             '<span class="coords-text">' + coordText + '</span>' +
-            '<button type="button" class="coord-copy-btn" data-coords="' + escHtml(coordText) + '" title="Copy coordinates" onclick="event.stopPropagation(); copyFuelCoords(this);">' +
+            '<button type="button" class="coord-copy-btn" data-coords="' + escHtml(coordText) + '" title="Copy coordinates" aria-label="Copy coordinates" onclick="event.stopPropagation(); copyFuelCoords(this);">' +
               '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>' +
             '</button>' +
             (function(){
               var bm = isFuelBookmarked(_fuelKey(s));
               var filled = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
               var empty  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
-              return '<button type="button" class="fuel-bookmark-btn' + (bm ? ' bookmarked' : '') + '" data-key="' + escHtml(_fuelKey(s)) + '" title="' + (bm ? 'Remove bookmark' : 'Bookmark this station') + '" onclick="event.stopPropagation(); toggleFuelBookmarkClick(this);">' + (bm ? filled : empty) + '</button>';
+              return '<button type="button" class="fuel-bookmark-btn' + (bm ? ' bookmarked' : '') + '" data-key="' + escHtml(_fuelKey(s)) + '" title="' + (bm ? 'Saved' : 'Save') + '" aria-label="' + (bm ? 'Saved station' : 'Save station') + '" onclick="event.stopPropagation(); toggleFuelBookmarkClick(this);">' + (bm ? filled : empty) + '</button>';
             })() +
           '</div>' +
         '</div>'

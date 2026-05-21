@@ -179,6 +179,15 @@
     .entry-act:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-lo); }
     .entry-act.del:hover { border-color:var(--red); color:var(--red); background:var(--red-lo); }
     .entry-act:active { transform:scale(0.95); }
+    :where(a, button, input, select, textarea, [tabindex], .entry-act, .nav-tab, .d-nav-item):focus-visible {
+      outline:3px solid rgba(229,179,59,0.95);
+      outline-offset:3px;
+      box-shadow:0 0 0 5px rgba(26,86,219,0.18);
+    }
+    html[data-dark] :where(a, button, input, select, textarea, [tabindex], .entry-act, .nav-tab, .d-nav-item):focus-visible {
+      outline-color:#FEE9A1;
+      box-shadow:0 0 0 5px rgba(254,233,161,0.16);
+    }
 
     /* ── FAB ── */
     .fab {
@@ -410,6 +419,16 @@
       font-size:14px; font-weight:700; cursor:pointer; transition:all var(--tr);
     }
     .danger-btn:hover { background:var(--red); color:#fff; }
+    .local-storage-note {
+      display:block;
+      padding:10px 18px 14px;
+      border-top:1px solid var(--border-lo);
+      font-size:12px;
+      line-height:1.45;
+      color:var(--muted);
+      white-space:normal;
+      overflow-wrap:anywhere;
+    }
     .about-text { font-size:12px; color:var(--muted); line-height:1.7; text-align:center; padding:18px; }
 
     /* ── Bottom Sheet ── */
@@ -787,7 +806,7 @@
 
   <!-- Desktop sidebar — hidden on mobile via CSS -->
   <aside class="d-sidebar" id="d-sidebar">
-    <button class="d-sidebar-add" id="d-sidebar-add">
+    <button class="d-sidebar-add" id="d-sidebar-add" aria-label="Log payroll entry">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Log Entry
     </button>
@@ -955,7 +974,7 @@
   </div>
 </div>
 
-<div id="toast-ct"></div>
+<div id="toast-ct" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1584,9 +1603,10 @@ function renderSettings(mc) {
 
   html += '<div class="settings-section"><div class="settings-lbl">Data</div><div class="settings-card">' +
     sRow('Export Backup', 'Save all entries as a JSON file you can restore later',
-      '<button class="entry-act" id="export-json" style="white-space:nowrap">Export JSON</button>') +
+      '<button class="entry-act" id="export-json" style="white-space:nowrap" aria-label="Export payroll backup">Export Backup</button>') +
     sRow('Import Backup', 'Restore entries from a previously exported JSON file',
-      '<label class="entry-act" style="cursor:pointer;white-space:nowrap" for="import-json-file">Import JSON<input type="file" id="import-json-file" accept=".json" style="display:none"></label>') +
+      '<label class="entry-act" style="cursor:pointer;white-space:nowrap" for="import-json-file" aria-label="Import payroll backup">Import Backup<input type="file" id="import-json-file" accept=".json" style="display:none"></label>') +
+    '<div class="local-storage-note">Saved on this device only. Export a backup for long-term storage.</div>' +
   '</div>' +
   '<button class="danger-btn" id="clear-data" style="margin-top:10px">Clear All Entries</button>' +
   '</div>';
@@ -1707,8 +1727,8 @@ function buildEntryCard(entry, r, settings) {
     '</div>' +
     '<div class="entry-detail">' + grid +
       '<div class="entry-act-row">' +
-        '<button class="entry-act" data-edit="' + esc(entry.id) + '">Edit</button>' +
-        '<button class="entry-act del" data-del="' + esc(entry.id) + '">Delete</button>' +
+        '<button class="entry-act" data-edit="' + esc(entry.id) + '" aria-label="Edit payroll entry">Edit</button>' +
+        '<button class="entry-act del" data-del="' + esc(entry.id) + '" aria-label="Delete payroll entry">Delete</button>' +
       '</div>' +
     '</div>' +
   '</div>';
@@ -1728,7 +1748,7 @@ function wireCards(mc) {
     if (db) db.addEventListener('click', function(ev) {
       ev.stopPropagation();
       var id = this.dataset.del;
-      if (!confirm('Delete this entry?')) return;
+      if (!confirm('Delete this payroll entry?')) return;
       storeEntries(loadEntries().filter(function(x) { return x.id !== id; }));
       card.style.transition = 'opacity 180ms ease, transform 180ms ease';
       card.style.opacity = '0'; card.style.transform = 'translateX(12px)';
@@ -1999,6 +2019,8 @@ function showToast(msg, type, dur) {
   var ct = document.getElementById('toast-ct'); if (!ct) return;
   var t = document.createElement('div');
   t.className = 'toast ' + (type || 'info');
+  t.setAttribute('role', type === 'err' ? 'alert' : 'status');
+  t.setAttribute('aria-live', type === 'err' ? 'assertive' : 'polite');
   t.textContent = msg;
   ct.appendChild(t);
   setTimeout(function() { t.classList.add('out'); setTimeout(function() { if (t.parentNode) t.parentNode.removeChild(t); }, 240); }, dur || 2200);
@@ -2051,8 +2073,11 @@ function importJSON(input) {
     try {
       var data = JSON.parse(ev.target.result);
       if (!Array.isArray(data.entries)) throw new Error('Invalid format');
-      if (!confirm('Import ' + data.entries.length + ' entries? This will MERGE with existing entries (duplicates by ID are skipped).')) return;
       var existing = loadEntries();
+      var warn = existing.length || data.settings
+        ? 'Import backup? Current data may be replaced or updated. Entries will be merged and duplicates by ID are skipped.'
+        : 'Import backup? Entries will be restored from this file.';
+      if (!confirm(warn)) return;
       var existingIds = {};
       existing.forEach(function(e) { existingIds[e.id] = true; });
       var added = 0;
@@ -2073,6 +2098,7 @@ function importJSON(input) {
 
 // ── Boot ──────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
+  try { localStorage.setItem('ft_last', 'timesheet'); } catch(e) {}
   setTimeout(function() { document.documentElement.classList.remove('entering-from-hub'); }, 500);
 
   // Inherit theme live from Hub
