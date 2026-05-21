@@ -140,7 +140,104 @@
       background: var(--surface);
     }
     .search-input::placeholder { color: var(--muted); }
+    .search-helper {
+      margin-top: 6px;
+      font-size: 11px;
+      line-height: 1.35;
+      color: var(--muted);
+    }
     .result-count { margin-top: 8px; font-size: 12px; color: var(--muted); }
+    .search-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .search-filter-buttons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .map-marker-limit {
+      display: none;
+      position: absolute;
+      left: 52px;
+      top: 12px;
+      z-index: 450;
+      max-width: min(230px, calc(100% - 24px));
+      padding: 7px 8px;
+      border: 1px solid rgba(209,217,224,0.78);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.94);
+      color: var(--muted2);
+      font-size: 11px;
+      line-height: 1.25;
+      box-shadow: 0 8px 22px rgba(15,23,42,0.12);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      animation: quietMapControlIn 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .map-marker-limit.show {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .map-marker-limit strong {
+      color: var(--text);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .map-marker-limit .map-marker-limit-helper {
+      display: none;
+      position: absolute;
+      left: 0;
+      top: calc(100% + 6px);
+      width: max-content;
+      max-width: 210px;
+      padding: 6px 8px;
+      border: 1px solid rgba(209,217,224,0.78);
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.96);
+      color: var(--muted2);
+      box-shadow: 0 8px 22px rgba(15,23,42,0.12);
+    }
+    .map-marker-limit:hover .map-marker-limit-helper,
+    .map-marker-limit:focus-within .map-marker-limit-helper {
+      display: block;
+    }
+    .map-marker-limit button {
+      border: 1px solid rgba(26,86,219,0.35);
+      border-radius: 999px;
+      background: rgba(26,86,219,0.09);
+      color: var(--accent);
+      font-family: var(--sans);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition), transform 80ms ease-out;
+      white-space: nowrap;
+    }
+    .map-marker-limit button:hover {
+      background: #f8fbff;
+      border-color: var(--accent);
+    }
+    html[data-dark] .map-marker-limit {
+      border-color: rgba(45,55,72,0.84);
+      background: rgba(28,30,38,0.94);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.34);
+    }
+    html[data-dark] .map-marker-limit .map-marker-limit-helper {
+      border-color: rgba(45,55,72,0.84);
+      background: rgba(28,30,38,0.96);
+    }
+    html[data-dark] .map-marker-limit button:hover { background: #172033; }
+    @keyframes quietMapControlIn {
+      from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
 
     .bridge-data-state {
       display: flex;
@@ -226,8 +323,27 @@
     }
 
     /* Right panel */
-    .right-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    #map { flex: 0 0 56%; min-height: 180px; background: #e8ecf0; }
+    .right-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+    #map {
+      position: relative;
+      flex: 0 0 56%;
+      min-height: 180px;
+      margin: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #e8ecf0;
+      box-shadow: 0 10px 28px rgba(15,23,42,0.10);
+    }
+    html[data-dark] #map {
+      box-shadow: 0 12px 32px rgba(0,0,0,0.32);
+    }
     .map-placeholder {
       height: 100%;
       display: flex;
@@ -418,7 +534,7 @@
       body { overflow: auto; height: auto; }
       .main-layout { flex-direction: column; overflow: visible; }
       .left-panel { width: 100%; max-height: 45vh; border-right: none; border-bottom: 1px solid var(--border); }
-      #map { flex: 0 0 280px; }
+      #map { flex: 0 0 280px; margin: 10px; border-radius: 12px; }
       .detail-panel { flex: none; }
       .detail-summary { grid-template-columns: repeat(2, 1fr); }
     }
@@ -431,6 +547,17 @@
       .topbar-back { padding: 4px 10px 4px 7px; font-size: 11px; }
       .public-notice { padding: 5px 12px; font-size: 10px; line-height: 1.4; }
       .left-panel { max-height: 50vh; }
+      .search-toolbar { align-items: flex-start; flex-direction: column; }
+      .search-filter-buttons { width: 100%; }
+      .search-filter-buttons .bookmark-filter { flex: 1; justify-content: center; }
+      .map-marker-limit {
+        left: 48px;
+        top: 8px;
+        max-width: calc(100% - 16px);
+        font-size: 10px;
+        gap: 5px;
+      }
+      .map-marker-limit button { font-size: 10px; padding: 4px 7px; }
       .detail-summary { grid-template-columns: 1fr 1fr; }
     }
     .detail-title-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
@@ -832,6 +959,11 @@
       border-color: rgba(245,158,11,0.5);
     }
     .bookmark-filter svg { width: 11px; height: 11px; }
+    .all-bridges-filter.active {
+      border-color: var(--accent);
+      background: var(--accent-lo);
+      color: var(--accent);
+    }
     .result-item.is-bookmarked .result-name::after {
       content: '★'; color: #f59e0b; margin-left: 5px; font-size: 11px;
     }
@@ -962,20 +1094,27 @@
       <label class="search-label" for="search-input">Search bridges</label>
       <div class="search-wrap">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input id="search-input" class="search-input" type="text" placeholder="Structure no. or name..." autocomplete="off" spellcheck="false" />
+        <input id="search-input" class="search-input" type="text" placeholder="Search #, name, county, route" autocomplete="off" spellcheck="false" />
       </div>
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px;">
+      <div class="search-helper">Examples: 1023-152, Mercer, Route 130</div>
+      <div class="search-toolbar">
         <div id="result-count" class="result-count" style="margin-top:0;">Type to search...</div>
-        <button id="bookmark-filter" class="bookmark-filter" title="Show saved bridges" aria-label="Show Saved">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          <span id="bookmark-filter-label">Show Saved</span>
-        </button>
+        <div class="search-filter-buttons">
+          <button id="all-bridges-filter" class="bookmark-filter all-bridges-filter" title="Show all bridges statewide" aria-label="All Bridges">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg>
+            <span id="all-bridges-filter-label">All Bridges</span>
+          </button>
+          <button id="bookmark-filter" class="bookmark-filter" title="Show saved bridges" aria-label="Show Saved">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span id="bookmark-filter-label">Show Saved</span>
+          </button>
+        </div>
       </div>
     </div>
     <div id="results-list" class="results-list">
       <div class="list-empty">
         <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <p>Search by structure number<br>or bridge name</p>
+        <p>Search by structure number,<br>bridge name, county, or route</p>
       </div>
     </div>
   </div>
@@ -1097,6 +1236,7 @@
   // -- State --
   let map = null;
   let activeMarker = null;
+  let resultMarkersLayer = null;
   let activeItem = null;
   let debounceTimer = null;
   let allBridges = [];
@@ -1107,6 +1247,10 @@
   let bridgeDataMode = 'index';
   let activeSelectToken = 0;
   let muniCache = {};
+  let currentSearchMarkerResults = [];
+  let searchMarkersExpanded = false;
+  let allBridgesViewOn = false;
+  var SEARCH_MARKER_AUTO_LIMIT = 50;
 
   // -- Bridge data loads from a lightweight index; full records lazy-load by county. --
 
@@ -1115,8 +1259,10 @@
     var listEl = document.getElementById('results-list');
     var inputEl = document.getElementById('search-input');
     var bookmarkBtn = document.getElementById('bookmark-filter');
+    var allBtn = document.getElementById('all-bridges-filter');
     if (inputEl) inputEl.disabled = state === 'loading' || state === 'error';
     if (bookmarkBtn) bookmarkBtn.disabled = state === 'loading' || state === 'error';
+    if (allBtn) allBtn.disabled = state === 'loading' || state === 'error';
     if (state === 'loading') {
       if (countEl) countEl.textContent = message || 'Loading bridge index...';
       if (listEl) listEl.innerHTML = '<div class="bridge-data-state"><div class="bridge-data-spinner" aria-hidden="true"></div><strong>Loading bridge index</strong><span>Preparing Bridge Navigator search...</span></div>';
@@ -1141,6 +1287,67 @@
 
   function normalizeStructureNumberForSearch(value) {
     return String(value == null ? '' : value).toUpperCase().replace(/[^0-9A-Z]/g, '');
+  }
+
+  function normalizeStructureDigits(value) {
+    return String(value == null ? '' : value).replace(/\D/g, '');
+  }
+
+  function normalizeFormattedStructure(value) {
+    return String(value == null ? '' : value).trim().toLowerCase().replace(/\s+/g, '');
+  }
+
+  function isStructureNumberQuery(query) {
+    var q = String(query == null ? '' : query).trim();
+    if (!q) return false;
+    if (/^[\d\s-]+$/.test(q)) return true;
+    var digitsAndDashes = (q.match(/[\d-]/g) || []).length;
+    return digitsAndDashes >= 3 && digitsAndDashes / q.length >= 0.72;
+  }
+
+  function scoreStructureNumberMatch(bridge, query) {
+    var qDigits = normalizeStructureDigits(query);
+    var qFormatted = normalizeFormattedStructure(query);
+    if (!qDigits && !qFormatted) return 0;
+
+    var raw = bridge.Structure_Number || '';
+    var display = bridge.structureNumberDisplay || formatStructureNumber(raw);
+    var rawDigits = normalizeStructureDigits(raw);
+    var displayDigits = normalizeStructureDigits(display);
+    var displayNorm = normalizeFormattedStructure(display);
+    var rawNorm = normalizeFormattedStructure(raw);
+    var best = 0;
+
+    if (qDigits && (rawDigits === qDigits || displayDigits === qDigits)) best = Math.max(best, 1000);
+    if (qFormatted && (displayNorm === qFormatted || rawNorm === qFormatted)) best = Math.max(best, 950);
+    if (qDigits && (rawDigits.indexOf(qDigits) === 0 || displayDigits.indexOf(qDigits) === 0)) best = Math.max(best, 900);
+    if (qFormatted && displayNorm.indexOf(qFormatted) === 0) best = Math.max(best, 850);
+    if (qDigits && (rawDigits.indexOf(qDigits) !== -1 || displayDigits.indexOf(qDigits) !== -1)) best = Math.max(best, 700);
+    if (qFormatted && rawNorm.indexOf(qFormatted) !== -1) best = Math.max(best, 450);
+    return best;
+  }
+
+  function scoreGeneralSearchMatch(bridge, query, regex, qNorm, qText) {
+    var score = 0;
+    var display = bridge.structureNumberDisplay || formatStructureNumber(bridge.Structure_Number);
+    var countyText = normalizeSearchText([bridge.County, bridge.County_Code, bridge.countyCode].join(' '));
+    var nameText = normalizeSearchText(bridge.Structure_Name || '');
+    var routeText = normalizeSearchText([
+      bridge.Route_Number,
+      formatRoute(bridge.Route_Number),
+      bridge.Facility_Carried,
+      bridge.Features_Intersected,
+      bridge.Municipality
+    ].join(' '));
+
+    if (qText && countyText === qText) score = Math.max(score, 980);
+    else if (qText && countyText.indexOf(qText) !== -1) score = Math.max(score, 900);
+    if (qText && nameText.indexOf(qText) !== -1) score = Math.max(score, 760);
+    if (qText && routeText.indexOf(qText) !== -1) score = Math.max(score, 650);
+    if (qNorm.length >= 2 && String(bridge.structureNumberSearch || '').indexOf(qNorm) !== -1) score = Math.max(score, 620);
+    if (qText.length >= 2 && String(bridge.searchText || '').indexOf(qText) !== -1) score = Math.max(score, 500);
+    if (regex.test(bridge.Structure_Number) || regex.test(display) || regex.test(bridge.Structure_Name || '')) score = Math.max(score, 450);
+    return score;
   }
 
   function normalizeSearchText(value) {
@@ -1282,6 +1489,34 @@
     return loadBridgeIndex();
   }
 
+  function setAllBridgesMode(on) {
+    var allBtn = document.getElementById('all-bridges-filter');
+    allBridgesViewOn = !!on;
+    if (allBtn) {
+      allBtn.classList.toggle('active', allBridgesViewOn);
+      allBtn.setAttribute('aria-pressed', allBridgesViewOn ? 'true' : 'false');
+    }
+  }
+
+  function showAllBridges() {
+    var countEl = document.getElementById('result-count');
+    var listEl = document.getElementById('results-list');
+    var inputEl = document.getElementById('search-input');
+    var bookmarkBtn = document.getElementById('bookmark-filter');
+    bookmarkFilterOn = false;
+    if (bookmarkBtn) {
+      bookmarkBtn.classList.remove('active');
+      bookmarkBtn.setAttribute('aria-pressed', 'false');
+    }
+    if (inputEl) inputEl.value = '';
+    setAllBridgesMode(true);
+    if (!bridgeIndex.length) {
+      if (countEl) countEl.textContent = 'Bridge index is still loading...';
+      return;
+    }
+    _renderResults(bridgeIndex, countEl, listEl, false);
+    if (countEl) countEl.textContent = bridgeIndex.length.toLocaleString() + ' bridges statewide';
+  }
 
   // Bookmark filter button
   (function() {
@@ -1291,11 +1526,27 @@
     if (!fbtn) return;
     fbtn.addEventListener('click', function() {
       bookmarkFilterOn = !bookmarkFilterOn;
+      setAllBridgesMode(false);
       fbtn.classList.toggle('active', bookmarkFilterOn);
       if (flbl) flbl.textContent = 'Show Saved';
       fbtn.setAttribute('aria-pressed', bookmarkFilterOn ? 'true' : 'false');
       if (bookmarkFilterOn && sInp) sInp.value = '';
       doSearch((sInp || {}).value || '');
+    });
+  })();
+
+  // Statewide bridge list button
+  (function() {
+    var allBtn = document.getElementById('all-bridges-filter');
+    if (!allBtn) return;
+    allBtn.setAttribute('aria-pressed', 'false');
+    allBtn.addEventListener('click', function() {
+      if (allBridgesViewOn) {
+        setAllBridgesMode(false);
+        doSearch('');
+      } else {
+        showAllBridges();
+      }
     });
   })();
 
@@ -1322,9 +1573,88 @@
         maxZoom: 20
       }).addTo(map);
       L.control.layers({ 'Street': osmLayer, 'Satellite': satLayer }, null, { position: 'topright' }).addTo(map);
+      resultMarkersLayer = L.layerGroup().addTo(map);
       return true;
     } catch(e) {
       return false;
+    }
+  }
+
+  function clearSearchResultMarkers() {
+    var limitEl = getMapMarkerLimitControl(false);
+    if (limitEl) {
+      limitEl.classList.remove('show');
+      limitEl.innerHTML = '';
+    }
+    currentSearchMarkerResults = [];
+    searchMarkersExpanded = false;
+    if (resultMarkersLayer) resultMarkersLayer.clearLayers();
+  }
+
+  function getMapMarkerLimitControl(createIfMissing) {
+    var limitEl = document.getElementById('map-marker-limit');
+    if (limitEl || !createIfMissing) return limitEl;
+    var mapEl = document.getElementById('map');
+    if (!mapEl) return null;
+    limitEl = document.createElement('div');
+    limitEl.id = 'map-marker-limit';
+    limitEl.className = 'map-marker-limit';
+    limitEl.setAttribute('aria-live', 'polite');
+    mapEl.appendChild(limitEl);
+    return limitEl;
+  }
+
+  function renderSearchResultMarkers(matches, expanded) {
+    currentSearchMarkerResults = matches || [];
+    searchMarkersExpanded = !!expanded;
+    var mapReady = initMap();
+    if (!mapReady || !map) return;
+    var limitEl = getMapMarkerLimitControl(true);
+    if (limitEl) {
+      limitEl.classList.remove('show');
+      limitEl.innerHTML = '';
+    }
+    if (!resultMarkersLayer) resultMarkersLayer = L.layerGroup().addTo(map);
+    resultMarkersLayer.clearLayers();
+
+    var markerRecords = (matches || []).filter(function(b) {
+      var lat = parseFloat(b.Latitude);
+      var lng = parseFloat(b.Longitude);
+      return !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+    });
+    if (markerRecords.length === 0) return;
+
+    var shouldCap = markerRecords.length > SEARCH_MARKER_AUTO_LIMIT && !searchMarkersExpanded;
+    var recordsToRender = shouldCap ? markerRecords.slice(0, SEARCH_MARKER_AUTO_LIMIT) : markerRecords;
+
+    recordsToRender.forEach(function(b) {
+      var lat = parseFloat(b.Latitude);
+      var lng = parseFloat(b.Longitude);
+      var marker = L.circleMarker([lat, lng], {
+        radius: 5,
+        weight: 2,
+        color: '#1a56db',
+        fillColor: '#93c5fd',
+        fillOpacity: 0.75
+      }).addTo(resultMarkersLayer);
+      marker.bindTooltip(
+        '<strong>' + escHtml(b.Structure_Name || 'Unnamed bridge') + '</strong><br>' + escHtml(b.structureNumberDisplay || formatStructureNumber(b.Structure_Number)),
+        { direction: 'top', offset: [0, -6], opacity: 0.95 }
+      );
+      marker.on('click', function() { selectBridge(b, null); });
+    });
+
+    if (shouldCap && limitEl) {
+      var helper = markerRecords.length > 200 ? '<span class="map-marker-limit-helper">Large result sets may slow the map.</span>' : '';
+      limitEl.innerHTML =
+        '<strong>Map: ' + SEARCH_MARKER_AUTO_LIMIT + ' of ' + markerRecords.length.toLocaleString() + '</strong>' +
+        '<button id="show-all-map-markers" type="button" aria-label="Show all ' + markerRecords.length.toLocaleString() + ' search results on map">Show all</button>' +
+        helper;
+      limitEl.classList.add('show');
+      var btn = document.getElementById('show-all-map-markers');
+      if (btn) btn.addEventListener('click', function() {
+        renderSearchResultMarkers(currentSearchMarkerResults, true);
+      });
     }
   }
 
@@ -1505,13 +1835,15 @@
     });
   }
 
-  var EMPTY_HTML = '<div class="list-empty"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><p>Search by structure number<br>or bridge name</p></div>';
+  var EMPTY_HTML = '<div class="list-empty"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><p>Search by structure number,<br>bridge name, county, or route</p></div>';
 
   // -- Search --
   function doSearch(query) {
     var q = query.trim();
     var countEl = document.getElementById('result-count');
     var listEl = document.getElementById('results-list');
+
+    if (q.length > 0) setAllBridgesMode(false);
 
     if (bookmarkFilterOn) {
       var bookmarkSet = getBookmarks();
@@ -1521,6 +1853,7 @@
       if (bms.length === 0) {
         countEl.textContent = 'No saved items yet.';
         listEl.innerHTML = '<div class="list-empty"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><p>No saved items yet.<br>Tap Save on an item to keep it here.<br><span style="font-size:12px;color:var(--muted);">Saved on this device only. Export a backup for long-term storage.</span></p></div>';
+        clearSearchResultMarkers();
         return;
       }
       _renderResults(bms, countEl, listEl, true);
@@ -1530,30 +1863,52 @@
     if (q.length === 0) {
       countEl.textContent = 'Type to search ' + (bridgeIndex.length ? bridgeIndex.length + ' bridges...' : '...');
       listEl.innerHTML = EMPTY_HTML;
+      clearSearchResultMarkers();
       return;
     }
 
     if (q.length < 2) {
       countEl.textContent = 'Keep typing...';
       listEl.innerHTML = EMPTY_HTML;
+      clearSearchResultMarkers();
       return;
     }
 
-    var re;
-    try { re = new RegExp(q, 'i'); } catch(e) { re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'i'); }
+    var matches;
+    if (isStructureNumberQuery(q)) {
+      // Numeric structure searches intentionally avoid fuzzy/subsequence matching because it creates irrelevant bridge ID matches. General text search still supports county/name/route queries.
+      matches = bridgeIndex.map(function(b) {
+        return { bridge: b, score: scoreStructureNumberMatch(b, q) };
+      }).filter(function(item) {
+        return item.score > 0;
+      }).sort(function(a, b) {
+        if (b.score !== a.score) return b.score - a.score;
+        return String(a.bridge.structureNumberDisplay || formatStructureNumber(a.bridge.Structure_Number)).localeCompare(String(b.bridge.structureNumberDisplay || formatStructureNumber(b.bridge.Structure_Number)));
+      }).map(function(item) {
+        return item.bridge;
+      });
+    } else {
+      var re;
+      try { re = new RegExp(q, 'i'); } catch(e) { re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'i'); }
 
-    var qNorm = normalizeStructureNumberForSearch(q);
-    var qText = normalizeSearchText(q);
-    var matches = bridgeIndex.filter(function(b) {
-      if (re.test(b.Structure_Number) || re.test(b.structureNumberDisplay || formatStructureNumber(b.Structure_Number)) || re.test(b.Structure_Name || '')) return true;
-      if (qNorm.length >= 2 && String(b.structureNumberSearch || '').indexOf(qNorm) !== -1) return true;
-      if (qText.length >= 2 && String(b.searchText || '').indexOf(qText) !== -1) return true;
-      return false;
-    });
+      var qNorm = normalizeStructureNumberForSearch(q);
+      var qText = normalizeSearchText(q);
+      matches = bridgeIndex.map(function(b, i) {
+        return { bridge: b, score: scoreGeneralSearchMatch(b, q, re, qNorm, qText), order: i };
+      }).filter(function(item) {
+        return item.score > 0;
+      }).sort(function(a, b) {
+        if (b.score !== a.score) return b.score - a.score;
+        return a.order - b.order;
+      }).map(function(item) {
+        return item.bridge;
+      });
+    }
 
     if (matches.length === 0) {
       countEl.textContent = 'No bridges found';
       listEl.innerHTML = '<div class="list-empty"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><p>No matches for &ldquo;' + escHtml(q) + '&rdquo;</p></div>';
+      clearSearchResultMarkers();
       return;
     }
 
@@ -1582,6 +1937,7 @@
       el.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') selectBridge(matches[i], el); });
     });
 
+    renderSearchResultMarkers(matches, false);
     selectBridge(matches[0], items[0]);
   }
 
@@ -1878,6 +2234,7 @@
       inputEl.addEventListener('input', function(e) {
         clearTimeout(debounceTimer);
         var q = e.target.value;
+        setAllBridgesMode(false);
         try { history.replaceState(null, '', location.pathname + (q.trim() ? '?q=' + encodeURIComponent(q.trim()) : '')); } catch(e2) {}
         debounceTimer = setTimeout(function() { doSearch(q); }, 150);
       });

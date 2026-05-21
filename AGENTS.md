@@ -24,7 +24,7 @@
 
 > **Purpose:** This file is the authoritative quick-reference for the NJDOT Field Tools project. Read this FIRST before reading any HTML file. It contains every architectural decision, storage key, design token, and critical constraint so we can make changes without re-reading 6,800+ lines of HTML.
 >
-> **Last updated:** 2026-05-21 · v1.10
+> **Last updated:** 2026-05-21 · v1.11
 >
 > **Live site:** `https://joebiocco.github.io/NJDOT-Field-Tools-Hub/`
 > **Repo:** `https://github.com/Joebiocco/NJDOT-Field-Tools-Hub` (renamed from `Work-Order-Closeout`)
@@ -99,6 +99,9 @@ Work Order Website/
 - `ft_bridge_bookmarks` must remain an array of raw `Structure_Number` values. Do not store formatted `XXXX-XXX` values there and do not migrate/rename the key.
 - Normal Bridge Navigator startup loads `../data/bridges/index.json` through `loadBridgeIndex()` and stores lightweight records in `bridgeIndex`.
 - `bridgeIndexByStructureNumber` maps raw `Structure_Number` values to index records for search, bookmarks, and GPS matching.
+- Bridge Navigator search uses strict bridge-number scoring for numeric/dash queries (no fuzzy/subsequence matching), while general text queries still support bridge name, county, route, municipality, facility carried, and feature crossed fields from the statewide index.
+- Search result map pins use lightweight index records only. Result sets over 50 pins are capped to the first 50 by default and expose a quiet in-map "Map: 50 of X / Show all" control for broad county/route searches.
+- The Bridge Navigator "All Bridges" filter renders the statewide index list without loading all county chunks; it uses the same 50-pin map cap and only lazy-loads the selected bridge's full county chunk.
 - Find Near Me / GPS bridge lookup must scan the statewide `bridgeIndex`; do not load county chunks to determine nearest GPS candidates.
 - Full bridge records live in `data/bridges/chunks/by-county/*.json` and are lazy-loaded with `getFullBridgeRecord()` only when a bridge detail/share/copy view needs full fields.
 - `bridgeChunkCache` caches loaded county chunk promises in memory; chunks are not stored in localStorage or IndexedDB.
@@ -302,7 +305,7 @@ JS behavior (in every page):
 ### Caching strategy
 
 ```js
-const CACHE = 'ft-v1.10-2026-05-21';  // BUMP this on every push that should force refresh
+const CACHE = 'ft-v1.11-2026-05-21';  // BUMP this on every push that should force refresh
 
 // HTML pages → NETWORK-FIRST (always latest, cache as offline fallback)
 // Static files (icons, JSON, manifest) → CACHE-FIRST (rarely change)
@@ -326,6 +329,15 @@ Existing users get the new SW on their next visit; old cache is auto-deleted on 
 ---
 
 ## 7. Critical UI Patterns
+
+### Standard map frame
+
+- Leaflet maps should use the Bridge Navigator framed-map treatment unless a task explicitly says otherwise.
+- Standard map frame: equal spacing on all sides (`12px` desktop, `10px` mobile), `14px` desktop radius, `12px` mobile radius, `overflow:hidden`, token border, light-mode soft shadow, darker dark-mode shadow, and neutral `#e8ecf0` loading background.
+- The map frame element itself owns the border/radius/shadow/overflow. Do not put a rounded map inside an extra padded transparent card; that creates inconsistent map width and spacing.
+- On stacked tablet/mobile layouts, map frames should align to the same page edge rhythm as the primary content (`10px` side spacing at the current 656px test width). Use a `max-width:720px`-style breakpoint when needed, not only narrow phone breakpoints.
+- Keep map controls inside the rounded clipped frame. Place auxiliary map UI as quiet in-map controls when possible instead of large notices above/below the map.
+- After changing map container spacing or dimensions, call/keep existing `invalidateSize()` behavior where the page already uses it and test desktop, tablet-width, and phone-width layouts.
 
 ### Bookmark system (bridges + fuel stations)
 
@@ -395,8 +407,9 @@ Two parallel implementations, identical behavior:
 ### Road Milepost Finder
 
 - Data source is preprocessed from the master CSV into `data/mileposts/`.
-- Allowed route classes only: Interstate (`ROUTE_SUBT=1`), US Route (`2`), NJ State Highway (`3`), County Route (`5`).
-- Excluded from runtime data: local roads and other subtypes (`4`, `6`, `7`, `8`).
+- Runtime data may include multiple route subtypes, but UI matching is intentionally filtered by mode.
+- `State / US / Interstate` mode prefers mainline Interstate (`ROUTE_SUBT=1`), US Route (`2`), NJ State Highway (`3`), and Authority/Parkway/Expressway (`4`) records. Ramp, connector, and secondary-looking records only win when the user is very close and no mainline point is nearby enough.
+- `County Routes` mode matches County Route (`ROUTE_SUBT=5`) records only.
 - Runtime does **not** load statewide data at once:
   - First fetch `data/mileposts/index.json`
   - Then fetch only nearby tile chunks from `data/mileposts/chunks/*.json` based on GPS tile + neighbors.
