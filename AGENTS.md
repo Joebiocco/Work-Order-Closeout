@@ -24,7 +24,7 @@
 
 > **Purpose:** This file is the authoritative quick-reference for the NJDOT Field Tools project. Read this FIRST before reading any HTML file. It contains every architectural decision, storage key, design token, and critical constraint so we can make changes without re-reading 6,800+ lines of HTML.
 >
-> **Last updated:** 2026-05-21 · v1.11
+> **Last updated:** 2026-05-26 · v1.17
 >
 > **Live site:** `https://joebiocco.github.io/NJDOT-Field-Tools-Hub/`
 > **Repo:** `https://github.com/Joebiocco/NJDOT-Field-Tools-Hub` (renamed from `Work-Order-Closeout`)
@@ -61,25 +61,24 @@ Work Order Website/
 ├── data/
 │   ├── njfuel.json                  # ~74 NJDOT fuel stations
 │   ├── njstructures.json            # Bridge Navigator source archive/fallback; metadata + records[] wrapper
-│   ├── bridges/
-│   │   ├── index.json               # Lightweight statewide Bridge Navigator index
-│   │   └── chunks/by-county/*.json  # Full bridge records lazy-loaded by county
-│   └── mileposts/
-│       ├── index.json               # Tile index for Road Milepost Finder (filtered route classes only)
-│       └── chunks/*.json            # Per-tile milepost chunks loaded lazily near user GPS
+│   └── bridges/
+│       ├── index.json               # Lightweight statewide Bridge Navigator index
+│       └── chunks/by-county/*.json  # Full bridge records lazy-loaded by county
 ├── icons/
 │   ├── icon-192.png                 # PWA app icon (192×192) — NJDOT bridge + bar chart, dark navy #001e4d bg, no pre-baked rounding
 │   └── icon-512.png                 # PWA app icon (512×512) — same design, maskable, corners filled solid navy
+├── js/
+│   └── dc144.js                     # DC-144 Field Form logic (~1,964 lines); IDB v2, ExcelJS export, dynamic grids
 ├── pages/
-│   ├── njsearch.html                # Bridge Navigator (1,440 lines)
-│   ├── njfuel.html                  # Fuel Station Finder (1,305 lines)
-│   ├── milemarker.html              # Road Milepost Finder (GPS nearest route/milepost)
-│   ├── timesheet.html               # Payroll Calculator & Timesheet — Day/Week/Month/Settings
-│   └── WorkOrderCloseout.html       # Work Order tool (2,949 lines)
+│   ├── njsearch.html                # Bridge Navigator
+│   ├── njfuel.html                  # Fuel Station Finder
+│   ├── milemarker.html              # Road Milepost Finder
+│   ├── timesheet.html               # Payroll Calculator & Timesheet
+│   ├── WorkOrderCloseout.html       # Work Order tool
+│   └── dc144.html                   # DC-144 Field Form (~494 lines); loads ../js/dc144.js
 ├── _archive/                        # old files, ignore
 ├── reference/                       # data sources, ignore
-├── scripts/
-│   └── build-mileposts.ps1          # CSV -> filtered tile chunks for milemarker runtime
+├── scripts/                         # transient helper scripts
 └── tools/
     └── validate-bridge-data.js      # Validates Bridge Navigator index/chunk data integrity
 ```
@@ -95,6 +94,7 @@ Work Order Website/
 - `data/bridges/chunks/by-county/*.json` holds complete original full bridge records for detail panels, copy/share fields, selected bookmark details, and selected GPS details.
 - `data/njstructures.json` remains the Bridge Navigator source archive and fallback data file only.
 - Current source shape: `{ metadata: { recordCount, generatedDate, source }, records: [...] }`.
+- Current local size is about 12.4 MB; `pages/njsearch.html` is about 541 KB after removing inline bridge records.
 - `records[].Structure_Number` preserves the exact raw value and remains the stable key for bookmarks, search, and future data migration.
 - `ft_bridge_bookmarks` must remain an array of raw `Structure_Number` values. Do not store formatted `XXXX-XXX` values there and do not migrate/rename the key.
 - Normal Bridge Navigator startup loads `../data/bridges/index.json` through `loadBridgeIndex()` and stores lightweight records in `bridgeIndex`.
@@ -107,7 +107,6 @@ Work Order Website/
 - `bridgeChunkCache` caches loaded county chunk promises in memory; chunks are not stored in localStorage or IndexedDB.
 - `data/njstructures.json` is loaded only by fallback code if the index cannot be loaded.
 - `pages/njsearch.html` no longer embeds `BRIDGES_DATA`; do not re-inline bridge records.
-- The temporary/manual test URL flag `?bridgeDataFail=1` simulates a failed index fetch and should use fallback bridge data if available.
 - `service-worker.js` pre-caches `data/bridges/index.json`; county chunks are runtime-cached after first fetch. Do not pre-cache every county chunk unless explicitly approved.
 
 ---
@@ -119,18 +118,15 @@ Work Order Website/
 | Key | File(s) | Format | Purpose |
 |---|---|---|---|
 | `ft_bridge_bookmarks` | njsearch | `JSON.stringify(["structNum1", "structNum2"])` | Array of bookmarked Structure_Number strings |
-| `ft_bridge_guide_shown` | njsearch | int 0-2 | How many times Bridge Navigator tutorial has auto-shown |
 | `ft_fuel_bookmarks` | njfuel | `JSON.stringify(["lat,lng", ...])` | Composite coord keys via `_fuelKey(s)` helper |
-| `ft_fuel_guide_shown` | njfuel | int 0-2 | How many times Fuel Station Finder tutorial has auto-shown |
 | `wo_recent` | WorkOrderCloseout | JSON array (max 5) of recent session metadata | Each rec has `{wo, str, date, fname, route, direction, mp, startDate, endDate, priority, photoKey}` — PHOTOS NOT INCLUDED HERE |
 | `workorder_draft` | WorkOrderCloseout | Full session JSON snapshot | Single auto-saved draft |
+| `ft_dc144_recent` | dc144 | JSON array (max 5) of recent DC-144 session metadata | Each rec has `{id, tab, projectName, date, savedAt, photoKey}` — full data in IDB |
+| `ft_dc144_templates` | dc144 | JSON array (max 10) of saved templates | Each entry has `{id, name, createdAt, header:{projectName,contractId,contractor,inspectorName}}` — header-only, no grid rows |
 | `field_dark_mode` | all pages | `"1"` if dark mode on | Theme preference |
-| `ft_last` | all pages | `"njsearch" \| "njfuel" \| "closeout" \| "milemarker" \| "timesheet"` | Last visited tool (used for the Home recent badge and Continue section) |
+| `ft_last` | all pages | `"njsearch" \| "njfuel" \| "closeout" \| "milemarker" \| "timesheet" \| "dc144"` | Last visited tool (used for the Home recent badge and Continue section) |
 | `ft_install_shown` | index | int 0-2 | How many times install popup has auto-shown on mobile |
 | `ft_bookmark_shown` | index | int 0-2 | How many times bookmark popup has auto-shown on desktop |
-| `ft_ts_entries` | timesheet | JSON array of overtime/timesheet entries | Local Day/Week/Month tracker entries with date, start/stop, break, type, job/activity, and notes |
-| `ft_ts_settings` | timesheet | JSON settings object | Hourly rate, overtime multiplier, overtime threshold, default break, time format, week start, and default view |
-| `ft_wo_guide_shown` | WorkOrderCloseout | int 0-2 | How many times the Work Order tutorial modal has auto-shown |
 
 ### sessionStorage keys (cleared on tab close)
 
@@ -141,9 +137,11 @@ Work Order Website/
 
 ### IndexedDB
 
-**Database:** `ft_photos` (v1) — defined in WorkOrderCloseout.html
+**Database:** `ft_photos` (v2) — v1 created by WorkOrderCloseout.html; v2 upgrade performed by dc144.js when the DC-144 page first opens.
 
-**Object store:** `session_photos` — key is `photoKey` from wo_recent rec.
+**Object store:** `session_photos` (v1) — key is `photoKey` from wo_recent rec.
+
+**Object store:** `dc144_sessions` (v2) — key is `photoKey` from ft_dc144_recent rec. Full session JSON including photos.
 
 **Value structure:**
 ```js
@@ -161,7 +159,15 @@ Work Order Website/
 - `dbGetPhotos(key)` — read
 - `dbDeletePhotos(key)` — delete on session eviction
 
+**Helper functions in js/dc144.js** (same IDB database, separate store):
+- `openPhotoDB()` — same name, bumps to v2, adds `dc144_sessions` if needed
+- `dbPutDC144(key, data)` — writes to `dc144_sessions`
+- `dbGetDC144(key)` — reads from `dc144_sessions`
+- `dbDeleteDC144(key)` — called on session eviction from `ft_dc144_recent`
+
 **Important:** When a session is evicted from `wo_recent` (capped at 5), `dbDeletePhotos(rec.photoKey)` is called to free the IDB entry. The `photoKey` is `'pk_' + Date.now()` set at save time.
+
+**Important:** `ft_photos` v2 `onupgradeneeded` checks `oldVersion` to add stores incrementally — it never recreates `session_photos`. WorkOrderCloseout.html sessions are fully safe when the DC-144 page triggers the v1→v2 upgrade.
 
 ---
 
@@ -203,9 +209,10 @@ html[data-dark] {
 | Bridge Navigator card | `#7c3aed` (purple) | `#a78bfa` | `card-border-purple`, `card-icon-purple`, `tag-nj` |
 | Fuel Station card | `#10b981` / `#059669` | same | `card-border-green`, `card-icon-green`, `tag-fuel` |
 | Work Order card | `#64748b` / `#475569` | same | `card-border-slate`, `card-icon-slate`, `tag-doc` |
+| DC-144 Field Form card | `#4338ca` (indigo) | `#818cf8` | `card-border-indigo`, `card-icon-indigo`, `tag-dc` |
 | Find Near Me pill | `#0d9488` (teal) | `#2dd4bf` | On njsearch.html, distinct from cards |
 | Coming Soon — Drainage | `#0891b2` (cyan) | `#67e8f9` | `card-icon-cyan`, `card-border-cyan` |
-| Road Milepost Finder | `#b45309` / `#d97706` (warm amber) | `#fcd34d` | GPS map tool card. `card-icon-amber-soon` |
+| Coming Soon — Milemarker | `#b45309` / `#d97706` (warm amber) | `#fcd34d` | Safety/warning theme. `card-icon-amber-soon` |
 | Coming Soon — Emergency | `#be123c` (rose) | `#fb7185` | `card-icon-rose`, `card-border-rose` |
 | Condition: Good / Open | `#22c55e` / `#16a34a` | — | Map markers, badges |
 | Condition: Poor / Closed | `#dc2626` / `#9ca3af` | — | |
@@ -224,7 +231,7 @@ When asked to change the **header accent color**, sweep all hex variants togethe
 
 **DO NOT touch the following during accent sweeps:**
 - Bookmark stars (`.bookmark-btn`, `.fuel-bookmark-btn`, `.is-bookmarked` markers) — always amber `#f59e0b`
-- Road Milepost Finder tile — always warm amber
+- Coming Soon Milemarker tile — always warm amber
 - Card border/icon colors for the 3 main tools (purple/green/slate)
 - The `--accent: #1a56db` deep blue (used for buttons/links, NOT the header)
 
@@ -313,7 +320,6 @@ const CACHE = 'ft-v1.11-2026-05-21';  // BUMP this on every push that should for
 ```
 
 **Important:** The service worker cache is **completely separate** from localStorage and IndexedDB. Updating/clearing the SW cache does NOT touch user bookmarks, sessions, or photos.
-Work Order page does not register the service worker on local preview hosts (`localhost`, `127.0.0.1`, `[::1]`) so stale offline fallback cannot mask current Save Session changes during testing.
 
 ### Update protocol
 
@@ -365,8 +371,6 @@ Two parallel implementations, identical behavior:
 - Save flow: collect photos → store full snapshot to IDB with `photoKey` → save metadata to `wo_recent` localStorage (no photos in localStorage)
 - Restore flow on chip click: read `wo_recent` rec, fetch IDB snapshot by `photoKey`, restore page count + per-page text fields + photos
 - Per-page text fields keyed by `data-base` attribute (NOT `el.name` which includes page-number suffix that breaks on rebuild)
-- Downloaded HTML session export is an interactive app snapshot: clone the live document, reflect current input/textarea/select state into the clone, strip any prior restore block, then download with app scripts intact so users can reopen the saved HTML and regenerate PDFs. Do not reintroduce injected restore scripts; they can corrupt exports when script/body marker text appears inside source code. Startup must detect existing `.page-block` elements and wire them instead of always calling `buildPage()`, or reopened snapshots gain an extra blank page.
-- Tutorial modal matches Payroll Calculator's guide format. It auto-shows on the first two fresh Work Order visits via `ft_wo_guide_shown`; the header `?` button reopens it anytime. Tutorial must emphasize that Recent only keeps five sessions, users should save both the HTML session and PDF, the PDF is a flat record, and the saved HTML is the editable session. Mobile guide breakpoints at 520px, 380px, and 330px tune modal width, icon size, padding, and footer stacking for different phone widths.
 
 ### Find Near Me / GPS bridge lookup (njsearch.html)
 
@@ -378,31 +382,16 @@ Two parallel implementations, identical behavior:
 - 1 match → auto-opens detail
 - Multiple matches → bottom-sheet picker sorted by distance
 - Distances always in US units (ft / mi)
-- Visible structure numbers are formatted as `XXXX-XXX` via `formatStructureNumber()` while raw `Structure_Number` values remain unchanged for search, bookmarks, data keys, and analytics.
-- Bridge detail header name and fields under the map are copyable: click/tap copies only the displayed value/name (not labels), with an animated "Copied" state.
-- Bridge detail header has a Share button: desktop copies structure number/name/route/milepost plus a Google Maps pin link; mobile opens an SMS compose link with the same line-by-line text.
 - Opening a search result, bookmark, or GPS-selected bridge lazy-loads the selected bridge's full county chunk before rendering copy/share/full detail fields.
-- Bridge Navigator tutorial uses the standard guide modal pattern, auto-shows first two visits via `ft_bridge_guide_shown`, and can be reopened with the header `?` button.
 
 ### Fuel Station Finder
 
 - Locate button always visible. First label is "Find Near Me"; after a successful lookup it becomes "Refresh Location".
 - ALWAYS requests fresh location (no localStorage cache — users may be moving)
-- Fuel finder auto-requests location on first page load; the browser permission prompt appears immediately when permission has not already been granted
-- Fuel locate progress is shown inside the location button (`.locating` + `.locate-spin`), not as visible status text below the controls
 - Map uses `fuelMap.invalidateSize()` after location + 350ms delay (mobile layout shift fix)
 - "Hide Closed" toggle on results header — label dynamic ("Show Closed" when hidden)
-- Results header keeps "Stations sorted by distance" in a stable title row; filters sit below in a structured row with two side-by-side fuel type filters (`Unleaded`, `Diesel`) plus the closed-station toggle
-- Closed-station toggle uses `.closed-dot` as a status indicator: gray when closed stations are hidden, red when closed stations are visible
 - Tooltip on station pin: dark-navy themed, `pointer-events: none`, offset `-36px` so it doesn't cover other pins
 - Active station tooltip auto-opens on `highlightStation()`
-- Post-location state keeps the NJDOT Fuel Stations control panel in normal document flow; it does not float over station cards
-- User GPS marker uses a pulsing `L.divIcon` (`makeUserPulseIcon()`), while station pins remain standard blue/gold SVG pins
-- Station cards split fuel availability into individual chips, include a distance badge, and provide a coordinate copy button with animated copied feedback
-- Station hours split schedule days like `M-F` into a separate `Mon-Fri` badge above the time text
-- KML exports include both "Export Visible" (currently rendered/visible set, respecting filters/bookmark view) and "Export All" (full station list); both show a toast after export
-- After location success, `scrollFuelBookmarksIntoView()` scrolls to the bookmark card; ordinary filter re-renders do not auto-scroll
-- Fuel Station Finder tutorial uses the standard guide modal pattern, auto-shows first two visits via `ft_fuel_guide_shown`, and can be reopened with the header `?` button
 
 ### Road Milepost Finder
 
@@ -410,13 +399,46 @@ Two parallel implementations, identical behavior:
 - Runtime data may include multiple route subtypes, but UI matching is intentionally filtered by mode.
 - `State / US / Interstate` mode prefers mainline Interstate (`ROUTE_SUBT=1`), US Route (`2`), NJ State Highway (`3`), and Authority/Parkway/Expressway (`4`) records. Ramp, connector, and secondary-looking records only win when the user is very close and no mainline point is nearby enough.
 - `County Routes` mode matches County Route (`ROUTE_SUBT=5`) records only.
-- Runtime does **not** load statewide data at once:
-  - First fetch `data/mileposts/index.json`
-  - Then fetch only nearby tile chunks from `data/mileposts/chunks/*.json` based on GPS tile + neighbors.
+- Runtime does **not** load statewide data at once: first fetch `data/mileposts/index.json`, then fetch only nearby tile chunks from `data/mileposts/chunks/*.json` based on GPS tile + neighbors.
 - Nearest lookup uses Haversine distance across loaded points and returns route class, route name, SRI, milepost, cross street, and distance.
-- Milemarker direction display is inferred from nearby route geometry around the matched point and shown as cardinal travel label (Northbound/Eastbound/Southbound/Westbound).
 - Map layer stack matches Bridge/Fuel tools: Google Street (`lyrs=m`) + Google Satellite (`lyrs=y`) with Leaflet layer toggle.
-- Back/Home navigation uses the same animated return pattern as other tools, including browser back interception via dummy `history.pushState`.
+
+### DC-144 Field Form
+
+- **Source files:** `pages/dc144.html` (shell + CSS) + `js/dc144.js` (all logic)
+- **CDN dependency:** ExcelJS v4.4.0 via `cdn.jsdelivr.net` — used for client-side .xlsx generation
+- **Session isolation:** Each session is tied to exactly one tab (a/b/c/d). `tab` field is the discriminator.
+- **Row caps per tab:** a=17, b=19, c=18, d=24. `addGridRow()` disables add button when limit reached.
+- **Remarks fields:** Single unified `<textarea>` per remarks region, not line-by-line row inputs.
+- **Photo appendix:** Photos go to separate 'Photo Appendix' worksheet only. Each photo gets 4 rows: title (Photo N — caption), metadata (section · timestamp), image, spacer. Image placed with `ext: {width, height}` pixel dimensions (not fragile `tl/br`). Helpers: `getDisplayImageSize()` (DISPLAY_W=420px, aspect-ratio clamped 80–380px), `getFriendlySectionLabel()`, `formatDateTime()`. Sanity check: `assertPhotoAppendixPreserved(wb, session)` called before `writeBuffer()` — verifies worksheet exists, image count, caption cell not blank.
+- **Remarks photo reference format:** Compact inline — `"text [See Appendix: Photos 1–3]"` (or `"text [See Appendix]"` when photo numbers are absent). `compactPhotoNumbers([1,2,3,5,7,8])` collapses to `"1–3, 5, 7–8"`. Never use multi-line `"\n\n[See Photo Appendix…]"`.
+- **Photo UI:** Grid card layout (`.photo-strip` = `grid; auto-fill; minmax(140px,1fr)`). Each photo is a `.photo-item` card with `aspect-ratio:4/3` thumbnail + `.photo-caption-label` + `.photo-caption-input` (textarea). Add button is `.photo-item.photo-add-item` (dashed border card) — **always rendered first** in the strip so photos accumulate to its right. Contains a circular `.photo-add-icon` div with an overlaid `.photo-add-plus` SVG badge. `renderPhotoStripForSection()` appends the add button first, then existing photos; new photos and placeholders are appended at the end (`strip.appendChild`). Old `.photo-caption` input class is GONE — use `.photo-caption-input` textarea.
+- **Template:** `data/dc144-template.xlsx` — must be created manually from the original XLS. No blank-workbook fallback — export fails explicitly if template is missing.
+- **Image compression:** Canvas → 1400px max long side → JPEG 0.72 → fallback 0.58. Target ≤200KB per photo. WebP/HEIC/HEIF always go through canvas pipeline (`needsNormalize` flag). Stores `widthPx`/`heightPx` in photo object for aspect ratio export.
+- **ExcelJS cell addressing:** All uses `ws.getCell(row, col)` with 1-based row/col from `DC144_CELL_MAP`.
+- **IDB store:** `dc144_sessions` in `ft_photos` v2. Key = `photoKey` from `ft_dc144_recent` rec.
+- **Auto-save:** 2000ms debounce on `input`/`change` events. Writes full session JSON to IDB + updates `ft_dc144_recent` chip. Status indicator: "Saving…" → "Draft Saved" (clears after 3s) in `#autosave-status` span.
+- **Filename pattern:** `DC-144-[TAB]-[YYYYMMDD]-[SafeProjectName].xlsx`
+- **Tab color palette:** a=indigo `#4338ca`, b=amber `#92400e`, c=teal `#0e7490`, d=rose `#9f1239`
+- **Template system:** `ft_dc144_templates` localStorage key (max 10). "Save as Template" saves header fields only. "Load" shows tab-picker overlay then starts new session with header pre-populated.
+- **Unit dropdowns (Tab A):** `QTY_UNIT_OPTIONS` is an array of `{value, label}` objects. Dropdown stores lowercase `'custom'` (display label "Custom"); legacy capital-C `'Custom'` drafts are migrated via `normalizeUnit()`. Helpers: `isCustomUnit(u)`, `getResolvedUnit(unit, customUnit)`. The custom text input uses the `hidden` and `disabled` attributes (NOT `style.display`) so the `[hidden]` CSS rule covers all states. Export: never writes the literal word "custom" — if `unit==='custom'` and `customUnit` is empty, the qty exports alone (no unit). `validateBeforeExport(session)` blocks export with a toast if any row has `unit==='custom'` but `customUnit===''`.
+- **Excel cell write helpers:** `setCellValue(ws,r,c,v)` writes the value only. `setCellValueReadable(ws,r,c,v,opts)` preserves existing template alignment and lets callers opt into `{wrap:true,top:true}` (remarks/observations) or `{shrink:true}` (long-text header fields like projectName/contractor/inspectorName/itemDescription, and item-row description/location/subcontractor cells). Never expands official row heights.
+- **Sheet pruning at export:** `pruneWorkbookToSelectedForm(wb, tab, includeAllForms=false)` runs after both assertions and before `writeBuffer()`. A-only exports drop the blank B/C/D sheets and keep only the active form + Photo Appendix. To revert, call with `includeAllForms=true` or remove the call.
+- **Dark mode:** Page ONLY reads `field_dark_mode` from localStorage at load — never writes it. No local dark toggle exists on this page.
+- **Navigation:** Topbar back button always shows "Home" (house icon). Form actionbar "← Back to Reports" button goes back to dashboard. Topbar back from dashboard triggers `exiting-to-hub` animation then navigates to `../index.html`. Topbar export button is ALWAYS hidden (`display:none`) — single export location is the actionbar only.
+- **Screen transitions:** `playScreenTransition(el, 'forward'|'back')` adds `.screen-entering-forward` (slide from right) or `.screen-entering-back` (slide from left) for 240ms. Called by `showDashboard()` and `showForm()`.
+- **Unified modal CSS:** `.dc-modal-backdrop`, `.dc-modal-box`, `.dc-modal-title`, `.dc-modal-actions` — template modal uses these plus its own `.template-modal-*` classes.
+- **Sticky actionbar gap fix:** `#form-actionbar` top CSS transitions between `var(--topbar-h)` (topbar visible) and `0px` (topbar hidden) via `initSmartHeader()` → `updateActionbarTop()`. **Mobile actionbar is a 2×2 grid** (`grid-template-areas: "back export" / "save template"`) — no horizontal scrolling. Export XLSX is always immediately visible. Title/divider/spacer/autosave-status are hidden on mobile. At ≤380px the Save-as-Template label collapses to just "Template" via a `font-size:0` + `::after` trick.
+- **Mobile data tables as cards:** desktop keeps the `.data-table` HTML table layout. At `@media (max-width: 720px)`, `thead` hides, each `tr` becomes a card (left-border accented in `--accent`, padding, shadow), `tr::before` shows "Entry N" in 13px accent-color uppercase using `data-entry-num`, and each `td::before` shows the column label (12px, var(--text), bold) using `data-label`. `buildTableRow()` writes both attributes (1-based `entryNum` for display, 0-based `rowIndex` for delete/reindex logic). On mobile, `qty-cell-wrap` becomes a 2-col grid with the custom unit input on its own full-width row. The header field-group `grid-template-columns` is forced to `1fr !important` on mobile so each header field gets a full-width row, and the weather AM/PM block stacks vertically instead of sitting side-by-side. Desktop `.qty-cell-wrap` uses `flex-wrap: nowrap` with `height: 32px` on both the number input and select so qty and unit never wrap to separate lines and stay vertically aligned.
+- **Empty-state hint:** `buildDynamicTable()` renders an `.empty-table-hint` block when rows.length === 0. Hidden when rows exist. Toggled by `addGridRow()`/`deleteGridRow()`. Each tab's Add Row button has a tab-specific label: "Add Pay Item" (a), "Add Paving Entry" (b), "Add Application Entry" (c), "Add Pile Entry" (d). Helps discoverability since A starts with 0 rows by default.
+- **Photo race-condition guard:** `pendingPhotoOps` counter increments on every `handlePhotoCaptureEvent()` call and decrements when `compressImage` callback fires. While > 0, `#autosave-status` shows "Processing N photo(s)…" (priority over autosave/saved messages). `handleExport()` blocks and polls every 400ms (timeout 30s) until `pendingPhotoOps === 0` to prevent the user clicking Export before compression completes. `insertPhotoPlaceholder()` shows a spinner card in the strip while compression runs.
+- **Header field shrinkToFit:** `DC144_SHRINK_HEADER_FIELDS` includes weather fields (`weatherAMCond/High/Low`, `weatherPMCond/High/Low`) so longer entries do not push the template's underline rules out of alignment. `DC144_CENTER_HEADER_FIELDS` sets `horizontal:center` + `vertical:middle` for weather cells to keep them visually centered on the official underline.
+- **Work hours alignment:** `patchWorkHours()` uses `setCellValueReadable()` with `{center: true, middle: true}` for both Regular and Overtime columns across ALL labor categories (RE through Loaned off Project) — fixes converted-xlsx templates that default to left/general alignment.
+- **Appendix footer text rewrite:** At export time, `rewriteAppendixFooterText(ws, session)` scans the worksheet bottom-up for the official "Attach additional sketches…" note and overwrites it with `"See Photo Appendix worksheet for attached photos"` (or `"See Photo Appendix when photos are attached"` when there are no photos). Cell alignment is forced to `horizontal:center, vertical:middle, wrapText:true`. Markers are matched case-insensitively from longest to shortest.
+- **Inspector signature pad (v1.16+):** New `session.inspectorSignature` field stores a PNG data URL drawn via the signature modal (`#signature-modal`). Triggered by the `.signature-trigger` pill button next to the Inspector Name field. Canvas is `200px` tall, scales to `devicePixelRatio` for crisp strokes. Supports PointerEvents (modern) with mouse/touch fallback (older Safari). `clearSignaturePad()` wipes to white, `saveSignaturePad()` stores the data URL on `currentSession.inspectorSignature` and triggers autosave. Clearing existing signature requires a `confirm()` dialog. On export, `embedInspectorSignature(wb, ws, session)` adds the PNG via `wb.addImage` + `ws.addImage` at `tl: { col: nameCol+1, row: nameRow-1 }` (0-based) with `ext: { width: 180, height: 40 }`. Old drafts without the field still load — the UI guards with `!!(session.inspectorSignature)`. **Canvas init (v1.17 fix):** `openSignaturePad()` uses a double `requestAnimationFrame` (not single) before calling `initSignatureCanvas()`, ensuring the modal finishes layout before `getBoundingClientRect()` runs. `initSignatureCanvas()` also guards `if (rect.width < 10) { setTimeout(initSignatureCanvas, 80); return; }` to retry if still not painted — prevents the silent 0×0 canvas bug that blocked all drawing.
+- **Setter helpers — Excel cell writes:** `setCellValueReadable(ws,r,c,v,opts)` accepts `{wrap, shrink, top, center, middle}`. `center` sets `horizontal:'center'`, `middle` sets `vertical:'middle'`. `top` sets `vertical:'top'`. Preserves all other existing alignment fields from the template.
+- **Form screen width:** `#form-screen .page-content { max-width: 1180px; }` (wider than dashboard 900px).
+- **Touch targets:** `@media (pointer: coarse)` sets `.btn-primary/.btn-secondary/.btn-export/.btn-template` to `min-height: 44px`.
 
 ### Hub install/bookmark popup
 
