@@ -1706,19 +1706,41 @@ function blobToDataURL(blob, cb) {
 
 /* ============================================================
    22. EXCEL EXPORT ENGINE
+   ----
+   The export MUST load the official DC-144 workbook
+   (data/dc144-template.xlsx) and write values into it only.
+   The NJDOT form layout, NJDOT logo, merged ranges, column
+   widths, row heights, borders, fonts, fills, alignments,
+   page setup, and images live in the template — do not
+   recreate, rebuild, or restyle them in code.
    ============================================================ */
 
-function loadDC144Template() {
-  if (templateCache) return Promise.resolve(templateCache);
-  return fetch(TEMPLATE_URL)
+var DC144_SHEET_NAME_BY_TAB = {
+  a: 'DC-144 (a) Daily Work Report',
+  b: 'DC-144 (b) HMA Supplement',
+  c: 'DC-144 (c) Bituminous Materials',
+  d: 'DC-144 (d) Pile Driving Suppl.'
+};
+
+function loadDc144TemplateWorkbook() {
+  if (templateCache) {
+    // Always reload — once we writeBuffer() on a cached workbook the
+    // underlying state can drift. Safer to fetch a fresh copy each export.
+    templateCache = null;
+  }
+  return fetch(TEMPLATE_URL, { cache: 'no-cache' })
     .then(function(res) {
-      if (!res.ok) throw new Error('Template not found (HTTP ' + res.status + ')');
+      if (!res.ok) {
+        throw new Error('Could not load official DC-144 template (HTTP ' + res.status + ' on ' + TEMPLATE_URL + '). The export requires the real NJDOT workbook at data/dc144-template.xlsx.');
+      }
       return res.arrayBuffer();
     })
     .then(function(buffer) {
       var wb = new ExcelJS.Workbook();
       return wb.xlsx.load(buffer).then(function() {
-        templateCache = wb;
+        if (wb.worksheets.length < 4) {
+          throw new Error('DC-144 template is not the official NJDOT workbook — expected sheets a/b/c/d, found ' + wb.worksheets.length + '.');
+        }
         return wb;
       });
     });
@@ -1742,19 +1764,17 @@ function handleExport() {
 
   setLoading(true);
 
-  loadDC144Template()
-    .then(function(wb) { return buildWorkbook(wb, currentSession); })
-    .catch(function(err) {
-      console.warn('Template load failed (' + err.message + '). Building minimal workbook.');
-      var wb  = new ExcelJS.Workbook();
-      wb.creator = 'NJDOT Field Tools DC-144';
-      wb.created = new Date();
-      wb.addWorksheet(TAB_META[currentSession.tab].sheetName);
-      return buildWorkbook(wb, currentSession);
+  // NO fallback to a blank workbook. If the template is missing, the
+  // export must fail with a clear error — a blank workbook is worse
+  // than no workbook because it silently strips the official layout.
+  loadDc144TemplateWorkbook()
+    .then(function(wb) { return buildDc144WorkbookFromTemplate(wb, currentSession); })
+    .then(function(wb) {
+      assertDc144TemplatePreserved(wb, currentSession.tab);
+      return wb.xlsx.writeBuffer();
     })
-    .then(function(wb) { return wb.xlsx.writeBuffer(); })
     .then(function(buffer) {
-      var session    = currentSession;
+      var session     = currentSession;
       var safeProject = (session.header.projectName || 'DC144').replace(/[^a-zA-Z0-9 _-]/g, '').replace(/\s+/g, '_').slice(0, 30);
       var safeDate    = (session.header.date || todayISO()).replace(/-/g, '');
       var filename    = 'DC-144-' + session.tab.toUpperCase() + '-' + safeDate + '-' + safeProject + '.xlsx';
@@ -1764,17 +1784,21 @@ function handleExport() {
     })
     .catch(function(err) {
       setLoading(false);
-      showToast('Export failed: ' + err.message, 'err', 4000);
+      showToast('Export failed: ' + err.message, 'err', 6000);
       console.error('DC-144 export error:', err);
     });
 }
 
-function buildWorkbook(wb, session) {
+function buildDc144WorkbookFromTemplate(wb, session) {
   var tab       = session.tab;
-  var sheetName = TAB_META[tab].sheetName;
-  var ws        = wb.getWorksheet(sheetName) || wb.getWorksheet(1);
-  if (!ws) ws   = wb.addWorksheet(sheetName);
+  var sheetName = DC144_SHEET_NAME_BY_TAB[tab];
+  var ws        = wb.getWorksheet(sheetName);
+  if (!ws) {
+    throw new Error('Official DC-144 worksheet "' + sheetName + '" missing from template.');
+  }
 
+  // Write values ONLY. Do not touch merges, borders, fonts, fills,
+  // alignments, column widths, row heights, images, or page setup.
   patchHeaderFields(ws, session);
   patchItemHeader(ws, session);
   patchDataRows(ws, session);
@@ -1784,22 +1808,33 @@ function buildWorkbook(wb, session) {
   if (tab === 'c') patchMaterialInfo(ws, session);
   if (tab === 'd') patchPileDescriptor(ws, session);
 
-  // Apply programmatic borders to grid data rows
-  var sectionMap = DC144_CELL_MAP[tab];
-  var gridMap    = sectionMap.payItems || sectionMap.hmaPavingRows || sectionMap.applicationRows || sectionMap.pileRows;
-  if (gridMap) {
-    var colNums    = Object.keys(gridMap.cols).map(function(k) { return gridMap.cols[k]; });
-    var maxColNum  = Math.max.apply(null, colNums);
-    applyDataRowBorders(ws, gridMap.baseRow, gridMap.baseRow + gridMap.maxRows - 1, 1, maxColNum);
-  }
-
-  // Ensure remarks zones are merged across columns
-  applyRemarksMerges(ws, tab);
-
+  // Photos live on a separate appendix sheet. Adding the appendix
+  // must never reach back into the official form worksheet.
   if (session.photos && session.photos.length > 0) {
     appendPhotoSheet(wb, session.photos);
   }
   return wb;
+}
+
+function assertDc144TemplatePreserved(wb, tab) {
+  var selectedTab = tab || 'a';
+  var sheetName   = DC144_SHEET_NAME_BY_TAB[selectedTab];
+  var ws          = wb.getWorksheet(sheetName);
+  if (!ws) {
+    throw new Error('DC-144 worksheet "' + sheetName + '" missing after export build.');
+  }
+  // Probe the model — ExcelJS exposes merges via either ws.model.merges
+  // (array of merge ranges) or as keys on the merges object after .load().
+  var modelMerges = (ws.model && ws.model.merges) || [];
+  var mergeCount  = Array.isArray(modelMerges) ? modelMerges.length : Object.keys(modelMerges).length;
+  var imageCount  = (typeof ws.getImages === 'function') ? (ws.getImages() || []).length : 0;
+
+  if (selectedTab === 'a' && (mergeCount < 90 || imageCount < 1)) {
+    throw new Error(
+      'DC-144 template layout was not preserved (merges=' + mergeCount + ', images=' + imageCount +
+      '). The data/dc144-template.xlsx file is not the official NJDOT workbook. Re-convert dc144.xls to .xlsx with all formatting and the NJDOT logo intact, then replace data/dc144-template.xlsx.'
+    );
+  }
 }
 
 function setCellValue(ws, r, c, value) {
@@ -1957,44 +1992,6 @@ function patchPileDescriptor(ws, session) {
   setCellValue(ws, map.structure.r,  map.structure.c,  pd.structure  || '');
   setCellValue(ws, map.location.r,   map.location.c,   pd.location   || '');
   setCellValue(ws, map.typeHammer.r, map.typeHammer.c, pd.typeHammer || '');
-}
-
-/* ── Excel formatting helpers ────────────────────────────────── */
-function applyDataRowBorders(ws, startRow, endRow, startCol, endCol) {
-  var thinBorder = { style: 'thin', color: { argb: 'FFB0B8C0' } };
-  var border     = { top: thinBorder, left: thinBorder, bottom: thinBorder, right: thinBorder };
-  for (var r = startRow; r <= endRow; r++) {
-    for (var c = startCol; c <= endCol; c++) {
-      try {
-        var cell = ws.getCell(r, c);
-        if (!cell.border) cell.border = border;
-      } catch(e) {}
-    }
-  }
-}
-
-function applyRemarksMerges(ws, tab) {
-  var merges = [];
-  if (tab === 'a') {
-    var rm = DC144_CELL_MAP.a.remarks;
-    merges = [
-      [rm.environmental.r,    rm.environmental.c,    rm.environmental.r    + 2, 15],
-      [rm.trafficControl.r,   rm.trafficControl.c,   rm.trafficControl.r   + 2, 15],
-      [rm.workObservations.r, rm.workObservations.c, rm.workObservations.r + 4, 15]
-    ];
-  } else if (tab === 'b') {
-    var wobB2 = DC144_CELL_MAP.b.workObservations;
-    merges = [[wobB2.r, wobB2.c, wobB2.r + 3, 17]];
-  } else if (tab === 'c') {
-    var wobC2 = DC144_CELL_MAP.c.workObservations;
-    merges = [[wobC2.r, wobC2.c, wobC2.r + 3, 17]];
-  } else if (tab === 'd') {
-    var wobD2 = DC144_CELL_MAP.d.workObservations;
-    merges = [[wobD2.r, wobD2.c, wobD2.r + 3, 15]];
-  }
-  merges.forEach(function(m) {
-    try { ws.mergeCells(m[0], m[1], m[2], m[3]); } catch(e) {}
-  });
 }
 
 /* ── Photo Appendix sheet ────────────────────────────────────── */
