@@ -9,13 +9,25 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Dark mode applied before first paint to prevent flash -->
-  <script>if(localStorage.getItem('field_dark_mode')==='1')document.documentElement.setAttribute('data-dark','');</script>
-  <!-- Hub entry animation -->
-  <script>try{if(sessionStorage.getItem('ft_opening_from_hub')==='1'){sessionStorage.removeItem('ft_opening_from_hub');document.documentElement.classList.add('entering-from-hub');setTimeout(function(){document.documentElement.classList.remove('entering-from-hub');},420);}}catch(_){}</script>
+  <!-- Dark mode applied before first paint — reads global state, never writes it -->
+  <script>
+    if (localStorage.getItem('field_dark_mode') === '1') {
+      document.documentElement.setAttribute('data-dark', '');
+    }
+  </script>
+  <!-- Hub entry animation — checks sessionStorage flag set by hub card click -->
+  <script>
+    try {
+      if (sessionStorage.getItem('ft_opening_from_hub') === '1') {
+        sessionStorage.removeItem('ft_opening_from_hub');
+        document.documentElement.classList.add('entering-from-hub');
+        setTimeout(function () { document.documentElement.classList.remove('entering-from-hub'); }, 420);
+      }
+    } catch (_) {}
+  </script>
 
   <style>
-    /* ── Design tokens (mirrors all other Field Tools pages) ───────────── */
+    /* ── Design tokens (mirrors all other Field Tools pages) ─────────────── */
     :root {
       --bg: #eef0f4; --surface: #ffffff; --border: #d1d9e0;
       --border-lo: #e8ecf0; --accent: #1a56db;
@@ -25,6 +37,7 @@
       --radius-sm: 5px; --radius: 8px; --radius-lg: 12px;
       --sans: 'Inter', system-ui, -apple-system, Arial, sans-serif;
       --transition: 0.14s ease;
+      --topbar-h: 58px;
     }
     html { background: var(--bg); }
     html[data-dark] {
@@ -40,7 +53,7 @@
       animation: pageFadeIn 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
-    /* ── Animations ─────────────────────────────────────────────────────── */
+    /* ── Hub entry / exit animations ─────────────────────────────────────── */
     @keyframes pageFadeIn {
       from { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.99); }
       to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
@@ -49,6 +62,11 @@
       0%   { opacity: 0; transform: translate3d(-18vw, 0, 0) scale(0.98); }
       100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
     }
+    @keyframes slideOutLeft {
+      0%   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+      50%  { opacity: 0; transform: translate3d(-30vw, 0, 0) scale(0.98); }
+      100% { opacity: 0; transform: translate3d(-40vw, 0, 0) scale(0.97); }
+    }
     html.entering-from-hub body {
       opacity: 0; transform: translate3d(-18vw, 0, 0) scale(0.98);
       animation: slideInFromLeft 380ms cubic-bezier(0.22, 1, 0.36, 1) both !important;
@@ -56,28 +74,38 @@
       -webkit-backface-visibility: hidden;
     }
     html.entering-from-hub { background: var(--bg); }
+    html.exiting-to-hub body {
+      animation: slideOutLeft 360ms cubic-bezier(0.65, 0, 0.35, 1) both !important;
+      overflow: hidden; will-change: transform, opacity;
+      backface-visibility: hidden; -webkit-backface-visibility: hidden;
+      contain: layout paint style;
+    }
+    html.exiting-to-hub { background: var(--bg); }
     html.theme-transitioning * {
       transition:
         background-color 420ms cubic-bezier(0.65, 0, 0.35, 1),
         color 420ms cubic-bezier(0.65, 0, 0.35, 1),
         border-color 420ms cubic-bezier(0.65, 0, 0.35, 1) !important;
     }
+
+    /* ── Toast ───────────────────────────────────────────────────────────── */
     @keyframes toastIn {
       from { opacity: 0; transform: translateY(14px) scale(0.95); }
       to   { opacity: 1; transform: translateY(0) scale(1); }
     }
-    .toast.out { opacity: 0; transform: translateY(8px) scale(0.97); transition: opacity 240ms ease, transform 240ms ease; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .spin { animation: spin 0.7s linear infinite; }
+    .toast.out { opacity: 0; transform: translateY(8px) scale(0.97); transition: opacity 240ms ease, transform 240ms ease; }
 
-    /* ── Topbar (identical pattern to all tool pages) ───────────────────── */
+    /* ── Topbar ──────────────────────────────────────────────────────────── */
     #topbar {
-      height: 58px; background: #1e2939;
+      height: var(--topbar-h); background: #1e2939;
       border-bottom: 2px solid #E5B33B;
       display: flex; align-items: center; padding: 0 20px; gap: 14px;
       flex-shrink: 0; position: sticky; top: 0; z-index: 600;
       will-change: transform;
-      transition: transform 460ms cubic-bezier(0.65, 0, 0.35, 1), opacity 460ms cubic-bezier(0.65, 0, 0.35, 1);
+      transition: transform 460ms cubic-bezier(0.65, 0, 0.35, 1),
+                  opacity 460ms cubic-bezier(0.65, 0, 0.35, 1);
     }
     #topbar.header-hidden { transform: translateY(-100%); opacity: 0; pointer-events: none; }
     .header-hover-zone {
@@ -91,29 +119,23 @@
       border-radius: 999px; color: #E5B33B; text-decoration: none;
       font-size: 12px; font-weight: 600; letter-spacing: 0.02em; cursor: pointer;
       transition: background 0.15s, border-color 0.15s, color 0.15s;
-      flex-shrink: 0; white-space: nowrap; background: none; border: 1px solid rgba(229,179,59,0.30);
+      flex-shrink: 0; white-space: nowrap; font-family: var(--sans);
     }
-    .topbar-back { background: rgba(229,179,59,0.08); }
     .topbar-back:hover { background: #C9971A; border-color: #C9971A; color: #fff; }
+    .topbar-back:active { transform: scale(0.96); transition: transform 80ms ease-out; }
     .topbar-div { width: 1px; height: 22px; background: #374557; flex-shrink: 0; }
     .topbar-spacer { flex: 1; }
-    #topbar-title { color: #fff; font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
+    #topbar-title {
+      color: #fff; font-size: 16px; font-weight: 600;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px;
+    }
     .state-badge {
       background: rgba(229,179,59,0.15); border: 1px solid rgba(229,179,59,0.3);
       color: #E5B33B; font-size: 10px; font-weight: 700;
       padding: 2px 9px; border-radius: 100px; letter-spacing: 0.06em; flex-shrink: 0;
     }
-    .dark-toggle {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 34px; height: 34px;
-      background: rgba(229,179,59,0.08); border: 1px solid rgba(229,179,59,0.28);
-      border-radius: 50%; cursor: pointer; color: #E5B33B; flex-shrink: 0;
-      transition: background 0.15s, border-color 0.15s;
-    }
-    .dark-toggle:hover { background: rgba(229,179,59,0.18); border-color: #E5B33B; }
-    .dark-toggle svg { width: 15px; height: 15px; display: block; }
 
-    /* ── Toast ──────────────────────────────────────────────────────────── */
+    /* ── Toast container ─────────────────────────────────────────────────── */
     #toast-ct {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
       z-index: 9000; display: flex; flex-direction: column;
@@ -131,7 +153,7 @@
     .toast.err  { background: #7f1d1d; color: #fecaca; border: 1px solid #991b1b; }
     .toast.info { background: #1e2939; color: #E5B33B; border: 1px solid rgba(229,179,59,0.3); }
 
-    /* ── Focus ring ─────────────────────────────────────────────────────── */
+    /* ── Focus ring ──────────────────────────────────────────────────────── */
     :where(button,a,input,textarea,select,[tabindex]):focus-visible {
       outline: 3px solid rgba(229,179,59,0.95); outline-offset: 3px;
       box-shadow: 0 0 0 5px rgba(26,86,219,0.18);
@@ -140,8 +162,8 @@
       outline-color: #FEE9A1; box-shadow: 0 0 0 5px rgba(254,233,161,0.16);
     }
 
-    /* ── Page layout ────────────────────────────────────────────────────── */
-    .page-content { max-width: 900px; margin: 0 auto; padding: 20px 16px 72px; }
+    /* ── Page layout ─────────────────────────────────────────────────────── */
+    .page-content { max-width: 900px; margin: 0 auto; padding: 20px 16px 80px; }
     .dash-hero { text-align: center; padding: 36px 20px 28px; }
     .dash-hero h1 { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; margin-bottom: 8px; }
     .dash-hero p { font-size: 15px; color: var(--muted); }
@@ -151,19 +173,21 @@
       border-bottom: 2px solid var(--border-lo);
     }
 
-    /* ── Tab selection cards ────────────────────────────────────────────── */
-    .tab-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: 14px; margin-bottom: 32px; }
+    /* ── Tab selection cards ─────────────────────────────────────────────── */
+    .tab-cards-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+      gap: 14px; margin-bottom: 32px;
+    }
     .tab-card {
       background: var(--surface); border: 1.5px solid var(--border-lo);
       border-radius: var(--radius-lg); padding: 20px;
       cursor: pointer; text-align: left; width: 100%;
       transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
       display: flex; flex-direction: column; gap: 10px;
-      position: relative; overflow: hidden;
+      position: relative; overflow: hidden; font-family: var(--sans);
     }
-    .tab-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
     .tab-card:hover { border-color: var(--border); box-shadow: 0 4px 18px rgba(0,0,0,0.09); transform: translateY(-1px); }
-    .tab-card:active { transform: scale(0.98) translateY(0); }
+    .tab-card:active { transform: scale(0.98) translateY(0); transition: transform 80ms ease-out; }
     .tab-card-top { display: flex; align-items: center; gap: 12px; }
     .tab-badge {
       display: inline-flex; align-items: center; justify-content: center;
@@ -176,7 +200,7 @@
     .tab-card-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
     .tab-card-arrow { color: var(--muted); margin-top: auto; display: flex; justify-content: flex-end; }
 
-    /* ── Session chips ──────────────────────────────────────────────────── */
+    /* ── Session chips (recent drafts) ───────────────────────────────────── */
     .session-chips-list { display: flex; flex-direction: column; gap: 10px; }
     .session-chip {
       background: var(--surface); border: 1.5px solid var(--border-lo);
@@ -202,52 +226,138 @@
     .session-chip-del {
       background: none; border: none; cursor: pointer; color: var(--muted);
       padding: 5px; border-radius: 4px; line-height: 1;
-      transition: color 0.12s, background 0.12s; flex-shrink: 0;
+      transition: color 0.12s, background 0.12s; flex-shrink: 0; font-family: var(--sans);
     }
     .session-chip-del:hover { color: var(--red); background: rgba(220,38,38,0.08); }
     .chips-empty { text-align: center; padding: 24px 0; color: var(--muted); font-size: 14px; }
 
-    /* ── Form action bar (sticky below topbar) ──────────────────────────── */
+    /* ── Template chips ───────────────────────────────────────────────────── */
+    .template-chip {
+      background: var(--surface); border: 1.5px solid var(--border-lo);
+      border-radius: var(--radius); padding: 10px 14px;
+      display: flex; align-items: center; gap: 10px;
+      transition: border-color 0.14s, box-shadow 0.14s;
+    }
+    .template-chip:hover { border-color: var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .template-chip-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; border-radius: 8px;
+      background: rgba(67,56,202,0.10); color: #4338ca; flex-shrink: 0;
+    }
+    html[data-dark] .template-chip-icon { background: rgba(99,102,241,0.18); color: #818cf8; }
+    .template-chip-info { flex: 1; min-width: 0; }
+    .template-chip-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .template-chip-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .template-chip-load {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 11px; background: var(--accent-lo); color: var(--accent);
+      border: 1px solid rgba(26,86,219,0.22); border-radius: var(--radius-sm);
+      font-family: var(--sans); font-size: 11px; font-weight: 600; cursor: pointer;
+      transition: background 0.12s; white-space: nowrap; flex-shrink: 0;
+    }
+    .template-chip-load:hover { background: rgba(26,86,219,0.14); border-color: var(--accent); }
+    .template-chip-del {
+      background: none; border: none; cursor: pointer; color: var(--muted);
+      padding: 4px; border-radius: 4px; line-height: 1; flex-shrink: 0; font-family: var(--sans);
+      transition: color 0.12s, background 0.12s;
+    }
+    .template-chip-del:hover { color: var(--red); background: rgba(220,38,38,0.08); }
+
+    /* ── Template name modal overlay ─────────────────────────────────────── */
+    #template-modal {
+      display: none; position: fixed; inset: 0; z-index: 8000;
+      background: rgba(0,0,0,0.45); align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    #template-modal.open { display: flex; }
+    .template-modal-box {
+      background: var(--surface); border-radius: var(--radius-lg); padding: 24px;
+      width: 100%; max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 1.5px solid var(--border);
+    }
+    .template-modal-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+    .template-modal-input {
+      width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
+      font-family: var(--sans); font-size: 14px; outline: none; margin-bottom: 16px;
+      transition: border-color 0.12s;
+    }
+    .template-modal-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,86,219,0.11); }
+    .template-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* ── Form action bar (sticky below topbar, no gap on scroll) ─────────── */
     #form-actionbar {
       background: var(--surface); border-bottom: 1px solid var(--border-lo);
-      padding: 10px 20px; display: flex; align-items: center; gap: 10px;
-      flex-shrink: 0; position: sticky; top: 58px; z-index: 500;
+      padding: 9px 16px; display: flex; align-items: center; gap: 8px;
+      flex-shrink: 0; position: sticky; top: var(--topbar-h); z-index: 500;
+      transition: top 460ms cubic-bezier(0.65, 0, 0.35, 1);
     }
-    #form-actionbar-title { font-size: 14px; font-weight: 700; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #form-actionbar-back {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 12px 6px 9px;
+      background: rgba(26,86,219,0.07); border: 1px solid rgba(26,86,219,0.22);
+      border-radius: 999px; color: var(--accent);
+      font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: background 0.13s, border-color 0.13s; white-space: nowrap; flex-shrink: 0;
+    }
+    #form-actionbar-back:hover { background: rgba(26,86,219,0.13); border-color: var(--accent); }
+    #form-actionbar-back:active { transform: scale(0.96); transition: transform 80ms ease-out; }
+    .actionbar-divider { width: 1px; height: 20px; background: var(--border-lo); flex-shrink: 0; margin: 0 2px; }
+    #form-actionbar-title {
+      font-size: 13px; font-weight: 700; color: var(--text); flex: 1;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+    }
+    #autosave-status {
+      font-size: 11px; font-weight: 500; color: var(--muted);
+      white-space: nowrap; flex-shrink: 0; transition: color 0.2s;
+    }
 
-    /* ── Buttons ────────────────────────────────────────────────────────── */
+    /* ── Buttons ─────────────────────────────────────────────────────────── */
     .btn-primary {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 8px 16px; background: var(--accent); color: #fff;
       border: none; border-radius: var(--radius-sm);
       font-family: var(--sans); font-size: 13px; font-weight: 600; cursor: pointer;
-      transition: opacity 0.14s, box-shadow 0.14s; white-space: nowrap; min-height: 36px;
+      transition: opacity 0.14s, box-shadow 0.14s; white-space: nowrap; min-height: 34px;
     }
     .btn-primary:hover { opacity: 0.88; box-shadow: 0 2px 8px rgba(26,86,219,0.32); }
+    .btn-primary:active { transform: scale(0.96); transition: transform 80ms ease-out; }
     .btn-secondary {
       display: inline-flex; align-items: center; gap: 6px;
-      padding: 8px 14px; background: var(--accent-lo); color: var(--accent);
+      padding: 7px 13px; background: var(--accent-lo); color: var(--accent);
       border: 1.5px solid rgba(26,86,219,0.22); border-radius: var(--radius-sm);
-      font-family: var(--sans); font-size: 13px; font-weight: 600; cursor: pointer;
-      transition: background 0.14s, border-color 0.14s; white-space: nowrap; min-height: 36px;
+      font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: background 0.14s, border-color 0.14s; white-space: nowrap; min-height: 34px;
     }
     .btn-secondary:hover { background: rgba(26,86,219,0.13); border-color: var(--accent); }
+    .btn-secondary:active { transform: scale(0.96); transition: transform 80ms ease-out; }
     .btn-export {
       display: inline-flex; align-items: center; gap: 6px;
-      padding: 8px 14px; background: #166534; color: #bbf7d0;
+      padding: 7px 13px; background: #166534; color: #bbf7d0;
       border: 1px solid #15803d; border-radius: var(--radius-sm);
-      font-family: var(--sans); font-size: 13px; font-weight: 600; cursor: pointer;
-      transition: opacity 0.14s; white-space: nowrap; min-height: 36px;
+      font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: opacity 0.14s; white-space: nowrap; min-height: 34px;
     }
     .btn-export:hover { opacity: 0.88; }
+    .btn-export:active { transform: scale(0.96); transition: transform 80ms ease-out; }
     .btn-export:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-template {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 7px 12px; background: rgba(67,56,202,0.08); color: #4338ca;
+      border: 1px solid rgba(67,56,202,0.25); border-radius: var(--radius-sm);
+      font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: background 0.13s; white-space: nowrap; min-height: 34px; flex-shrink: 0;
+    }
+    html[data-dark] .btn-template { background: rgba(99,102,241,0.12); color: #818cf8; border-color: rgba(99,102,241,0.28); }
+    .btn-template:hover { background: rgba(67,56,202,0.15); }
+    .btn-template:active { transform: scale(0.96); transition: transform 80ms ease-out; }
     .btn-add-row {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 9px 14px; background: var(--accent-lo); color: var(--accent);
       border: 1.5px solid rgba(26,86,219,0.2); border-radius: var(--radius-sm);
       font-family: var(--sans); font-size: 13px; font-weight: 600; cursor: pointer;
       transition: background 0.12s, border-color 0.12s;
-      min-height: 44px; /* touch-friendly */
+      min-height: 44px;
     }
     .btn-add-row:hover:not(:disabled) { background: rgba(26,86,219,0.13); border-color: var(--accent); }
     .btn-add-row:disabled { opacity: 0.38; cursor: not-allowed; }
@@ -256,12 +366,11 @@
       width: 30px; height: 30px; min-height: 44px; padding: 7px 0;
       background: rgba(220,38,38,0.07); color: var(--red);
       border: 1px solid rgba(220,38,38,0.18); border-radius: 6px;
-      font-family: var(--sans); cursor: pointer;
-      transition: background 0.12s; flex-shrink: 0;
+      font-family: var(--sans); cursor: pointer; transition: background 0.12s; flex-shrink: 0;
     }
     .btn-del-row:hover { background: rgba(220,38,38,0.16); }
 
-    /* ── Section cards ──────────────────────────────────────────────────── */
+    /* ── Section cards ───────────────────────────────────────────────────── */
     .section-card {
       background: var(--surface); border: 1.5px solid var(--border-lo);
       border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 16px;
@@ -277,7 +386,7 @@
     }
     .section-card-body { padding: 18px; }
 
-    /* ── Form field inputs ──────────────────────────────────────────────── */
+    /* ── Form field inputs ───────────────────────────────────────────────── */
     .field-label { display: block; font-size: 12px; font-weight: 600; color: var(--muted2); margin-bottom: 5px; }
     .field-input {
       width: 100%; padding: 9px 11px;
@@ -291,20 +400,23 @@
     .field-group { display: grid; gap: 14px; margin-bottom: 14px; }
     .field-group:last-child { margin-bottom: 0; }
 
-    /* ── Remarks textarea ───────────────────────────────────────────────── */
+    /* ── Remarks textarea ────────────────────────────────────────────────── */
     .remarks-textarea {
       width: 100%; min-height: 110px; padding: 10px 12px;
       border: 1.5px solid var(--border); border-radius: var(--radius-sm);
       background: var(--surface); color: var(--text);
       font-family: var(--sans); font-size: 13px; line-height: 1.6;
-      resize: vertical; outline: none;
-      transition: border-color var(--transition);
+      resize: vertical; outline: none; transition: border-color var(--transition);
     }
     .remarks-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,86,219,0.09); }
     .remarks-textarea::placeholder { color: var(--muted); }
 
-    /* ── Dynamic data table ─────────────────────────────────────────────── */
-    .data-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); -webkit-overflow-scrolling: touch; }
+    /* ── Dynamic data table ──────────────────────────────────────────────── */
+    .data-table-wrap {
+      overflow-x: auto; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); -webkit-overflow-scrolling: touch;
+      white-space: nowrap;
+    }
     .data-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 600px; }
     .data-table thead th {
       background: rgba(26,86,219,0.06); color: var(--muted2);
@@ -315,19 +427,39 @@
     html[data-dark] .data-table thead th { background: rgba(26,86,219,0.13); }
     .data-table tbody tr { border-bottom: 1px solid var(--border-lo); }
     .data-table tbody tr:last-child { border-bottom: none; }
-    .data-table tbody td { padding: 5px 5px; vertical-align: middle; }
+    .data-table tbody td { padding: 4px 4px; vertical-align: middle; }
     .data-table tfoot td { padding: 8px 7px; background: rgba(26,86,219,0.04); border-top: 1.5px solid var(--border); }
     .grid-input {
       width: 100%; padding: 6px 7px; min-height: 32px;
       border: 1px solid var(--border); border-radius: 4px;
       background: var(--surface); color: var(--text);
       font-family: var(--sans); font-size: 12px; outline: none;
-      transition: border-color 0.11s;
+      transition: border-color 0.11s; flex-shrink: 1;
     }
     .grid-input:focus { border-color: var(--accent); }
+    .grid-select {
+      padding: 5px 4px; min-height: 32px;
+      border: 1px solid var(--border); border-radius: 4px;
+      background: var(--surface); color: var(--text);
+      font-family: var(--sans); font-size: 11px; outline: none;
+      cursor: pointer; transition: border-color 0.11s;
+    }
+    .grid-select:focus { border-color: var(--accent); }
+    .qty-cell-wrap {
+      display: flex; align-items: center; gap: 3px;
+    }
+    .qty-cell-wrap .grid-input { min-width: 55px; width: 55px; flex-shrink: 0; }
+    .qty-custom-input {
+      width: 55px; min-width: 50px; padding: 5px 5px; min-height: 32px;
+      border: 1px solid var(--border); border-radius: 4px;
+      background: var(--surface); color: var(--text);
+      font-family: var(--sans); font-size: 11px; outline: none;
+      transition: border-color 0.11s; flex-shrink: 0; display: none;
+    }
+    .qty-custom-input:focus { border-color: var(--accent); }
     .row-num { font-size: 11px; font-weight: 600; color: var(--muted); text-align: center; padding: 0 4px; min-width: 24px; }
 
-    /* ── Row limit notice ───────────────────────────────────────────────── */
+    /* ── Row limit notice ────────────────────────────────────────────────── */
     .row-limit-notice {
       margin-top: 10px; padding: 10px 14px;
       background: rgba(26,86,219,0.07); border: 1px solid rgba(26,86,219,0.22);
@@ -335,7 +467,7 @@
       display: flex; align-items: center; gap: 8px; line-height: 1.4;
     }
 
-    /* ── Work hours matrix ──────────────────────────────────────────────── */
+    /* ── Work hours matrix ───────────────────────────────────────────────── */
     .hours-table { width: 100%; border-collapse: collapse; }
     .hours-table thead th {
       text-align: left; font-size: 10px; font-weight: 700;
@@ -357,7 +489,7 @@
     }
     .hours-input:focus { border-color: var(--accent); }
 
-    /* ── Photo strip ────────────────────────────────────────────────────── */
+    /* ── Photo strip ─────────────────────────────────────────────────────── */
     .photo-strip { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; align-items: flex-start; }
     .photo-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .photo-thumb {
@@ -393,25 +525,26 @@
     }
     .photo-add-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-    /* ── Temperature block ──────────────────────────────────────────────── */
+    /* ── Temperature block ───────────────────────────────────────────────── */
     .temp-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
     .temp-label { font-size: 11px; font-weight: 700; color: var(--muted2); text-align: center; margin-bottom: 4px; letter-spacing: 0.04em; }
 
-    /* ── Scrollbar ──────────────────────────────────────────────────────── */
+    /* ── Scrollbar ───────────────────────────────────────────────────────── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(100,116,139,0.35); border-radius: 3px; }
 
-    /* ── Responsive ─────────────────────────────────────────────────────── */
+    /* ── Responsive ──────────────────────────────────────────────────────── */
     @media (max-width: 720px) {
       #topbar { padding: 0 12px; gap: 8px; }
       #topbar-title { font-size: 13px; max-width: 160px; }
-      .page-content { padding: 12px 10px 72px; }
+      .page-content { padding: 12px 10px 80px; }
       .section-card-body { padding: 14px; }
       .dash-hero { padding: 24px 16px 20px; }
       .dash-hero h1 { font-size: 22px; }
-      #form-actionbar { padding: 8px 10px; gap: 8px; }
-      .btn-primary, .btn-secondary, .btn-export { padding: 7px 10px; font-size: 12px; }
+      #form-actionbar { padding: 7px 10px; gap: 6px; flex-wrap: nowrap; }
+      #form-actionbar-title { display: none; }
+      .btn-secondary, .btn-export, .btn-template { padding: 6px 9px; font-size: 11px; }
       .temp-grid { grid-template-columns: 1fr 1fr; }
       .hours-input { width: 65px; }
     }
@@ -419,19 +552,25 @@
       #topbar-title { display: none; }
       .state-badge { display: none; }
       .tab-cards-grid { grid-template-columns: 1fr; }
+      #autosave-status { display: none; }
+    }
+
+    /* ── Reduced motion ──────────────────────────────────────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
     }
   </style>
 </head>
 <body>
   <div class="header-hover-zone" aria-hidden="true"></div>
 
-  <!-- ── Topbar ──────────────────────────────────────────────────────── -->
-  <div id="topbar">
-    <button id="topbar-back-btn" class="topbar-back" onclick="handleTopbarBack()">
+  <!-- ── Topbar ──────────────────────────────────────────────────────────── -->
+  <div id="topbar" role="banner">
+    <button id="topbar-back-btn" class="topbar-back" onclick="handleTopbarBack()" aria-label="Go to Home">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <span id="topbar-back-label">Home</span>
+      Home
     </button>
-    <div class="topbar-div"></div>
+    <div class="topbar-div" aria-hidden="true"></div>
     <span id="topbar-title">DC-144 Field Form</span>
     <span class="state-badge">NJ DOT</span>
     <div class="topbar-spacer"></div>
@@ -439,16 +578,28 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Export XLSX
     </button>
-    <button class="dark-toggle" id="dark-toggle-btn" onclick="toggleDark()" aria-label="Toggle dark mode">
-      <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-      <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-    </button>
   </div>
 
-  <!-- ── Toast container ─────────────────────────────────────────────── -->
+  <!-- ── Toast container ─────────────────────────────────────────────────── -->
   <div id="toast-ct" role="status" aria-live="polite" aria-atomic="false"></div>
 
-  <!-- ── Dashboard screen ───────────────────────────────────────────── -->
+  <!-- ── Template name modal ─────────────────────────────────────────────── -->
+  <div id="template-modal" role="dialog" aria-modal="true" aria-labelledby="tpl-modal-title">
+    <div class="template-modal-box">
+      <div class="template-modal-title" id="tpl-modal-title">Save as Template</div>
+      <input id="template-name-input" class="template-modal-input" type="text" maxlength="60"
+        placeholder="Template name (e.g. Route 9 Overlay Project)" aria-label="Template name">
+      <div class="template-modal-actions">
+        <button class="btn-secondary" onclick="closeTemplateModal()">Cancel</button>
+        <button class="btn-primary" onclick="confirmSaveTemplate()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save Template
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Dashboard screen ────────────────────────────────────────────────── -->
   <div id="dashboard-screen">
     <div class="dash-hero">
       <h1>DC-144 Field Form</h1>
@@ -457,36 +608,50 @@
     <div class="page-content" style="padding-top:0;">
       <p class="sec-label">Select Report Type</p>
       <div id="tab-cards-grid" class="tab-cards-grid"></div>
+
       <p class="sec-label">Recent Drafts</p>
       <div id="recent-chips-container"></div>
+
+      <div id="templates-section" style="margin-top:28px;">
+        <p class="sec-label">Your Templates</p>
+        <div id="templates-chips-container"></div>
+      </div>
     </div>
   </div>
 
-  <!-- ── Form screen (hidden until tab is selected) ─────────────────── -->
+  <!-- ── Form screen (hidden until tab is selected) ──────────────────────── -->
   <div id="form-screen" style="display:none;">
-    <div id="form-actionbar">
-      <button class="topbar-back" style="background:rgba(26,86,219,0.07);border-color:rgba(26,86,219,0.25);color:var(--accent);" onclick="showDashboard()">
+    <!-- Sticky sub-header — tracks topbar hide/show via JS -->
+    <div id="form-actionbar" role="toolbar" aria-label="Form actions">
+      <button id="form-actionbar-back" onclick="showDashboard()" aria-label="Back to report selection">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
-        Dashboard
+        Back
       </button>
+      <div class="actionbar-divider" aria-hidden="true"></div>
       <span id="form-actionbar-title">Report</span>
       <div style="flex:1;"></div>
-      <button class="btn-secondary" onclick="performAutosave(true)" aria-label="Save draft">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      <span id="autosave-status" aria-live="polite" aria-label="Auto-save status"></span>
+      <button class="btn-secondary" onclick="performAutosave(true)" aria-label="Save draft now">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         Save Draft
       </button>
-      <button id="actionbar-export-btn" class="btn-export" onclick="handleExport()" aria-label="Export Excel file">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <button class="btn-template" id="save-template-btn" onclick="openTemplateModal()" aria-label="Save current form as a reusable template">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        Save as Template
+      </button>
+      <button id="actionbar-export-btn" class="btn-export" onclick="handleExport()" aria-label="Export to Excel">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Export XLSX
       </button>
     </div>
     <div id="form-content" class="page-content"></div>
   </div>
 
-  <!-- Hidden file input — camera/gallery capture -->
-  <input type="file" id="photo-file-input" accept="image/*" capture="environment" style="display:none;" aria-hidden="true">
+  <!-- Hidden photo file input — triggers camera or gallery on mobile -->
+  <input type="file" id="photo-file-input" accept="image/*" capture="environment"
+    style="display:none;" aria-hidden="true">
 
-  <!-- ExcelJS via CDN (browser UMD build) -->
+  <!-- ExcelJS via CDN (browser UMD build) — must load before dc144.js -->
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <!-- DC-144 application logic -->
   <script src="../js/dc144.js"></script>

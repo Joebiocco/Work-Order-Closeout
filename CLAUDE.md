@@ -24,7 +24,7 @@
 
 > **Purpose:** This file is the authoritative quick-reference for the NJDOT Field Tools project. Read this FIRST before reading any HTML file. It contains every architectural decision, storage key, design token, and critical constraint so we can make changes without re-reading 6,800+ lines of HTML.
 >
-> **Last updated:** 2026-05-26 · v1.11
+> **Last updated:** 2026-05-26 · v1.11 (dc144 10-bug fix pass)
 >
 > **Live site:** `https://joebiocco.github.io/NJDOT-Field-Tools-Hub/`
 > **Repo:** `https://github.com/Joebiocco/NJDOT-Field-Tools-Hub` (renamed from `Work-Order-Closeout`)
@@ -122,6 +122,7 @@ Work Order Website/
 | `wo_recent` | WorkOrderCloseout | JSON array (max 5) of recent session metadata | Each rec has `{wo, str, date, fname, route, direction, mp, startDate, endDate, priority, photoKey}` — PHOTOS NOT INCLUDED HERE |
 | `workorder_draft` | WorkOrderCloseout | Full session JSON snapshot | Single auto-saved draft |
 | `ft_dc144_recent` | dc144 | JSON array (max 5) of recent DC-144 session metadata | Each rec has `{id, tab, projectName, date, savedAt, photoKey}` — full data in IDB |
+| `ft_dc144_templates` | dc144 | JSON array (max 10) of saved templates | Each entry has `{id, name, createdAt, header:{projectName,contractId,contractor,inspectorName}}` — header-only, no grid rows |
 | `field_dark_mode` | all pages | `"1"` if dark mode on | Theme preference |
 | `ft_last` | all pages | `"njsearch" \| "njfuel" \| "closeout" \| "milemarker" \| "timesheet" \| "dc144"` | Last visited tool (used for the Home recent badge and Continue section) |
 | `ft_install_shown` | index | int 0-2 | How many times install popup has auto-shown on mobile |
@@ -409,14 +410,20 @@ Two parallel implementations, identical behavior:
 - **Session isolation:** Each session is tied to exactly one tab (a/b/c/d). `tab` field is the discriminator.
 - **Row caps per tab:** a=17, b=19, c=18, d=24. `addGridRow()` disables add button when limit reached.
 - **Remarks fields:** Single unified `<textarea>` per remarks region, not line-by-line row inputs.
-- **Photo appendix:** Photos are written to a separate 'Photo Appendix' worksheet only; never injected inline into data cells. Remarks text gets `[See Photo Appendix — Photo N]` markers.
+- **Photo appendix:** Photos are written to a separate 'Photo Appendix' worksheet only; never injected inline into data cells. Remarks text gets `[See Photo Appendix — Photo N]` markers. Photo row height is calculated from stored `widthPx`/`heightPx` to preserve aspect ratio (column 60 chars wide ≈ 450pts; height clamped 100–450pts).
 - **Template:** `data/dc144-template.xlsx` — must be created manually from the original XLS. Export falls back to a minimal workbook if 404.
-- **Image compression:** OffscreenCanvas → 1400px max long side → JPEG 0.72 → fallback 0.58. Target ≤200KB per photo.
+- **Image compression:** Canvas → 1400px max long side → JPEG 0.72 → fallback 0.58. Target ≤200KB per photo. Stores `widthPx`/`heightPx` in photo object for aspect ratio export.
 - **ExcelJS cell addressing:** All uses `ws.getCell(row, col)` with 1-based row/col from `DC144_CELL_MAP`.
 - **IDB store:** `dc144_sessions` in `ft_photos` v2. Key = `photoKey` from `ft_dc144_recent` rec.
-- **Auto-save:** 2000ms debounce on `input`/`change` events. Writes full session JSON to IDB + updates `ft_dc144_recent` chip.
+- **Auto-save:** 2000ms debounce on `input`/`change` events. Writes full session JSON to IDB + updates `ft_dc144_recent` chip. Status indicator: "Saving…" → "Draft Saved" (clears after 3s) in `#autosave-status` span.
 - **Filename pattern:** `DC-144-[TAB]-[YYYYMMDD]-[SafeProjectName].xlsx`
 - **Tab color palette:** a=indigo `#4338ca`, b=amber `#92400e`, c=teal `#0e7490`, d=rose `#9f1239`
+- **Template system:** `ft_dc144_templates` localStorage key (max 10). "Save as Template" button in form actionbar saves header fields only (projectName, contractId, contractor, inspectorName). "Load" shows tab-picker overlay then starts a new session with header pre-populated. Templates rendered in dashboard "Your Templates" section.
+- **Unit dropdowns (Tab A):** Placed Qty and As Built Qty columns use `type:'qty-unit'` — renders `.qty-cell-wrap` with number input + unit select (SF/LF/SY/TONS/CY/UNIT/LS/Custom) + custom text input (shown only when Custom selected). Export concatenates: `"450 SY"`, `"1 LS"`, `"12 BNDL"` etc.
+- **Dark mode:** Page ONLY reads `field_dark_mode` from localStorage at load — never writes it. No local dark toggle exists on this page.
+- **Navigation:** Topbar back button always shows "Home" (house icon). Form actionbar "← Back" returns to dashboard without page navigation. Topbar back from dashboard triggers `exiting-to-hub` animation then navigates to `../index.html`.
+- **Sticky actionbar gap fix:** `#form-actionbar` top CSS transitions between `var(--topbar-h)` (topbar visible) and `0px` (topbar hidden) via `initSmartHeader()` → `updateActionbarTop()`.
+- **Excel borders:** `applyDataRowBorders()` applies thin gray borders to all grid data rows after patching. `applyRemarksMerges()` programmatically merges remarks zones (try/catch safe against pre-existing merges from template).
 
 ### Hub install/bookmark popup
 
