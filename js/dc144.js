@@ -1771,6 +1771,11 @@ function handleExport() {
     .then(function(wb) { return buildDc144WorkbookFromTemplate(wb, currentSession); })
     .then(function(wb) {
       assertDc144TemplatePreserved(wb, currentSession.tab);
+      // Tell Excel to recalc every preserved formula on first open so any
+      // computed cells (e.g. tonnage roll-ups on Tab B) reflect the values
+      // we just wrote into their inputs.
+      wb.calcProperties = wb.calcProperties || {};
+      wb.calcProperties.fullCalcOnLoad = true;
       return wb.xlsx.writeBuffer();
     })
     .then(function(buffer) {
@@ -1816,25 +1821,86 @@ function buildDc144WorkbookFromTemplate(wb, session) {
   return wb;
 }
 
+// Per-tab lower bounds for merged-range counts. Numbers come from the
+// official NJDOT dc144.xls inventory (Tab A=95, B=76, C=50, D=70); the
+// thresholds give a small margin for ExcelJS minor-version differences
+// but still catch a stripped/blank workbook.
+var DC144_MIN_MERGES_BY_TAB = { a: 90, b: 70, c: 45, d: 65 };
+
 function assertDc144TemplatePreserved(wb, tab) {
   var selectedTab = tab || 'a';
   var sheetName   = DC144_SHEET_NAME_BY_TAB[selectedTab];
   var ws          = wb.getWorksheet(sheetName);
+
+  // 1. Worksheet must exist under its OFFICIAL name (not just an alias
+  //    or a re-created stub).
   if (!ws) {
     throw new Error('DC-144 worksheet "' + sheetName + '" missing after export build.');
   }
-  // Probe the model — ExcelJS exposes merges via either ws.model.merges
-  // (array of merge ranges) or as keys on the merges object after .load().
+
+  // 2. Merge count meets the per-tab lower bound. ExcelJS exposes merges
+  //    via ws.model.merges as either an array of ranges OR an object keyed
+  //    by range string after .load() — handle both shapes.
   var modelMerges = (ws.model && ws.model.merges) || [];
   var mergeCount  = Array.isArray(modelMerges) ? modelMerges.length : Object.keys(modelMerges).length;
-  var imageCount  = (typeof ws.getImages === 'function') ? (ws.getImages() || []).length : 0;
-
-  if (selectedTab === 'a' && (mergeCount < 90 || imageCount < 1)) {
+  var minMerges   = DC144_MIN_MERGES_BY_TAB[selectedTab] || 1;
+  if (mergeCount < minMerges) {
     throw new Error(
-      'DC-144 template layout was not preserved (merges=' + mergeCount + ', images=' + imageCount +
-      '). The data/dc144-template.xlsx file is not the official NJDOT workbook. Re-convert dc144.xls to .xlsx with all formatting and the NJDOT logo intact, then replace data/dc144-template.xlsx.'
+      'DC-144 ' + selectedTab.toUpperCase() + ' layout was not preserved — merges=' + mergeCount +
+      ' (need >=' + minMerges + '). The data/dc144-template.xlsx file is not the official NJDOT workbook. Re-convert dc144.xls to .xlsx with all formatting and the NJDOT logo intact, then replace data/dc144-template.xlsx.'
     );
   }
+
+  // 3. Image check. Primary probe: ws.getImages() — the worksheet-scoped
+  //    list ExcelJS builds when it parses drawing relationships.
+  //    Fallback: workbook.model.media — the global media array that
+  //    survives even when the per-sheet drawings array is missing on
+  //    certain LibreOffice/openpyxl-emitted workbooks.
+  var sheetImages   = (typeof ws.getImages === 'function') ? (ws.getImages() || []) : [];
+  var workbookMedia = (wb.model && wb.model.media) || [];
+  var imageCount    = sheetImages.length;
+  if (imageCount < 1 && workbookMedia.length > 0) imageCount = workbookMedia.length;
+
+  if (selectedTab === 'a' && imageCount < 1) {
+    throw new Error(
+      'DC-144 A is missing the NJDOT logo image (images=0). Re-convert dc144.xls to .xlsx with the NJDOT logo intact, then replace data/dc144-template.xlsx.'
+    );
+  }
+
+  // 4. Tab A title/header sentinel cells must still carry the official
+  //    DC-144 text. Catches the case where someone overwrote A1/A2/A3
+  //    or accidentally cleared the form header band.
+  if (selectedTab === 'a') {
+    var a1 = String(_cellPlainText(ws.getCell(1, 1)) || '');
+    var a2 = String(_cellPlainText(ws.getCell(2, 1)) || '');
+    var a3 = String(_cellPlainText(ws.getCell(3, 1)) || '');
+    if (a1.toUpperCase().indexOf('DC-144') === -1) {
+      throw new Error('DC-144 A header cell A1 lost the form-number text — expected "Form DC-144 (a) …", got ' + JSON.stringify(a1) + '.');
+    }
+    if (a2.toUpperCase().indexOf('NEW JERSEY DEPARTMENT OF TRANSPORTATION') === -1) {
+      throw new Error('DC-144 A header cell A2 lost the NJDOT title — expected "New Jersey Department of Transportation", got ' + JSON.stringify(a2) + '.');
+    }
+    if (a3.toLowerCase().indexOf('daily work report') === -1) {
+      throw new Error('DC-144 A header cell A3 lost the report title — expected "Daily Work Report", got ' + JSON.stringify(a3) + '.');
+    }
+  }
+}
+
+// ExcelJS stores cell values as either a primitive (string/number),
+// a Date, or a rich-text object { richText: [{text, font}, …] }.
+// This helper flattens any of those shapes into a plain string for
+// sentinel-text comparison.
+function _cellPlainText(cell) {
+  if (!cell) return '';
+  var v = cell.value;
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'string' || typeof v === 'number') return String(v);
+  if (v instanceof Date) return v.toISOString();
+  if (v.richText && Array.isArray(v.richText)) {
+    return v.richText.map(function(rt) { return rt.text || ''; }).join('');
+  }
+  if (typeof v === 'object' && 'result' in v) return String(v.result || '');
+  return String(v);
 }
 
 function setCellValue(ws, r, c, value) {
