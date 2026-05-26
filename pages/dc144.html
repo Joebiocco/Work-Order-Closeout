@@ -463,9 +463,10 @@
     .grid-select:focus { border-color: var(--accent); }
     .qty-cell-wrap {
       display: flex; align-items: center; gap: 3px;
-      min-width: 0; max-width: 100%; flex-wrap: wrap;
+      min-width: 0; max-width: 100%; flex-wrap: nowrap;
     }
-    .qty-cell-wrap .grid-input { min-width: 0; max-width: 80px; flex-shrink: 1; }
+    .qty-cell-wrap .grid-input { min-width: 0; max-width: 80px; flex-shrink: 1; height: 32px; }
+    .qty-cell-wrap .grid-select { flex-shrink: 0; height: 32px; }
     .qty-custom-input {
       width: 60px; min-width: 0; max-width: 80px;
       padding: 5px 5px; min-height: 32px;
@@ -620,7 +621,6 @@
     .photo-item:not(.photo-add-item):hover { border-color: var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
     .photo-add-item { border: 1.5px dashed var(--border); background: transparent; min-height: 140px; }
     .photo-add-item:hover { border-color: var(--accent); }
-    .photo-add-item:hover .photo-add-btn { color: var(--accent); }
     .photo-thumb {
       position: relative; width: 100%; aspect-ratio: 4/3; height: auto;
       border-radius: var(--radius-sm); overflow: hidden;
@@ -674,10 +674,28 @@
       width: 100%; min-height: 120px;
       border: none; background: none; cursor: pointer;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 6px; color: var(--muted); font-family: var(--sans);
-      font-size: 12px; font-weight: 500;
+      gap: 8px; color: var(--muted); font-family: var(--sans);
+      font-size: 12px; font-weight: 600; letter-spacing: 0.01em;
       transition: color 0.14s;
     }
+    .photo-add-item:hover .photo-add-btn { color: var(--accent); }
+    .photo-add-icon {
+      position: relative; display: inline-flex; align-items: center; justify-content: center;
+      width: 52px; height: 52px;
+      background: var(--bg); border-radius: 50%;
+      border: 1.5px solid var(--border);
+      transition: background 0.14s, border-color 0.14s;
+    }
+    .photo-add-item:hover .photo-add-icon {
+      background: rgba(26,86,219,0.08); border-color: rgba(26,86,219,0.3);
+    }
+    .photo-add-plus {
+      position: absolute; bottom: -2px; right: -2px;
+      background: var(--accent); color: #fff; border-radius: 50%;
+      padding: 1px; width: 16px; height: 16px; box-sizing: content-box;
+    }
+    .photo-add-label { font-size: 12px; font-weight: 600; }
+    html[data-dark] .photo-add-icon { background: var(--border-lo); }
 
     /* ── Unified modal classes ───────────────────────────────────────────── */
     .dc-modal-backdrop {

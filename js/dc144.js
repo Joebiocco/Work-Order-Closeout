@@ -1198,8 +1198,12 @@ function openSignaturePad() {
     oldCanvas.parentNode.replaceChild(fresh, oldCanvas);
   }
   modal.classList.add('open');
-  // Defer canvas init until modal is laid out (so canvas has real size)
-  requestAnimationFrame(function() { initSignatureCanvas(); });
+  // Two rAFs guarantee the browser has performed at least one layout pass
+  // after the modal becomes visible, so getBoundingClientRect() returns
+  // real pixel dimensions rather than 0×0.
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() { initSignatureCanvas(); });
+  });
 }
 
 function closeSignaturePad() {
@@ -1215,6 +1219,9 @@ function initSignatureCanvas() {
   // Size canvas backing store to displayed size × devicePixelRatio so the
   // signature is crisp on retina/mobile displays.
   var rect = canvas.getBoundingClientRect();
+  // Guard: if the modal hasn't fully laid out yet the rect will be 0×0.
+  // Retry after a short delay rather than silently creating a 0-size canvas.
+  if (rect.width < 10) { setTimeout(initSignatureCanvas, 80); return; }
   var dpr  = Math.max(1, window.devicePixelRatio || 1);
   canvas.width  = Math.round(rect.width * dpr);
   canvas.height = Math.round(rect.height * dpr);
@@ -1886,6 +1893,22 @@ function renderPhotoStripForSection(sectionKey) {
   wrap.className = 'photo-strip';
   wrap.id        = 'photo-strip-' + sectionKey;
 
+  // Add button renders FIRST so photos accumulate to its right as they are added.
+  var addItem = document.createElement('div');
+  addItem.className = 'photo-item photo-add-item';
+  addItem.innerHTML =
+    '<button class="photo-add-btn" data-section-key="' + esc(sectionKey) + '" aria-label="Add photo to ' + sectionKey + '">' +
+      '<div class="photo-add-icon">' +
+        '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' +
+        '<svg class="photo-add-plus" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+      '</div>' +
+      '<span class="photo-add-label">Add Photo</span>' +
+    '</button>';
+  addItem.querySelector('.photo-add-btn').addEventListener('click', function() {
+    triggerPhotoCapture(sectionKey);
+  });
+  wrap.appendChild(addItem);
+
   if (currentSession && currentSession.photos) {
     currentSession.photos.forEach(function(photo, idx) {
       if (photo.sectionKey === sectionKey) {
@@ -1894,17 +1917,6 @@ function renderPhotoStripForSection(sectionKey) {
     });
   }
 
-  var addItem = document.createElement('div');
-  addItem.className = 'photo-item photo-add-item';
-  addItem.innerHTML =
-    '<button class="photo-add-btn" data-section-key="' + esc(sectionKey) + '" aria-label="Add photo to ' + sectionKey + '">' +
-      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' +
-      'Add Photo' +
-    '</button>';
-  addItem.querySelector('.photo-add-btn').addEventListener('click', function() {
-    triggerPhotoCapture(sectionKey);
-  });
-  wrap.appendChild(addItem);
   return wrap;
 }
 
@@ -1968,10 +1980,9 @@ function handlePhotoCaptureEvent(event) {
     }
     var strip = document.getElementById('photo-strip-' + photo.sectionKey);
     if (strip) {
-      var addBtnWrapper = strip.querySelector('.photo-add-item');
-      var newThumb      = buildPhotoThumb(photo, currentSession.photos.length - 1);
-      if (addBtnWrapper) strip.insertBefore(newThumb, addBtnWrapper);
-      else strip.appendChild(newThumb);
+      var newThumb = buildPhotoThumb(photo, currentSession.photos.length - 1);
+      // Add button is always first; new photos append to the end of the strip.
+      strip.appendChild(newThumb);
     }
     pendingPhotoOps = Math.max(0, pendingPhotoOps - 1);
     updatePhotoPendingIndicator();
@@ -1991,9 +2002,8 @@ function insertPhotoPlaceholder(sectionKey) {
       '<div class="photo-spinner" aria-hidden="true"></div>' +
     '</div>' +
     '<div class="photo-caption-label">Processing…</div>';
-  var addBtnWrapper = strip.querySelector('.photo-add-item');
-  if (addBtnWrapper) strip.insertBefore(ph, addBtnWrapper);
-  else strip.appendChild(ph);
+  // Add button is first; placeholder goes at the end while compression runs.
+  strip.appendChild(ph);
   return ph;
 }
 
