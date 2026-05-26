@@ -601,6 +601,57 @@
       text-align: center;
     }
 
+    /* ── Export review modal ────────────────────────────────────────────── */
+    #export-review-modal { z-index: 8600; }
+    #export-review-modal .dc-modal-box { max-width: 540px; }
+    .export-review-table {
+      width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 13px;
+    }
+    .export-review-table td {
+      padding: 6px 8px; border-bottom: 1px solid var(--border-lo); vertical-align: top;
+    }
+    .export-review-table td:first-child {
+      color: var(--muted); font-weight: 600; width: 110px; white-space: nowrap;
+    }
+    .export-review-section {
+      border-radius: var(--radius-sm); padding: 10px 12px; margin-top: 10px; font-size: 12.5px;
+    }
+    .export-review-section-title {
+      font-weight: 700; margin-bottom: 6px; font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .export-review-critical {
+      background: rgba(220,38,38,0.07); border: 1px solid rgba(220,38,38,0.25);
+    }
+    .export-review-critical .export-review-section-title { color: var(--red); }
+    .export-review-critical .export-review-item { color: var(--red); }
+    .export-review-warn {
+      background: rgba(245,158,11,0.07); border: 1px solid rgba(245,158,11,0.30);
+    }
+    .export-review-warn .export-review-section-title { color: #92400e; }
+    .export-review-warn .export-review-item { color: #92400e; }
+    html[data-dark] .export-review-warn .export-review-section-title,
+    html[data-dark] .export-review-warn .export-review-item { color: #fcd34d; }
+    .export-review-item { padding: 2px 0; line-height: 1.4; }
+
+    /* ── Mobile status pill (save/photo processing — visible on mobile only) */
+    #mobile-status-pill {
+      display: none;
+      position: fixed; bottom: calc(var(--actionbar-h, 120px) + 8px); left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface); color: var(--muted2);
+      border: 1px solid var(--border); border-radius: 20px;
+      padding: 5px 14px; font-size: 12px; font-weight: 600;
+      z-index: 490; pointer-events: none; white-space: nowrap;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+    }
+
+    /* Template tab badge in chip name line */
+    .tpl-tab-badge {
+      display: inline-block; padding: 1px 6px; border-radius: 4px;
+      font-size: 10px; font-weight: 700; vertical-align: middle; margin-left: 4px;
+    }
+
     /* ── Empty-state hint inside dynamic tables ─────────────────────────── */
     .empty-table-hint {
       display: flex; align-items: center; gap: 12px;
@@ -767,6 +818,9 @@
       .signature-row { gap: 6px; }
       .signature-trigger { min-height: 36px; padding: 6px 14px; font-size: 12px; }
       .signature-preview-img { max-height: 36px; max-width: 110px; }
+
+      /* Show the floating status pill on mobile (hidden on desktop) */
+      #mobile-status-pill { display: block; }
 
       /* Mobile actionbar — 2x2 grid so Export is always visible without
          horizontal sliding. Hides title/divider/spacer/autosave-status. */
@@ -964,6 +1018,24 @@
       </div>
     </div>
   </div>
+
+  <!-- ── Export review modal ────────────────────────────────────────────── -->
+  <div id="export-review-modal" class="dc-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="export-review-title">
+    <div class="dc-modal-box" style="max-width:540px;">
+      <div class="dc-modal-title" id="export-review-title">Export Review</div>
+      <div id="export-review-body"></div>
+      <div class="dc-modal-actions">
+        <button class="btn-secondary" onclick="closeExportReview()">Cancel</button>
+        <button class="btn-primary" id="export-review-confirm-btn" onclick="confirmExport()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export XLSX
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Mobile save/photo status pill ──────────────────────────────────── -->
+  <div id="mobile-status-pill" aria-live="polite" aria-atomic="true" style="display:none;"></div>
 
   <!-- ── Dashboard screen ────────────────────────────────────────────────── -->
   <div id="dashboard-screen">

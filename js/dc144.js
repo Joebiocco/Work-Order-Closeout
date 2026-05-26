@@ -9,7 +9,7 @@
    ============================================================ */
 
 var DC144_RECENT_KEY    = 'ft_dc144_recent';
-var DC144_MAX_RECENT    = 5;
+var DC144_MAX_RECENT    = 25;
 var DC144_TEMPLATES_KEY = 'ft_dc144_templates';
 var DC144_MAX_TEMPLATES = 10;
 var IDB_DB_NAME         = 'ft_photos';
@@ -92,7 +92,7 @@ var DC144_CELL_MAP = {
     },
     hmaPavingRows: {
       baseRow: 15,
-      maxRows: 19,
+      maxRows: 18, // row 19 maps to Excel row 33 (baseRow 15 + rowIndex 18) which is formula-protected and skipped in export
       formulaProtectedRows: [33],
       cols: {
         locationStation: 1,
@@ -358,9 +358,8 @@ function addToRecent(session) {
     savedAt:       new Date().toISOString()
   };
   arr.unshift(meta);
-  if (arr.length > DC144_MAX_RECENT) {
-    arr.splice(DC144_MAX_RECENT).forEach(function(r) { dbDeleteDC144(r.photoKey); });
-  }
+  // saveRecent slices to DC144_MAX_RECENT for localStorage; IDB records are never
+  // auto-deleted — only explicit user-initiated deleteSession() removes them.
   saveRecent(arr);
 }
 
@@ -500,17 +499,27 @@ function setAutosaveStatus(status) {
   // user's signal that photos are still being prepared.
   if (pendingPhotoOps > 0) { updatePhotoPendingIndicator(); return; }
   clearTimeout(autosaveStatusTimer);
+  var text = '', color = '';
   if (status === 'saving') {
-    el.textContent = 'Saving…';
-    el.style.color = 'var(--muted)';
+    text = 'Saving…'; color = 'var(--muted)';
   } else if (status === 'saved') {
-    el.textContent = 'Draft Saved';
-    el.style.color = '#16a34a';
-    autosaveStatusTimer = setTimeout(function() { el.textContent = ''; }, 3000);
-  } else {
-    el.textContent = '';
-    el.style.color = '';
+    text = 'Draft Saved'; color = '#16a34a';
+    autosaveStatusTimer = setTimeout(function() {
+      el.textContent = '';
+      setMobileStatusPill('', '');
+    }, 3000);
   }
+  el.textContent = text;
+  el.style.color = color;
+  setMobileStatusPill(text, color);
+}
+
+function setMobileStatusPill(text, color) {
+  var pill = document.getElementById('mobile-status-pill');
+  if (!pill) return;
+  pill.textContent = text;
+  pill.style.color = color || '';
+  pill.style.display = text ? '' : 'none';
 }
 
 function scheduleAutosave() {
@@ -530,6 +539,23 @@ function performAutosave(manual) {
   }).catch(function() {
     setAutosaveStatus('');
     showToast('Save failed — storage error', 'err');
+  });
+}
+
+// Immediate synchronous-feeling save for navigation events (back button, etc.).
+// Collects form data and writes to IDB without waiting for the 2-second timer.
+// Returns a Promise so callers can chain if needed.
+function saveCurrentSessionNow(opts) {
+  if (!currentSession || !currentTab) return Promise.resolve();
+  collectFormData();
+  currentSession.savedAt = new Date().toISOString();
+  var silent = !!(opts && opts.silent);
+  return dbPutDC144(currentSession.photoKey, currentSession).then(function() {
+    addToRecent(currentSession);
+    if (!silent) setAutosaveStatus('saved');
+  }).catch(function(err) {
+    if (!silent) showToast('Save failed — storage error', 'err');
+    throw err;
   });
 }
 
@@ -557,6 +583,15 @@ function playScreenTransition(el, direction) {
 }
 
 function showDashboard() {
+  // Flush in-flight form data to IDB before clearing state so the 2-second
+  // autosave timer cannot cause data loss when the user taps "Back to Reports".
+  if (currentSession && currentTab) {
+    collectFormData();
+    currentSession.savedAt = new Date().toISOString();
+    dbPutDC144(currentSession.photoKey, currentSession).then(function() {
+      addToRecent(currentSession);
+    }).catch(function() {});
+  }
   // Close any open modals before changing screens
   closeSignaturePad();
   closeTemplateModal();
@@ -688,6 +723,12 @@ function startNewSession(tab, tplData) {
       if (session.header.hasOwnProperty(k)) session.header[k] = tplData.header[k];
     });
   }
+  // Apply itemHeader (B/C/D) from template when form types match
+  if (tplData && tplData.itemHeader && session.itemHeader && tab !== 'a') {
+    Object.keys(tplData.itemHeader).forEach(function(k) {
+      if (session.itemHeader.hasOwnProperty(k)) session.itemHeader[k] = tplData.itemHeader[k];
+    });
+  }
   dbPutDC144(session.photoKey, session).then(function() {
     addToRecent(session);
     showForm(tab, session);
@@ -704,6 +745,7 @@ function restoreSession(photoKey, tab) {
 }
 
 function deleteSession(photoKey) {
+  if (!confirm('Delete this draft permanently? This cannot be undone.')) return;
   dbDeleteDC144(photoKey);
   var arr = loadRecent().filter(function(r) { return r.photoKey !== photoKey; });
   saveRecent(arr);
@@ -728,6 +770,7 @@ function addTemplate(name, session) {
   var entry = {
     id:        'tpl_' + Date.now(),
     name:      name,
+    tab:       session.tab,  // save form type so the tab-picker can be skipped
     createdAt: new Date().toISOString(),
     header: {
       projectName:   (session.header && session.header.projectName)   || '',
@@ -736,6 +779,15 @@ function addTemplate(name, session) {
       inspectorName: (session.header && session.header.inspectorName) || ''
     }
   };
+  // Save item header for B/C/D forms so the item number, description, and code
+  // are pre-populated when the template is loaded. No photos or signature saved.
+  if (session.tab !== 'a' && session.itemHeader) {
+    entry.itemHeader = {
+      itemNumber:  session.itemHeader.itemNumber  || '',
+      description: session.itemHeader.description || '',
+      itemCode:    session.itemHeader.itemCode    || ''
+    };
+  }
   arr.unshift(entry);
   if (arr.length > DC144_MAX_TEMPLATES) arr = arr.slice(0, DC144_MAX_TEMPLATES);
   saveTemplatesArr(arr);
@@ -795,12 +847,17 @@ function renderTemplateChips() {
     chip.style.marginBottom = '8px';
     var dateStr = tpl.createdAt ? tpl.createdAt.slice(0, 10) : '';
     var subLine = [tpl.header.projectName, tpl.header.contractId, dateStr].filter(Boolean).join(' · ');
+    var tabBadge = '';
+    if (tpl.tab && TAB_META[tpl.tab]) {
+      var tm = TAB_META[tpl.tab];
+      tabBadge = '<span class="tpl-tab-badge" style="background:' + tm.colorBg + ';color:' + tm.color + ';border:1px solid ' + tm.color + ';">' + tm.label + '</span>';
+    }
     chip.innerHTML =
       '<div class="template-chip-icon" aria-hidden="true">' +
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>' +
       '</div>' +
       '<div class="template-chip-info">' +
-        '<div class="template-chip-name">' + esc(tpl.name) + '</div>' +
+        '<div class="template-chip-name">' + esc(tpl.name) + (tabBadge ? ' ' + tabBadge : '') + '</div>' +
         (subLine ? '<div class="template-chip-meta">' + esc(subLine) + '</div>' : '') +
       '</div>' +
       '<button class="template-chip-load" aria-label="Load template ' + esc(tpl.name) + '">Load</button>' +
@@ -818,6 +875,12 @@ function renderTemplateChips() {
 }
 
 function showTemplateTabPicker(tpl) {
+  // Templates saved at v1.19+ carry a tab field — skip the picker and load directly.
+  // Older templates (no tab field) still show the full tab-picker overlay.
+  if (tpl.tab && TAB_META[tpl.tab]) {
+    startNewSession(tpl.tab, tpl);
+    return;
+  }
   var overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;z-index:8500;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:20px;';
   var box = document.createElement('div');
@@ -1698,7 +1761,10 @@ function buildTableRow(tab, rowData, def) {
   delBtn.className = 'btn-del-row';
   delBtn.setAttribute('aria-label', 'Delete row ' + rowNum);
   delBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
-  delBtn.addEventListener('click', function() { deleteGridRow(tab, rowData.rowIndex, TABLE_DEFS[tab].maxRows); });
+  delBtn.addEventListener('click', function() {
+    if (!confirm('Delete this row?')) return;
+    deleteGridRow(tab, rowData.rowIndex, TABLE_DEFS[tab].maxRows);
+  });
   tdDel.appendChild(delBtn);
   tr.appendChild(tdDel);
   return tr;
@@ -1964,6 +2030,14 @@ function handlePhotoCaptureEvent(event) {
   // replaced with the real thumb when compression completes.
   var placeholder = insertPhotoPlaceholder(targetKey);
   compressImage(file, function(base64, w, h) {
+    if (!base64) {
+      // Compression pipeline failed — clean up without permanently blocking export
+      if (placeholder && placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
+      pendingPhotoOps = Math.max(0, pendingPhotoOps - 1);
+      updatePhotoPendingIndicator();
+      showToast('Could not process image — try a different file', 'err');
+      return;
+    }
     var photo = {
       photoIndex:   currentSession.photos.length + 1,
       sectionKey:   targetKey,
@@ -2010,14 +2084,14 @@ function insertPhotoPlaceholder(sectionKey) {
 function updatePhotoPendingIndicator() {
   var el = document.getElementById('autosave-status');
   if (!el) return;
+  var text = '', color = '';
   if (pendingPhotoOps > 0) {
-    el.textContent = 'Processing ' + pendingPhotoOps + ' photo' + (pendingPhotoOps > 1 ? 's' : '') + '…';
-    el.style.color = 'var(--accent)';
-  } else {
-    // Reset to neutral so future autosave/saved states can paint freely
-    el.textContent = '';
-    el.style.color = '';
+    text  = 'Processing ' + pendingPhotoOps + ' photo' + (pendingPhotoOps > 1 ? 's' : '') + '…';
+    color = 'var(--accent)';
   }
+  el.textContent = text;
+  el.style.color = color;
+  setMobileStatusPill(text, color);
 }
 
 function deletePhoto(idx) {
@@ -2046,9 +2120,12 @@ function compressImage(file, callback) {
 
   if (file.size < BYPASS_SIZE && !needsNormalize) {
     var reader = new FileReader();
+    reader.onerror = function() { callback(null, 0, 0); };
     reader.onloadend = function() {
+      if (reader.error) { callback(null, 0, 0); return; }
       var img    = new Image();
-      img.onload = function() { callback(reader.result, img.naturalWidth, img.naturalHeight); };
+      img.onerror = function() { callback(null, 0, 0); };
+      img.onload  = function() { callback(reader.result, img.naturalWidth, img.naturalHeight); };
       img.src    = reader.result;
     };
     reader.readAsDataURL(file);
@@ -2077,7 +2154,7 @@ function compressImage(file, callback) {
       }
     }, 'image/jpeg', 0.72);
   };
-  img.onerror = function() { URL.revokeObjectURL(objectURL); showToast('Could not read image', 'err'); };
+  img.onerror = function() { URL.revokeObjectURL(objectURL); callback(null, 0, 0); };
   img.src = objectURL;
 }
 
@@ -2129,27 +2206,66 @@ function loadDc144TemplateWorkbook() {
     });
 }
 
-function handleExport() {
-  if (!currentSession) return;
-  if (pendingPhotoOps > 0) {
-    showToast('Still processing ' + pendingPhotoOps + ' photo(s). Try again in a moment.', 'info', 3000);
-    // Poll briefly then auto-retry once finished
-    var waitStart = Date.now();
-    var poll = setInterval(function() {
-      if (pendingPhotoOps === 0) { clearInterval(poll); handleExport(); }
-      else if (Date.now() - waitStart > 30000) {
-        clearInterval(poll);
-        showToast('Photo processing timed out. Export with what is ready?', 'err', 5000);
-      }
-    }, 400);
-    return;
-  }
+/* ── Export review modal ─────────────────────────────────────── */
+function showExportReview(session) {
   collectFormData();
-  var validationError = validateBeforeExport(currentSession);
-  if (validationError) {
-    showToast(validationError + ' Enter a custom unit or pick a standard unit.', 'err', 5500);
-    return;
+  var v   = validateBeforeExport(session);
+  var tab = TAB_META[session.tab] || TAB_META['a'];
+  var h   = session.header || {};
+  var rowCount   = getSessionRowCount(session);
+  var photoCount = (session.photos && session.photos.length) || 0;
+  var modal = document.getElementById('export-review-modal');
+  var body  = document.getElementById('export-review-body');
+  if (!modal || !body) { doActualExport(session); return; }
+
+  var html = '<table class="export-review-table">' +
+    '<tr><td>Form type</td><td><strong>' + esc(tab.label + ' — ' + tab.name) + '</strong></td></tr>' +
+    '<tr><td>Project</td><td>' + esc(h.projectName || '—') + '</td></tr>' +
+    '<tr><td>Contract ID</td><td>' + esc(h.contractId || '—') + '</td></tr>' +
+    '<tr><td>Contractor</td><td>' + esc(h.contractor || '—') + '</td></tr>' +
+    '<tr><td>Inspector</td><td>' + esc(h.inspectorName || '—') + '</td></tr>' +
+    '<tr><td>Date</td><td>' + esc(h.date || '—') + '</td></tr>' +
+    '<tr><td>Rows</td><td>' + rowCount + '</td></tr>' +
+    '<tr><td>Photos</td><td>' + photoCount + '</td></tr>' +
+    '</table>';
+
+  if (v.criticals.length) {
+    html += '<div class="export-review-section export-review-critical">' +
+      '<div class="export-review-section-title">Errors — must fix before export</div>' +
+      v.criticals.map(function(c) { return '<div class="export-review-item">&#x26A0; ' + esc(c) + '</div>'; }).join('') +
+      '</div>';
   }
+  if (v.warnings.length) {
+    html += '<div class="export-review-section export-review-warn">' +
+      '<div class="export-review-section-title">Warnings — review before export</div>' +
+      v.warnings.map(function(w) { return '<div class="export-review-item">&#x26A0; ' + esc(w) + '</div>'; }).join('') +
+      '</div>';
+  }
+
+  body.innerHTML = html;
+
+  var confirmBtn = document.getElementById('export-review-confirm-btn');
+  if (confirmBtn) {
+    confirmBtn.disabled = v.criticals.length > 0;
+    confirmBtn.title    = v.criticals.length > 0 ? 'Fix errors before exporting' : '';
+  }
+
+  modal.classList.add('open');
+  modal.dataset.sessionKey = session.photoKey;
+}
+
+function closeExportReview() {
+  var modal = document.getElementById('export-review-modal');
+  if (modal) modal.classList.remove('open');
+}
+
+function confirmExport() {
+  closeExportReview();
+  if (!currentSession) return;
+  doActualExport(currentSession);
+}
+
+function doActualExport(session) {
   var exportBtn1 = document.getElementById('topbar-export-btn');
   var exportBtn2 = document.getElementById('actionbar-export-btn');
 
@@ -2165,23 +2281,17 @@ function handleExport() {
 
   setLoading(true);
 
-  // NO fallback to a blank workbook. If the template is missing, the
-  // export must fail with a clear error — a blank workbook is worse
-  // than no workbook because it silently strips the official layout.
   loadDc144TemplateWorkbook()
-    .then(function(wb) { return buildDc144WorkbookFromTemplate(wb, currentSession); })
+    .then(function(wb) { return buildDc144WorkbookFromTemplate(wb, session); })
     .then(function(wb) {
-      assertDc144TemplatePreserved(wb, currentSession.tab);
-      assertPhotoAppendixPreserved(wb, currentSession);
-      // Drop the three unused DC-144 sheets so an A-only export does not
-      // ship blank B/C/D forms. Photo Appendix is kept when present.
-      pruneWorkbookToSelectedForm(wb, currentSession.tab, false);
+      assertDc144TemplatePreserved(wb, session.tab);
+      assertPhotoAppendixPreserved(wb, session);
+      pruneWorkbookToSelectedForm(wb, session.tab, false);
       wb.calcProperties = wb.calcProperties || {};
       wb.calcProperties.fullCalcOnLoad = true;
       return wb.xlsx.writeBuffer();
     })
     .then(function(buffer) {
-      var session     = currentSession;
       var safeProject = (session.header.projectName || 'DC144').replace(/[^a-zA-Z0-9 _-]/g, '').replace(/\s+/g, '_').slice(0, 30);
       var safeDate    = (session.header.date || todayISO()).replace(/-/g, '');
       var filename    = 'DC-144-' + session.tab.toUpperCase() + '-' + safeDate + '-' + safeProject + '.xlsx';
@@ -2194,6 +2304,25 @@ function handleExport() {
       showToast('Export failed: ' + err.message, 'err', 6000);
       console.error('DC-144 export error:', err);
     });
+}
+
+function handleExport() {
+  if (!currentSession) return;
+  if (pendingPhotoOps > 0) {
+    showToast('Still processing ' + pendingPhotoOps + ' photo(s). Try again in a moment.', 'info', 3000);
+    // Poll briefly then auto-retry once finished
+    var waitStart = Date.now();
+    var poll = setInterval(function() {
+      if (pendingPhotoOps === 0) { clearInterval(poll); handleExport(); }
+      else if (Date.now() - waitStart > 30000) {
+        clearInterval(poll);
+        showToast('Photo processing timed out. Export with what is ready?', 'err', 5000);
+      }
+    }, 400);
+    return;
+  }
+  // Show the review modal — actual export fires only after user confirms.
+  showExportReview(currentSession);
 }
 
 function buildDc144WorkbookFromTemplate(wb, session) {
@@ -2459,19 +2588,35 @@ function compactPhotoNumbers(nums) {
 }
 
 /* Pre-export validation. Returns an error string or null. */
+// Returns { criticals: string[], warnings: string[] }.
+// criticals block export; warnings show in review modal but allow proceeding.
 function validateBeforeExport(session) {
-  if (!session || session.tab !== 'a') return null;
-  var rows = (session.section && session.section.payItems) || [];
-  for (var i = 0; i < rows.length; i++) {
-    var row = rows[i];
-    if (isCustomUnit(row.placedQtyUnit) && !String(row.placedQtyUnitCustom || '').trim()) {
-      return 'Row ' + (i + 1) + ' Placed Qty has Custom selected but no unit typed.';
-    }
-    if (isCustomUnit(row.asBuiltQtyUnit) && !String(row.asBuiltQtyUnitCustom || '').trim()) {
-      return 'Row ' + (i + 1) + ' As Built Qty has Custom selected but no unit typed.';
+  var criticals = [];
+  var warnings  = [];
+  if (!session) return { criticals: criticals, warnings: warnings };
+
+  var h = session.header || {};
+  if (!String(h.projectName  || '').trim()) warnings.push('Project name is blank');
+  if (!String(h.contractId   || '').trim()) warnings.push('Contract ID is blank');
+  if (!String(h.contractor   || '').trim()) warnings.push('Contractor is blank');
+  if (!String(h.inspectorName|| '').trim()) warnings.push('Inspector name is blank');
+  if (!String(h.date         || '').trim()) warnings.push('Date is blank');
+
+  // Tab A: custom units must have text entered
+  if (session.tab === 'a') {
+    var rows = (session.section && session.section.payItems) || [];
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      if (isCustomUnit(row.placedQtyUnit) && !String(row.placedQtyUnitCustom || '').trim()) {
+        criticals.push('Row ' + (i + 1) + ': Placed Qty has "Custom" selected but no unit typed.');
+      }
+      if (isCustomUnit(row.asBuiltQtyUnit) && !String(row.asBuiltQtyUnitCustom || '').trim()) {
+        criticals.push('Row ' + (i + 1) + ': As Built Qty has "Custom" selected but no unit typed.');
+      }
     }
   }
-  return null;
+
+  return { criticals: criticals, warnings: warnings };
 }
 
 /* Remove unused blank DC-144 worksheets from the export so an A-only export
