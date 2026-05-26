@@ -28,6 +28,7 @@ const LOCAL_ASSETS = [
   './pages/timesheet.html',
   './pages/milemarker.html',
   './data/mileposts/index.json',
+  './pages/dc144.html',
 ];
 
 self.addEventListener('install', function(e) {
@@ -130,7 +131,8 @@ self.addEventListener('fetch', function(e) {
   // CDN resources (Leaflet, html2canvas, jsPDF, fonts): network-first,
   // fall back to cache so offline use still works after first load.
   var isCDN = url.includes('unpkg.com') || url.includes('cdnjs.cloudflare.com') ||
-              url.includes('fonts.googleapis.com') || url.includes('fonts.gstatic.com');
+              url.includes('fonts.googleapis.com') || url.includes('fonts.gstatic.com') ||
+              url.includes('cdn.jsdelivr.net');
   if (isCDN) {
     e.respondWith(
       fetch(e.request).then(function(resp) {

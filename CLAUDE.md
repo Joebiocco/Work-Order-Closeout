@@ -24,7 +24,7 @@
 
 > **Purpose:** This file is the authoritative quick-reference for the NJDOT Field Tools project. Read this FIRST before reading any HTML file. It contains every architectural decision, storage key, design token, and critical constraint so we can make changes without re-reading 6,800+ lines of HTML.
 >
-> **Last updated:** 2026-05-21 · v1.11
+> **Last updated:** 2026-05-26 · v1.11
 >
 > **Live site:** `https://joebiocco.github.io/NJDOT-Field-Tools-Hub/`
 > **Repo:** `https://github.com/Joebiocco/NJDOT-Field-Tools-Hub` (renamed from `Work-Order-Closeout`)
@@ -67,12 +67,15 @@ Work Order Website/
 ├── icons/
 │   ├── icon-192.png                 # PWA app icon (192×192) — NJDOT bridge + bar chart, dark navy #001e4d bg, no pre-baked rounding
 │   └── icon-512.png                 # PWA app icon (512×512) — same design, maskable, corners filled solid navy
+├── js/
+│   └── dc144.js                     # DC-144 Field Form logic (~1,964 lines); IDB v2, ExcelJS export, dynamic grids
 ├── pages/
 │   ├── njsearch.html                # Bridge Navigator
 │   ├── njfuel.html                  # Fuel Station Finder
 │   ├── milemarker.html              # Road Milepost Finder
 │   ├── timesheet.html               # Payroll Calculator & Timesheet
-│   └── WorkOrderCloseout.html       # Work Order tool
+│   ├── WorkOrderCloseout.html       # Work Order tool
+│   └── dc144.html                   # DC-144 Field Form (~494 lines); loads ../js/dc144.js
 ├── _archive/                        # old files, ignore
 ├── reference/                       # data sources, ignore
 ├── scripts/                         # transient helper scripts
@@ -118,8 +121,9 @@ Work Order Website/
 | `ft_fuel_bookmarks` | njfuel | `JSON.stringify(["lat,lng", ...])` | Composite coord keys via `_fuelKey(s)` helper |
 | `wo_recent` | WorkOrderCloseout | JSON array (max 5) of recent session metadata | Each rec has `{wo, str, date, fname, route, direction, mp, startDate, endDate, priority, photoKey}` — PHOTOS NOT INCLUDED HERE |
 | `workorder_draft` | WorkOrderCloseout | Full session JSON snapshot | Single auto-saved draft |
+| `ft_dc144_recent` | dc144 | JSON array (max 5) of recent DC-144 session metadata | Each rec has `{id, tab, projectName, date, savedAt, photoKey}` — full data in IDB |
 | `field_dark_mode` | all pages | `"1"` if dark mode on | Theme preference |
-| `ft_last` | all pages | `"njsearch" \| "njfuel" \| "closeout" \| "milemarker" \| "timesheet"` | Last visited tool (used for the Home recent badge and Continue section) |
+| `ft_last` | all pages | `"njsearch" \| "njfuel" \| "closeout" \| "milemarker" \| "timesheet" \| "dc144"` | Last visited tool (used for the Home recent badge and Continue section) |
 | `ft_install_shown` | index | int 0-2 | How many times install popup has auto-shown on mobile |
 | `ft_bookmark_shown` | index | int 0-2 | How many times bookmark popup has auto-shown on desktop |
 
@@ -132,9 +136,11 @@ Work Order Website/
 
 ### IndexedDB
 
-**Database:** `ft_photos` (v1) — defined in WorkOrderCloseout.html
+**Database:** `ft_photos` (v2) — v1 created by WorkOrderCloseout.html; v2 upgrade performed by dc144.js when the DC-144 page first opens.
 
-**Object store:** `session_photos` — key is `photoKey` from wo_recent rec.
+**Object store:** `session_photos` (v1) — key is `photoKey` from wo_recent rec.
+
+**Object store:** `dc144_sessions` (v2) — key is `photoKey` from ft_dc144_recent rec. Full session JSON including photos.
 
 **Value structure:**
 ```js
@@ -152,7 +158,15 @@ Work Order Website/
 - `dbGetPhotos(key)` — read
 - `dbDeletePhotos(key)` — delete on session eviction
 
+**Helper functions in js/dc144.js** (same IDB database, separate store):
+- `openPhotoDB()` — same name, bumps to v2, adds `dc144_sessions` if needed
+- `dbPutDC144(key, data)` — writes to `dc144_sessions`
+- `dbGetDC144(key)` — reads from `dc144_sessions`
+- `dbDeleteDC144(key)` — called on session eviction from `ft_dc144_recent`
+
 **Important:** When a session is evicted from `wo_recent` (capped at 5), `dbDeletePhotos(rec.photoKey)` is called to free the IDB entry. The `photoKey` is `'pk_' + Date.now()` set at save time.
+
+**Important:** `ft_photos` v2 `onupgradeneeded` checks `oldVersion` to add stores incrementally — it never recreates `session_photos`. WorkOrderCloseout.html sessions are fully safe when the DC-144 page triggers the v1→v2 upgrade.
 
 ---
 
@@ -194,6 +208,7 @@ html[data-dark] {
 | Bridge Navigator card | `#7c3aed` (purple) | `#a78bfa` | `card-border-purple`, `card-icon-purple`, `tag-nj` |
 | Fuel Station card | `#10b981` / `#059669` | same | `card-border-green`, `card-icon-green`, `tag-fuel` |
 | Work Order card | `#64748b` / `#475569` | same | `card-border-slate`, `card-icon-slate`, `tag-doc` |
+| DC-144 Field Form card | `#4338ca` (indigo) | `#818cf8` | `card-border-indigo`, `card-icon-indigo`, `tag-dc` |
 | Find Near Me pill | `#0d9488` (teal) | `#2dd4bf` | On njsearch.html, distinct from cards |
 | Coming Soon — Drainage | `#0891b2` (cyan) | `#67e8f9` | `card-icon-cyan`, `card-border-cyan` |
 | Coming Soon — Milemarker | `#b45309` / `#d97706` (warm amber) | `#fcd34d` | Safety/warning theme. `card-icon-amber-soon` |
@@ -386,6 +401,22 @@ Two parallel implementations, identical behavior:
 - Runtime does **not** load statewide data at once: first fetch `data/mileposts/index.json`, then fetch only nearby tile chunks from `data/mileposts/chunks/*.json` based on GPS tile + neighbors.
 - Nearest lookup uses Haversine distance across loaded points and returns route class, route name, SRI, milepost, cross street, and distance.
 - Map layer stack matches Bridge/Fuel tools: Google Street (`lyrs=m`) + Google Satellite (`lyrs=y`) with Leaflet layer toggle.
+
+### DC-144 Field Form
+
+- **Source files:** `pages/dc144.html` (shell + CSS) + `js/dc144.js` (all logic)
+- **CDN dependency:** ExcelJS v4.4.0 via `cdn.jsdelivr.net` — used for client-side .xlsx generation
+- **Session isolation:** Each session is tied to exactly one tab (a/b/c/d). `tab` field is the discriminator.
+- **Row caps per tab:** a=17, b=19, c=18, d=24. `addGridRow()` disables add button when limit reached.
+- **Remarks fields:** Single unified `<textarea>` per remarks region, not line-by-line row inputs.
+- **Photo appendix:** Photos are written to a separate 'Photo Appendix' worksheet only; never injected inline into data cells. Remarks text gets `[See Photo Appendix — Photo N]` markers.
+- **Template:** `data/dc144-template.xlsx` — must be created manually from the original XLS. Export falls back to a minimal workbook if 404.
+- **Image compression:** OffscreenCanvas → 1400px max long side → JPEG 0.72 → fallback 0.58. Target ≤200KB per photo.
+- **ExcelJS cell addressing:** All uses `ws.getCell(row, col)` with 1-based row/col from `DC144_CELL_MAP`.
+- **IDB store:** `dc144_sessions` in `ft_photos` v2. Key = `photoKey` from `ft_dc144_recent` rec.
+- **Auto-save:** 2000ms debounce on `input`/`change` events. Writes full session JSON to IDB + updates `ft_dc144_recent` chip.
+- **Filename pattern:** `DC-144-[TAB]-[YYYYMMDD]-[SafeProjectName].xlsx`
+- **Tab color palette:** a=indigo `#4338ca`, b=amber `#92400e`, c=teal `#0e7490`, d=rose `#9f1239`
 
 ### Hub install/bookmark popup
 
