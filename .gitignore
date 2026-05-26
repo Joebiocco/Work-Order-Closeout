@@ -27,3 +27,8 @@ desktop.ini
 
 # Backup folder (handled outside the repo)
 Work Order Website - Backup */
+
+# Node / local dev tools (Playwright screenshots, etc.)
+node_modules/
+package.json
+package-lock.json
