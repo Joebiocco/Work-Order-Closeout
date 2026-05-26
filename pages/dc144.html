@@ -510,6 +510,100 @@
     }
     .hours-input:focus { border-color: var(--accent); }
 
+    /* ── Inspector signature trigger + preview ──────────────────────────── */
+    .inspector-field-wrap { display: flex; flex-direction: column; gap: 6px; }
+    .signature-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+    .signature-trigger {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px;
+      background: rgba(229,179,59,0.10); color: #8a6a14;
+      border: 1.5px dashed rgba(229,179,59,0.45);
+      border-radius: 999px;
+      font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: background 0.13s, border-color 0.13s, color 0.13s;
+      min-height: 32px;
+    }
+    .signature-trigger:hover { background: rgba(229,179,59,0.18); border-color: #C9971A; }
+    .signature-trigger.has-signature {
+      background: rgba(22,101,52,0.10); color: #166534;
+      border-color: rgba(22,101,52,0.35); border-style: solid;
+    }
+    .signature-trigger.has-signature:hover { background: rgba(22,101,52,0.16); }
+    html[data-dark] .signature-trigger { color: #FEE9A1; border-color: rgba(229,179,59,0.55); background: rgba(229,179,59,0.10); }
+    html[data-dark] .signature-trigger.has-signature { color: #86efac; border-color: rgba(34,197,94,0.45); }
+    .signature-preview-img {
+      max-height: 32px; max-width: 140px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 3px;
+      object-fit: contain;
+    }
+    .signature-clear {
+      width: 22px; height: 22px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(220,38,38,0.10); color: var(--red);
+      border: 1px solid rgba(220,38,38,0.30);
+      border-radius: 50%;
+      cursor: pointer; font-size: 14px; line-height: 1; padding: 0;
+      font-family: var(--sans); transition: background 0.12s;
+    }
+    .signature-clear:hover { background: rgba(220,38,38,0.22); }
+
+    /* ── Signature pad modal ────────────────────────────────────────────── */
+    #signature-modal { z-index: 8800; }
+    #signature-modal .dc-modal-box { max-width: 520px; }
+    .signature-pad-wrap {
+      position: relative;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      background: #ffffff;
+      overflow: hidden;
+      margin-bottom: 14px;
+      touch-action: none;
+    }
+    .signature-pad-wrap::after {
+      content: "";
+      position: absolute; left: 12px; right: 12px; bottom: 22%;
+      height: 1px; background: rgba(15,23,42,0.18);
+      pointer-events: none;
+    }
+    #signature-canvas {
+      display: block;
+      width: 100%;
+      height: 200px;
+      background: #ffffff;
+      cursor: crosshair;
+      touch-action: none;
+    }
+    .signature-pad-hint {
+      font-size: 12px; color: var(--muted); margin-bottom: 14px;
+      text-align: center;
+    }
+
+    /* ── Empty-state hint inside dynamic tables ─────────────────────────── */
+    .empty-table-hint {
+      display: flex; align-items: center; gap: 12px;
+      padding: 18px 18px; margin: 0;
+      background: rgba(26,86,219,0.05);
+      border-top: 1px solid var(--border-lo);
+      color: var(--muted2);
+    }
+    .empty-table-hint svg { color: var(--accent); flex-shrink: 0; }
+    .empty-table-title {
+      font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px;
+    }
+    .empty-table-sub { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+    /* ── Table add-row footer (prominent on empty state) ────────────────── */
+    .table-add-footer {
+      padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+      border-top: 1px solid var(--border-lo);
+    }
+
     /* ── Photo card grid ─────────────────────────────────────────────────── */
     .photo-strip {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -534,6 +628,18 @@
     }
     .photo-thumb img,
     .photo-thumb-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .photo-thumb-placeholder {
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg);
+    }
+    .photo-spinner {
+      width: 28px; height: 28px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    .photo-placeholder .photo-caption-label { color: var(--accent); }
     .photo-del-btn {
       position: absolute; top: 4px; right: 4px;
       background: rgba(0,0,0,0.65); color: #fff; border: none;
@@ -613,6 +719,21 @@
       .temp-grid { grid-template-columns: 1fr 1fr; }
       .hours-input { width: 65px; }
 
+      /* Header field-group: stack 2-col layouts so each field gets full width */
+      .field-group { grid-template-columns: 1fr !important; }
+      /* Weather block: stack AM and PM cards vertically; each card keeps
+         its internal 3-col grid so cond/high/low remain side-by-side.
+         Selector matches the AM|PM grid inside renderWeatherHtml() which is
+         a descendant (not direct child) of .section-card-body. */
+      .section-card-body div[style*="grid-template-columns:1fr 1fr"][style*="gap:14px"] {
+        grid-template-columns: 1fr !important;
+      }
+
+      /* Inspector signature row wraps nicely on small screens */
+      .signature-row { gap: 6px; }
+      .signature-trigger { min-height: 36px; padding: 6px 14px; font-size: 12px; }
+      .signature-preview-img { max-height: 36px; max-width: 110px; }
+
       /* Mobile actionbar — 2x2 grid so Export is always visible without
          horizontal sliding. Hides title/divider/spacer/autosave-status. */
       #form-actionbar {
@@ -653,25 +774,29 @@
         font-size: 13px;
       }
       .data-table thead { display: none; }
-      .data-table tbody { display: grid; gap: 12px; }
+      .data-table tbody { display: grid; gap: 14px; padding: 14px 12px 4px; }
       .data-table tbody tr {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 8px;
-        padding: 12px;
-        border: 1px solid var(--border-lo);
+        gap: 12px;
+        padding: 14px 14px 16px;
+        border: 1.5px solid var(--border);
+        border-left: 4px solid var(--accent);
         border-radius: var(--radius-lg);
         background: var(--surface);
-        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
       }
       .data-table tbody tr::before {
         content: "Entry " attr(data-entry-num);
         display: block;
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 800;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
-        color: var(--muted2);
+        color: var(--accent);
+        padding-bottom: 8px;
+        border-bottom: 2px solid var(--border-lo);
+        margin-bottom: 2px;
       }
       .data-table tbody td {
         display: block;
@@ -681,12 +806,20 @@
       .data-table tbody td::before {
         content: attr(data-label);
         display: block;
-        margin-bottom: 4px;
-        font-size: 11px;
+        margin-bottom: 6px;
+        font-size: 12px;
         font-weight: 700;
-        color: var(--muted2);
+        color: var(--text);
+        letter-spacing: 0.02em;
       }
       .data-table tbody td.row-num { display: none; }
+      /* Show Qty / Unit sub-labels on the qty input + dropdown pair. */
+      .data-table tbody td .qty-cell-wrap::before {
+        content: "";
+      }
+      .data-table tbody td .qty-cell-wrap .grid-input { position: relative; }
+      .data-table tbody td .qty-cell-wrap .grid-select { position: relative; }
+      .data-table tbody td .grid-input::placeholder { color: var(--muted); }
 
       .grid-input,
       .grid-select,
@@ -774,6 +907,25 @@
         <button class="btn-primary" onclick="confirmSaveTemplate()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           Save Template
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Signature pad modal ─────────────────────────────────────────────── -->
+  <div id="signature-modal" class="dc-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="sig-modal-title">
+    <div class="dc-modal-box">
+      <div class="dc-modal-title" id="sig-modal-title">Inspector Signature</div>
+      <div class="signature-pad-hint">Sign in the box below using your finger, stylus, or mouse.</div>
+      <div class="signature-pad-wrap">
+        <canvas id="signature-canvas" aria-label="Signature drawing area" role="img"></canvas>
+      </div>
+      <div class="dc-modal-actions">
+        <button class="btn-secondary" id="signature-pad-clear" type="button" onclick="clearSignaturePad()">Clear</button>
+        <button class="btn-secondary" type="button" onclick="closeSignaturePad()">Cancel</button>
+        <button class="btn-primary" type="button" onclick="saveSignaturePad()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          Save Signature
         </button>
       </div>
     </div>

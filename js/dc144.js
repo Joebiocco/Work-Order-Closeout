@@ -260,6 +260,8 @@ var autosaveStatusTimer = null;
 var templateCache       = null;
 var photoTargetKey      = null;
 var idbConn             = null;
+var pendingPhotoOps     = 0; // number of in-flight photo compressions; export waits for 0
+var signatureState      = null; // active signature pad state when modal is open
 
 /* ============================================================
    3. INDEXEDDB
@@ -379,7 +381,7 @@ function getSessionRowCount(session) {
 
 function createBlankSession(tab) {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     formId:   'dc144',
     tab:      tab,
     photoKey: 'pk_' + Date.now(),
@@ -397,6 +399,7 @@ function createBlankSession(tab) {
       weatherPMHigh: '',
       weatherPMLow:  ''
     },
+    inspectorSignature: '', // PNG base64 data URL, drawn via signature pad
     itemHeader: (tab !== 'a') ? { itemNumber: '', description: '', itemCode: '' } : null,
     section:    buildBlankSection(tab),
     photos:     []
@@ -493,6 +496,9 @@ function showToast(msg, type, dur) {
 function setAutosaveStatus(status) {
   var el = document.getElementById('autosave-status');
   if (!el) return;
+  // Photo processing takes priority — don't let autosave clobber the
+  // user's signal that photos are still being prepared.
+  if (pendingPhotoOps > 0) { updatePhotoPendingIndicator(); return; }
   clearTimeout(autosaveStatusTimer);
   if (status === 'saving') {
     el.textContent = 'Saving…';
@@ -503,6 +509,7 @@ function setAutosaveStatus(status) {
     autosaveStatusTimer = setTimeout(function() { el.textContent = ''; }, 3000);
   } else {
     el.textContent = '';
+    el.style.color = '';
   }
 }
 
@@ -550,6 +557,9 @@ function playScreenTransition(el, direction) {
 }
 
 function showDashboard() {
+  // Close any open modals before changing screens
+  closeSignaturePad();
+  closeTemplateModal();
   var form = document.getElementById('form-screen');
   var dash = document.getElementById('dashboard-screen');
   form.style.display = 'none';
@@ -873,13 +883,55 @@ function renderHeaderSection(tab, session) {
       fieldHtml('contractor',    'Contractor',             h.contractor)   +
     '</div>' +
     '<div class="field-group" style="grid-template-columns:1fr 1fr;">' +
-      fieldHtml('inspectorName', 'Inspector Printed Name', h.inspectorName)+
+      renderInspectorFieldHtml(h, session) +
       fieldHtml('date',          'Date',                   h.date, 'date') +
     '</div>' +
     (tab === 'a' ? renderWeatherHtml(h) : '');
   var projWrap = body.querySelector('[data-field="projectName"]');
   if (projWrap) projWrap.style.gridColumn = '1 / -1';
+
+  // Wire signature trigger button (after innerHTML, the node exists)
+  var sigBtn = body.querySelector('#signature-trigger-btn');
+  if (sigBtn) {
+    sigBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      openSignaturePad();
+    });
+  }
+  var sigClear = body.querySelector('#signature-clear-btn');
+  if (sigClear) {
+    sigClear.addEventListener('click', function(e) {
+      e.preventDefault();
+      clearSavedSignature();
+    });
+  }
   return card;
+}
+
+function renderInspectorFieldHtml(h, session) {
+  var hasSig = !!(session.inspectorSignature);
+  var sigPreviewHtml = hasSig
+    ? '<img id="signature-preview-img" src="' + esc(session.inspectorSignature) + '" alt="Inspector signature" class="signature-preview-img">'
+    : '';
+  var sigBtnHtml =
+    '<button type="button" id="signature-trigger-btn" class="signature-trigger ' + (hasSig ? 'has-signature' : '') + '" aria-label="' + (hasSig ? 'Edit inspector signature' : 'Add inspector signature') + '">' +
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>' +
+      '<span>' + (hasSig ? 'Edit signature' : 'Add signature') + '</span>' +
+    '</button>';
+  var sigClearHtml = hasSig
+    ? '<button type="button" id="signature-clear-btn" class="signature-clear" aria-label="Remove inspector signature">×</button>'
+    : '';
+  return '<div data-field="inspectorName" class="inspector-field-wrap">' +
+    '<label class="field-label" for="field-inspectorName">Inspector Printed Name</label>' +
+    '<input id="field-inspectorName" class="field-input" type="text" ' +
+      'data-field="inspectorName" value="' + esc(h.inspectorName || '') + '" ' +
+      'placeholder="Inspector Printed Name" aria-label="Inspector Printed Name">' +
+    '<div class="signature-row">' +
+      sigBtnHtml +
+      sigPreviewHtml +
+      sigClearHtml +
+    '</div>' +
+  '</div>';
 }
 
 function renderWeatherHtml(h) {
@@ -1130,6 +1182,197 @@ function renderRemarksCard(title, sectionKey, value, tab) {
 }
 
 /* ============================================================
+   16b. INSPECTOR SIGNATURE PAD
+   ============================================================ */
+
+function openSignaturePad() {
+  if (!currentSession) return;
+  var modal = document.getElementById('signature-modal');
+  if (!modal) return;
+  // Replace the canvas with a fresh clone so any previously attached
+  // pointer/touch/mouse listeners are dropped (prevents leak if the
+  // modal is opened/closed repeatedly).
+  var oldCanvas = document.getElementById('signature-canvas');
+  if (oldCanvas && oldCanvas.parentNode) {
+    var fresh = oldCanvas.cloneNode(false);
+    oldCanvas.parentNode.replaceChild(fresh, oldCanvas);
+  }
+  modal.classList.add('open');
+  // Defer canvas init until modal is laid out (so canvas has real size)
+  requestAnimationFrame(function() { initSignatureCanvas(); });
+}
+
+function closeSignaturePad() {
+  var modal = document.getElementById('signature-modal');
+  if (modal) modal.classList.remove('open');
+  if (signatureState && signatureState.cleanup) signatureState.cleanup();
+  signatureState = null;
+}
+
+function initSignatureCanvas() {
+  var canvas = document.getElementById('signature-canvas');
+  if (!canvas) return;
+  // Size canvas backing store to displayed size × devicePixelRatio so the
+  // signature is crisp on retina/mobile displays.
+  var rect = canvas.getBoundingClientRect();
+  var dpr  = Math.max(1, window.devicePixelRatio || 1);
+  canvas.width  = Math.round(rect.width * dpr);
+  canvas.height = Math.round(rect.height * dpr);
+  var ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.lineCap     = 'round';
+  ctx.lineJoin    = 'round';
+  ctx.lineWidth   = 2.2;
+  ctx.strokeStyle = '#111827';
+  // Fill white so exported PNG has a white background (not transparent)
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, rect.width, rect.height);
+
+  // If there's an existing signature, paint it into the canvas so the
+  // user sees their previous strokes and can keep editing.
+  if (currentSession && currentSession.inspectorSignature) {
+    var img = new Image();
+    img.onload = function() {
+      ctx.drawImage(img, 0, 0, rect.width, rect.height);
+    };
+    img.src = currentSession.inspectorSignature;
+  }
+
+  var drawing = false;
+  var lastX = 0, lastY = 0;
+  var hasStrokes = !!(currentSession && currentSession.inspectorSignature);
+
+  function pointFromEvent(e) {
+    var r = canvas.getBoundingClientRect();
+    var clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+    var clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+    return { x: clientX - r.left, y: clientY - r.top };
+  }
+
+  function start(e) {
+    e.preventDefault();
+    drawing = true;
+    var p = pointFromEvent(e);
+    lastX = p.x; lastY = p.y;
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    // Tiny dot so taps without movement still register
+    ctx.arc(lastX, lastY, 1.0, 0, Math.PI * 2);
+    ctx.fill = ctx.fill; // no-op safety
+    ctx.fillStyle = '#111827';
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    hasStrokes = true;
+    updateClearButton();
+  }
+  function move(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    var p = pointFromEvent(e);
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    lastX = p.x; lastY = p.y;
+  }
+  function end(e) {
+    if (!drawing) return;
+    if (e) e.preventDefault();
+    drawing = false;
+  }
+  function updateClearButton() {
+    var clearBtn = document.getElementById('signature-pad-clear');
+    if (clearBtn) clearBtn.disabled = !hasStrokes;
+  }
+  updateClearButton();
+
+  // Pointer events cover mouse, touch, and pen on supporting browsers.
+  // Fall back to touch + mouse for older Safari.
+  if ('PointerEvent' in window) {
+    canvas.addEventListener('pointerdown', start);
+    canvas.addEventListener('pointermove', move);
+    canvas.addEventListener('pointerup', end);
+    canvas.addEventListener('pointerleave', end);
+    canvas.addEventListener('pointercancel', end);
+  } else {
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', move);
+    canvas.addEventListener('mouseup', end);
+    canvas.addEventListener('mouseleave', end);
+    canvas.addEventListener('touchstart', start, { passive: false });
+    canvas.addEventListener('touchmove', move, { passive: false });
+    canvas.addEventListener('touchend', end);
+    canvas.addEventListener('touchcancel', end);
+  }
+
+  signatureState = {
+    canvas: canvas,
+    ctx:    ctx,
+    width:  rect.width,
+    height: rect.height,
+    hasStrokes: function() { return hasStrokes; },
+    setHasStrokes: function(v) { hasStrokes = v; updateClearButton(); },
+    cleanup: function() { /* listeners die with the canvas element rebuild */ }
+  };
+}
+
+function clearSignaturePad() {
+  if (!signatureState) return;
+  var ctx = signatureState.ctx;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, signatureState.width, signatureState.height);
+  signatureState.setHasStrokes(false);
+}
+
+function saveSignaturePad() {
+  if (!signatureState || !currentSession) return;
+  if (!signatureState.hasStrokes()) {
+    showToast('Sign before saving', 'info', 2000);
+    return;
+  }
+  // Capture any unsaved form input (e.g. inspector name typed just before
+  // opening the pad) so refreshSignatureRow does not paint stale values.
+  collectFormData();
+  try {
+    var dataUrl = signatureState.canvas.toDataURL('image/png');
+    currentSession.inspectorSignature = dataUrl;
+  } catch(e) {
+    showToast('Could not save signature', 'err');
+    return;
+  }
+  closeSignaturePad();
+  refreshSignatureRow();
+  scheduleAutosave();
+  showToast('Signature saved', 'ok', 1800);
+}
+
+function clearSavedSignature() {
+  if (!currentSession) return;
+  if (!confirm('Remove the saved inspector signature?')) return;
+  collectFormData();
+  currentSession.inspectorSignature = '';
+  refreshSignatureRow();
+  scheduleAutosave();
+}
+
+function refreshSignatureRow() {
+  // Re-render the inspector field wrap so the UI reflects current state
+  var wrap = document.querySelector('.inspector-field-wrap');
+  if (!wrap || !currentSession) return;
+  var parent = wrap.parentNode;
+  if (!parent) return;
+  var temp = document.createElement('div');
+  temp.innerHTML = renderInspectorFieldHtml(currentSession.header, currentSession);
+  var newNode = temp.firstChild;
+  parent.replaceChild(newNode, wrap);
+  // Re-wire buttons
+  var newSigBtn = parent.querySelector('#signature-trigger-btn');
+  if (newSigBtn) newSigBtn.addEventListener('click', function(e) { e.preventDefault(); openSignaturePad(); });
+  var newSigClear = parent.querySelector('#signature-clear-btn');
+  if (newSigClear) newSigClear.addEventListener('click', function(e) { e.preventDefault(); clearSavedSignature(); });
+}
+
+/* ============================================================
    17. PHOTOS SECTION
    ============================================================ */
 
@@ -1294,16 +1537,38 @@ function buildDynamicTable(tab, rows) {
   tableWrap.appendChild(table);
   wrap.appendChild(tableWrap);
 
+  // Empty-state hint when there are no rows yet. Shows a clear message so
+  // users know they need to tap the prominent Add button below.
+  var emptyHint = document.createElement('div');
+  emptyHint.className = 'empty-table-hint';
+  emptyHint.id        = 'empty-table-hint-' + tab;
+  emptyHint.style.display = rows.length === 0 ? '' : 'none';
+  var entryNoun = (tab === 'a') ? 'pay item'
+                : (tab === 'b') ? 'paving entry'
+                : (tab === 'c') ? 'application entry'
+                : 'pile entry';
+  emptyHint.innerHTML =
+    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>' +
+    '<div>' +
+      '<div class="empty-table-title">No entries yet</div>' +
+      '<div class="empty-table-sub">Tap the button below to add your first ' + entryNoun + '.</div>' +
+    '</div>';
+  wrap.appendChild(emptyHint);
+
   var footer = document.createElement('div');
-  footer.style.cssText = 'padding:14px 16px;display:flex;align-items:center;gap:12px;border-top:1px solid var(--border-lo);';
+  footer.className = 'table-add-footer';
 
   var addBtn = document.createElement('button');
   addBtn.className = 'btn-add-row';
   addBtn.id        = 'add-row-btn-' + tab;
   addBtn.disabled  = rows.length >= maxRows;
+  var addLabel = (tab === 'a') ? 'Add Pay Item'
+               : (tab === 'b') ? 'Add Paving Entry'
+               : (tab === 'c') ? 'Add Application Entry'
+               : 'Add Pile Entry';
   addBtn.innerHTML =
     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
-    'Add Row';
+    addLabel;
   addBtn.addEventListener('click', function() { addGridRow(tab, def, maxRows); });
 
   var counter = document.createElement('span');
@@ -1437,6 +1702,7 @@ function addGridRow(tab, def, maxRows) {
   var counter = document.getElementById('row-counter-' + tab);
   var addBtn  = document.getElementById('add-row-btn-' + tab);
   var notice  = document.getElementById('row-limit-notice-' + tab);
+  var hint    = document.getElementById('empty-table-hint-' + tab);
   if (!tbody) return;
 
   var currentCount = tbody.querySelectorAll('tr').length;
@@ -1449,6 +1715,7 @@ function addGridRow(tab, def, maxRows) {
   if (counter) counter.textContent = currentCount + ' / ' + maxRows + ' rows';
   if (addBtn)  addBtn.disabled     = currentCount >= maxRows;
   if (notice)  notice.style.display = currentCount >= maxRows ? '' : 'none';
+  if (hint)    hint.style.display   = 'none';
 
   var newTr = tbody.lastElementChild;
   if (newTr) { var fi = newTr.querySelector('input'); if (fi) fi.focus(); }
@@ -1460,6 +1727,7 @@ function deleteGridRow(tab, rowIndex, maxRows) {
   var counter = document.getElementById('row-counter-' + tab);
   var addBtn  = document.getElementById('add-row-btn-' + tab);
   var notice  = document.getElementById('row-limit-notice-' + tab);
+  var hint    = document.getElementById('empty-table-hint-' + tab);
   if (!tbody) return;
 
   var rows   = tbody.querySelectorAll('tr');
@@ -1480,6 +1748,7 @@ function deleteGridRow(tab, rowIndex, maxRows) {
   if (counter) counter.textContent  = currentCount + ' / ' + maxRows + ' rows';
   if (addBtn)  addBtn.disabled      = currentCount >= maxRows;
   if (notice)  notice.style.display = currentCount >= maxRows ? '' : 'none';
+  if (hint)    hint.style.display   = currentCount === 0 ? '' : 'none';
 
   scheduleAutosave();
 }
@@ -1675,10 +1944,17 @@ function handlePhotoCaptureEvent(event) {
     event.target.value = '';
     return;
   }
+  var targetKey = photoTargetKey || 'appendixOnly';
+  pendingPhotoOps++;
+  updatePhotoPendingIndicator();
+  // Insert a placeholder thumb immediately so the user sees their photo
+  // taking effect even if compression takes a moment. The placeholder is
+  // replaced with the real thumb when compression completes.
+  var placeholder = insertPhotoPlaceholder(targetKey);
   compressImage(file, function(base64, w, h) {
     var photo = {
       photoIndex:   currentSession.photos.length + 1,
-      sectionKey:   photoTargetKey || 'appendixOnly',
+      sectionKey:   targetKey,
       caption:      '',
       base64:       base64,
       originalName: file.name,
@@ -1687,15 +1963,51 @@ function handlePhotoCaptureEvent(event) {
       heightPx:     h
     };
     currentSession.photos.push(photo);
+    if (placeholder && placeholder.parentNode) {
+      placeholder.parentNode.removeChild(placeholder);
+    }
     var strip = document.getElementById('photo-strip-' + photo.sectionKey);
     if (strip) {
-      var addBtnWrapper = strip.querySelector('.photo-item:last-child');
+      var addBtnWrapper = strip.querySelector('.photo-add-item');
       var newThumb      = buildPhotoThumb(photo, currentSession.photos.length - 1);
-      strip.insertBefore(newThumb, addBtnWrapper);
+      if (addBtnWrapper) strip.insertBefore(newThumb, addBtnWrapper);
+      else strip.appendChild(newThumb);
     }
+    pendingPhotoOps = Math.max(0, pendingPhotoOps - 1);
+    updatePhotoPendingIndicator();
     scheduleAutosave();
   });
   event.target.value = '';
+}
+
+function insertPhotoPlaceholder(sectionKey) {
+  var strip = document.getElementById('photo-strip-' + sectionKey);
+  if (!strip) return null;
+  var ph = document.createElement('div');
+  ph.className = 'photo-item photo-placeholder';
+  ph.setAttribute('aria-label', 'Photo processing');
+  ph.innerHTML =
+    '<div class="photo-thumb photo-thumb-placeholder">' +
+      '<div class="photo-spinner" aria-hidden="true"></div>' +
+    '</div>' +
+    '<div class="photo-caption-label">Processing…</div>';
+  var addBtnWrapper = strip.querySelector('.photo-add-item');
+  if (addBtnWrapper) strip.insertBefore(ph, addBtnWrapper);
+  else strip.appendChild(ph);
+  return ph;
+}
+
+function updatePhotoPendingIndicator() {
+  var el = document.getElementById('autosave-status');
+  if (!el) return;
+  if (pendingPhotoOps > 0) {
+    el.textContent = 'Processing ' + pendingPhotoOps + ' photo' + (pendingPhotoOps > 1 ? 's' : '') + '…';
+    el.style.color = 'var(--accent)';
+  } else {
+    // Reset to neutral so future autosave/saved states can paint freely
+    el.textContent = '';
+    el.style.color = '';
+  }
 }
 
 function deletePhoto(idx) {
@@ -1809,6 +2121,19 @@ function loadDc144TemplateWorkbook() {
 
 function handleExport() {
   if (!currentSession) return;
+  if (pendingPhotoOps > 0) {
+    showToast('Still processing ' + pendingPhotoOps + ' photo(s). Try again in a moment.', 'info', 3000);
+    // Poll briefly then auto-retry once finished
+    var waitStart = Date.now();
+    var poll = setInterval(function() {
+      if (pendingPhotoOps === 0) { clearInterval(poll); handleExport(); }
+      else if (Date.now() - waitStart > 30000) {
+        clearInterval(poll);
+        showToast('Photo processing timed out. Export with what is ready?', 'err', 5000);
+      }
+    }, 400);
+    return;
+  }
   collectFormData();
   var validationError = validateBeforeExport(currentSession);
   if (validationError) {
@@ -1880,12 +2205,102 @@ function buildDc144WorkbookFromTemplate(wb, session) {
   if (tab === 'c') patchMaterialInfo(ws, session);
   if (tab === 'd') patchPileDescriptor(ws, session);
 
+  // Replace the template's "Attach additional sketches..." footer text
+  // with a friendlier appendix pointer + center the cell.
+  rewriteAppendixFooterText(ws, session);
+
+  // Inspector signature — drawn via signature pad modal, embedded next
+  // to the printed name on the official form. Photos live on their own
+  // appendix sheet; this signature is a small floating image on the
+  // form worksheet itself.
+  if (session.inspectorSignature) {
+    embedInspectorSignature(wb, ws, session);
+  }
+
   // Photos live on a separate appendix sheet. Adding the appendix
   // must never reach back into the official form worksheet.
   if (session.photos && session.photos.length > 0) {
     appendPhotoSheet(wb, session.photos);
   }
   return wb;
+}
+
+/* Scan the worksheet for the official "Attach additional sketches..."
+   note (case-insensitive substring match) and overwrite it with a
+   shorter appendix pointer, centered. Cells with no match are
+   left untouched. */
+function rewriteAppendixFooterText(ws, session) {
+  if (!ws) return;
+  var hasPhotos = !!(session.photos && session.photos.length);
+  var newText   = hasPhotos
+    ? 'See Photo Appendix worksheet for attached photos'
+    : 'See Photo Appendix when photos are attached';
+  // Some templates may say "Attach additional sketches" or
+  // "Attach all sketches" — match the longest distinctive phrase first
+  // and fall back to a shorter one.
+  var markers = ['attach additional sketches', 'attach additional', 'additional sketches'];
+  var rowCount = Math.max(ws.rowCount || 0, 100);
+  var found = false;
+  for (var r = rowCount; r >= 1 && !found; r--) {
+    // Scan from the bottom of the sheet upward — the appendix-footer note
+    // is always near the bottom of the official DC-144 form. This avoids
+    // false positives in the header band.
+    var row = ws.getRow(r);
+    if (!row) continue;
+    var maxCol = Math.max(row.cellCount || 0, row.actualCellCount || 0, 24);
+    for (var c = 1; c <= maxCol; c++) {
+      var cell = row.getCell(c);
+      var txt  = _cellPlainText(cell);
+      if (!txt) continue;
+      var lower = txt.toLowerCase();
+      for (var m = 0; m < markers.length; m++) {
+        if (lower.indexOf(markers[m]) !== -1) {
+          // Preserve existing font/border/fill — only change value + alignment.
+          cell.value = newText;
+          var existing = cell.alignment || {};
+          cell.alignment = {
+            horizontal:  'center',
+            vertical:    'middle',
+            wrapText:    true,
+            shrinkToFit: existing.shrinkToFit,
+            indent:      existing.indent
+          };
+          found = true;
+          break;
+        }
+      }
+      if (found) break;
+    }
+  }
+}
+
+/* Embed inspector signature image on the form worksheet, positioned
+   next to the printed-name cell. The image is sized small (180×40 px)
+   so it sits on the same row as the printed name without disturbing
+   adjacent cells or row heights. */
+function embedInspectorSignature(wb, ws, session) {
+  try {
+    var sigData = String(session.inspectorSignature || '');
+    if (!sigData) return;
+    var base64 = sigData.replace(/^data:image\/\w+;base64,/, '');
+    if (!base64) return;
+    var nameMap = DC144_CELL_MAP[session.tab] && DC144_CELL_MAP[session.tab].header
+      && DC144_CELL_MAP[session.tab].header.inspectorName;
+    if (!nameMap) return;
+    var imageId = wb.addImage({ base64: base64, extension: 'png' });
+    // Anchor right after the name column. tl is 0-based.
+    // Place at row of inspector name, offset 2 columns right of name cell.
+    var anchorCol = (nameMap.c - 1) + 2; // 0-based
+    var anchorRow = (nameMap.r - 1);     // 0-based
+    ws.addImage(imageId, {
+      tl:     { col: anchorCol, row: anchorRow },
+      ext:    { width: 180, height: 40 },
+      editAs: 'oneCell'
+    });
+  } catch(e) {
+    // Silent: failing to embed a signature should not break the export.
+    console.warn('Inspector signature embed failed:', e);
+  }
 }
 
 // Per-tab lower bounds for merged-range counts. Numbers come from the
@@ -1978,8 +2393,8 @@ function setCellValue(ws, r, c, value) {
 }
 
 /* Like setCellValue but preserves existing template alignment and lets
-   callers opt into wrap/shrink/top to keep long user text inside the
-   official DC-144 cell bounds — without expanding row heights. */
+   callers opt into wrap/shrink/top/center to keep long user text inside
+   the official DC-144 cell bounds — without expanding row heights. */
 function setCellValueReadable(ws, r, c, value, opts) {
   if (!r || !c) return;
   try {
@@ -1994,9 +2409,11 @@ function setCellValueReadable(ws, r, c, value, opts) {
       shrinkToFit: existing.shrinkToFit,
       indent:      existing.indent
     };
-    if (opts.wrap)   alignment.wrapText    = true;
-    if (opts.shrink) alignment.shrinkToFit = true;
-    if (opts.top)    alignment.vertical    = 'top';
+    if (opts.wrap)    alignment.wrapText    = true;
+    if (opts.shrink)  alignment.shrinkToFit = true;
+    if (opts.top)     alignment.vertical    = 'top';
+    if (opts.center)  alignment.horizontal  = 'center';
+    if (opts.middle)  alignment.vertical    = 'middle';
     cell.alignment = alignment;
   } catch(e) {}
 }
@@ -2059,12 +2476,33 @@ function pruneWorkbookToSelectedForm(wb, activeTab, includeAllForms) {
 
 // Header fields that often contain wide user prose. shrinkToFit prevents
 // long text from clipping or pushing into adjacent cells.
+// Weather condition/temp fields are included so longer entries like
+// "Partly Cloudy with Showers" do not push the template's underline
+// rules out of alignment.
 var DC144_SHRINK_HEADER_FIELDS = {
   projectName:     true,
   contractor:      true,
   inspectorName:   true,
   contractId:      true,
-  itemDescription: true
+  itemDescription: true,
+  weatherAMCond:   true,
+  weatherAMHigh:   true,
+  weatherAMLow:    true,
+  weatherPMCond:   true,
+  weatherPMHigh:   true,
+  weatherPMLow:    true
+};
+
+// Weather condition fields are typed text and need horizontal:center to
+// keep them visually centered on the official form's underline rule.
+// Temperature fields stay with the template's native alignment.
+var DC144_CENTER_HEADER_FIELDS = {
+  weatherAMCond: true,
+  weatherAMHigh: true,
+  weatherAMLow:  true,
+  weatherPMCond: true,
+  weatherPMHigh: true,
+  weatherPMLow:  true
 };
 
 function patchHeaderFields(ws, session) {
@@ -2072,8 +2510,14 @@ function patchHeaderFields(ws, session) {
   var h   = session.header;
   Object.keys(map).forEach(function(f) {
     if (h[f] === undefined) return;
-    if (DC144_SHRINK_HEADER_FIELDS[f]) {
-      setCellValueReadable(ws, map[f].r, map[f].c, h[f], { shrink: true });
+    var needsShrink = !!DC144_SHRINK_HEADER_FIELDS[f];
+    var needsCenter = !!DC144_CENTER_HEADER_FIELDS[f];
+    if (needsShrink || needsCenter) {
+      setCellValueReadable(ws, map[f].r, map[f].c, h[f], {
+        shrink: needsShrink,
+        center: needsCenter,
+        middle: needsCenter
+      });
     } else {
       setCellValue(ws, map[f].r, map[f].c, h[f]);
     }
@@ -2200,10 +2644,14 @@ function patchRemarksFields(ws, session) {
 function patchWorkHours(ws, session) {
   var s   = session.section;
   var map = DC144_CELL_MAP.a.workHours;
+  // All labor categories (RE through Loaned off Project) should have their
+  // Regular Hrs / Overtime Hrs values centered to match the template's
+  // ruled-line grid. The template's default for these cells in some
+  // converted xlsx files is left/general — explicitly center every row.
   WORK_HOURS_CATEGORIES.forEach(function(cat) {
     var vals = (s.workHours && s.workHours[cat.key]) || {};
-    setCellValue(ws, cat.excelRow, map.regularCol,  vals.regular  || '');
-    setCellValue(ws, cat.excelRow, map.overtimeCol, vals.overtime || '');
+    setCellValueReadable(ws, cat.excelRow, map.regularCol,  vals.regular  || '', { center: true, middle: true });
+    setCellValueReadable(ws, cat.excelRow, map.overtimeCol, vals.overtime || '', { center: true, middle: true });
   });
 }
 
@@ -2475,10 +2923,22 @@ function initSmartHeader() {
 function init() {
   try { localStorage.setItem('ft_last', 'dc144'); } catch(e) {}
 
-  // Wire template modal keyboard shortcut (Escape to close)
+  // Wire modal keyboard shortcut (Escape closes whichever is open)
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeTemplateModal();
+    if (e.key === 'Escape') {
+      var sigOpen = document.getElementById('signature-modal');
+      if (sigOpen && sigOpen.classList.contains('open')) { closeSignaturePad(); return; }
+      closeTemplateModal();
+    }
   });
+
+  // Click-outside-to-close for signature modal
+  var sigModal = document.getElementById('signature-modal');
+  if (sigModal) {
+    sigModal.addEventListener('click', function(e) {
+      if (e.target === sigModal) closeSignaturePad();
+    });
+  }
 
   // Wire photo file input
   var photoInput = document.getElementById('photo-file-input');
