@@ -1231,9 +1231,10 @@ function initSignatureCanvas() {
   ctx.lineJoin    = 'round';
   ctx.lineWidth   = 2.2;
   ctx.strokeStyle = '#111827';
-  // Fill white so exported PNG has a white background (not transparent)
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, rect.width, rect.height);
+  // Start with a transparent canvas — the wrapper div supplies the white
+  // background visually, and the exported PNG stays transparent so it
+  // doesn't hide the underlines in the Excel template.
+  ctx.clearRect(0, 0, rect.width, rect.height);
 
   // If there's an existing signature, paint it into the canvas so the
   // user sees their previous strokes and can keep editing.
@@ -1268,7 +1269,6 @@ function initSignatureCanvas() {
     ctx.fill = ctx.fill; // no-op safety
     ctx.fillStyle = '#111827';
     ctx.fill();
-    ctx.fillStyle = '#ffffff';
     hasStrokes = true;
     updateClearButton();
   }
@@ -1325,9 +1325,7 @@ function initSignatureCanvas() {
 
 function clearSignaturePad() {
   if (!signatureState) return;
-  var ctx = signatureState.ctx;
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, signatureState.width, signatureState.height);
+  signatureState.ctx.clearRect(0, 0, signatureState.width, signatureState.height);
   signatureState.setHasStrokes(false);
 }
 
@@ -1342,7 +1340,9 @@ function saveSignaturePad() {
   collectFormData();
   try {
     var dataUrl = signatureState.canvas.toDataURL('image/png');
-    currentSession.inspectorSignature = dataUrl;
+    currentSession.inspectorSignature       = dataUrl;
+    currentSession.inspectorSignatureWidth  = signatureState.width;
+    currentSession.inspectorSignatureHeight = signatureState.height;
   } catch(e) {
     showToast('Could not save signature', 'err');
     return;
@@ -2242,9 +2242,11 @@ function buildDc144WorkbookFromTemplate(wb, session) {
 function rewriteAppendixFooterText(ws, session) {
   if (!ws) return;
   var hasPhotos = !!(session.photos && session.photos.length);
+  // Keep the replacement text short so it fits in the same cell space as
+  // the original "Attach additional sketches…" note without overflowing.
   var newText   = hasPhotos
-    ? 'See Photo Appendix worksheet for attached photos'
-    : 'See Photo Appendix when photos are attached';
+    ? 'See Photo Appendix tab'
+    : 'No photos attached';
   // Some templates may say "Attach additional sketches" or
   // "Attach all sketches" — match the longest distinctive phrase first
   // and fall back to a shorter one.
@@ -2271,8 +2273,8 @@ function rewriteAppendixFooterText(ws, session) {
           cell.alignment = {
             horizontal:  'center',
             vertical:    'middle',
-            wrapText:    true,
-            shrinkToFit: existing.shrinkToFit,
+            wrapText:    false,
+            shrinkToFit: true,
             indent:      existing.indent
           };
           found = true;
@@ -2302,9 +2304,15 @@ function embedInspectorSignature(wb, ws, session) {
     // Place at row of inspector name, offset 2 columns right of name cell.
     var anchorCol = (nameMap.c - 1) + 2; // 0-based
     var anchorRow = (nameMap.r - 1);     // 0-based
+    // Compute correct height from stored canvas dimensions so the signature
+    // is not stretched or squashed in Excel.
+    var sigW = session.inspectorSignatureWidth  || 400;
+    var sigH = session.inspectorSignatureHeight || 100;
+    var embedW = 200;
+    var embedH = Math.max(20, Math.round(embedW * sigH / sigW));
     ws.addImage(imageId, {
       tl:     { col: anchorCol, row: anchorRow },
-      ext:    { width: 180, height: 40 },
+      ext:    { width: embedW, height: embedH },
       editAs: 'oneCell'
     });
   } catch(e) {
@@ -2489,11 +2497,12 @@ function pruneWorkbookToSelectedForm(wb, activeTab, includeAllForms) {
 // Weather condition/temp fields are included so longer entries like
 // "Partly Cloudy with Showers" do not push the template's underline
 // rules out of alignment.
+// shrinkToFit is only applied to compact cells where overflow would push
+// the template's printed underline rules out of position (weather cells,
+// item description).  The wide merged header cells (project name, contract,
+// contractor, inspector name) must NOT use shrink — ExcelJS mis-calculates
+// merged-cell widths and makes the text unreadably tiny.
 var DC144_SHRINK_HEADER_FIELDS = {
-  projectName:     true,
-  contractor:      true,
-  inspectorName:   true,
-  contractId:      true,
   itemDescription: true,
   weatherAMCond:   true,
   weatherAMHigh:   true,
@@ -2519,7 +2528,9 @@ function patchHeaderFields(ws, session) {
   var map = DC144_CELL_MAP[session.tab].header;
   var h   = session.header;
   Object.keys(map).forEach(function(f) {
-    if (h[f] === undefined) return;
+    // Skip undefined or blank values — an empty write would erase the
+    // template's printed label/underline text for that field.
+    if (h[f] === undefined || h[f] === null || h[f] === '') return;
     var needsShrink = !!DC144_SHRINK_HEADER_FIELDS[f];
     var needsCenter = !!DC144_CENTER_HEADER_FIELDS[f];
     if (needsShrink || needsCenter) {
