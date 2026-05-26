@@ -81,6 +81,19 @@
       contain: layout paint style;
     }
     html.exiting-to-hub { background: var(--bg); }
+
+    /* ── Screen-to-screen transitions (dashboard ↔ form) ─────────────────── */
+    @keyframes screenSlideInRight {
+      from { opacity: 0; transform: translate3d(18px, 0, 0); }
+      to   { opacity: 1; transform: translate3d(0, 0, 0); }
+    }
+    @keyframes screenSlideInLeft {
+      from { opacity: 0; transform: translate3d(-18px, 0, 0); }
+      to   { opacity: 1; transform: translate3d(0, 0, 0); }
+    }
+    .screen-entering-forward { animation: screenSlideInRight 240ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+    .screen-entering-back    { animation: screenSlideInLeft  240ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
     html.theme-transitioning * {
       transition:
         background-color 420ms cubic-bezier(0.65, 0, 0.35, 1),
@@ -146,8 +159,9 @@
       font-size: 13px; font-weight: 500; font-family: var(--sans);
       box-shadow: 0 4px 20px rgba(0,0,0,0.2);
       animation: toastIn 280ms cubic-bezier(0.16,1,0.3,1) both;
-      pointer-events: none; white-space: nowrap; max-width: 340px;
-      overflow: hidden; text-overflow: ellipsis;
+      pointer-events: none; white-space: normal;
+      max-width: min(420px, calc(100vw - 32px));
+      overflow-wrap: break-word; text-align: center;
     }
     .toast.ok   { background: #166534; color: #bbf7d0; border: 1px solid #15803d; }
     .toast.err  { background: #7f1d1d; color: #fecaca; border: 1px solid #991b1b; }
@@ -164,6 +178,7 @@
 
     /* ── Page layout ─────────────────────────────────────────────────────── */
     .page-content { max-width: 900px; margin: 0 auto; padding: 20px 16px 80px; }
+    #form-screen .page-content { max-width: 1180px; }
     .dash-hero { text-align: center; padding: 36px 20px 28px; }
     .dash-hero h1 { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; margin-bottom: 8px; }
     .dash-hero p { font-size: 15px; color: var(--muted); }
@@ -263,19 +278,8 @@
     }
     .template-chip-del:hover { color: var(--red); background: rgba(220,38,38,0.08); }
 
-    /* ── Template name modal overlay ─────────────────────────────────────── */
-    #template-modal {
-      display: none; position: fixed; inset: 0; z-index: 8000;
-      background: rgba(0,0,0,0.45); align-items: center; justify-content: center;
-      padding: 20px;
-    }
-    #template-modal.open { display: flex; }
-    .template-modal-box {
-      background: var(--surface); border-radius: var(--radius-lg); padding: 24px;
-      width: 100%; max-width: 400px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 1.5px solid var(--border);
-    }
-    .template-modal-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+    /* ── Template name modal overlay (uses .dc-modal-* base classes) ─────── */
+    #template-modal { z-index: 8500; }
     .template-modal-input {
       width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
       border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
@@ -283,7 +287,6 @@
       transition: border-color 0.12s;
     }
     .template-modal-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,86,219,0.11); }
-    .template-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
     /* ── Form action bar (sticky below topbar, no gap on scroll) ─────────── */
     #form-actionbar {
@@ -457,7 +460,7 @@
     .grid-select:focus { border-color: var(--accent); }
     .qty-cell-wrap {
       display: flex; align-items: center; gap: 3px;
-      min-width: 0; max-width: 100%;
+      min-width: 0; max-width: 100%; flex-wrap: wrap;
     }
     .qty-cell-wrap .grid-input { min-width: 0; max-width: 80px; flex-shrink: 1; }
     .qty-custom-input {
@@ -503,41 +506,71 @@
     }
     .hours-input:focus { border-color: var(--accent); }
 
-    /* ── Photo strip ─────────────────────────────────────────────────────── */
-    .photo-strip { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; align-items: flex-start; }
-    .photo-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    /* ── Photo card grid ─────────────────────────────────────────────────── */
+    .photo-strip {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px; margin-top: 12px;
+    }
+    .photo-item {
+      display: flex; flex-direction: column;
+      background: var(--surface); border: 1.5px solid var(--border-lo);
+      border-radius: var(--radius); overflow: hidden;
+      transition: border-color 0.14s, box-shadow 0.14s;
+    }
+    .photo-item:not(.photo-add-item):hover { border-color: var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .photo-add-item { border: 2px dashed var(--border); background: transparent; }
+    .photo-add-item:hover { border-color: var(--accent); }
+    .photo-add-item:hover .photo-add-btn { color: var(--accent); }
     .photo-thumb {
-      position: relative; width: 80px; height: 80px;
-      border-radius: var(--radius-sm); overflow: hidden;
-      border: 1.5px solid var(--border); flex-shrink: 0;
+      position: relative; width: 100%; aspect-ratio: 4/3;
+      overflow: hidden; background: var(--bg); flex-shrink: 0;
     }
     .photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .photo-del-btn {
-      position: absolute; top: 3px; right: 3px;
+      position: absolute; top: 4px; right: 4px;
       background: rgba(0,0,0,0.65); color: #fff; border: none;
-      border-radius: 50%; width: 20px; height: 20px;
+      border-radius: 50%; width: 22px; height: 22px;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 11px; line-height: 1;
-      transition: background 0.12s; padding: 0;
+      cursor: pointer; font-size: 13px; line-height: 1;
+      transition: background 0.12s; padding: 0; font-family: var(--sans);
     }
     .photo-del-btn:hover { background: rgba(220,38,38,0.9); }
-    .photo-caption {
-      width: 80px; font-size: 10px; color: var(--muted2);
-      border: none; background: none; text-align: center;
-      font-family: var(--sans); outline: none; padding: 1px 2px;
-      border-bottom: 1px solid transparent; transition: border-color 0.12s;
+    .photo-caption-label { font-size: 10px; font-weight: 600; color: var(--muted2); padding: 5px 8px 1px; flex-shrink: 0; }
+    .photo-caption-input {
+      width: 100%; resize: none;
+      font-family: var(--sans); font-size: 11px; color: var(--text); line-height: 1.4;
+      background: transparent; border: none; border-top: 1px solid var(--border-lo);
+      padding: 5px 8px; outline: none; min-height: 42px;
     }
-    .photo-caption:focus { border-bottom-color: var(--accent); }
-    .photo-caption::placeholder { color: var(--muted); }
+    .photo-caption-input:focus { background: var(--accent-lo); }
+    .photo-caption-input::placeholder { color: var(--muted); }
     .photo-add-btn {
-      width: 80px; height: 80px; border: 2px dashed var(--border);
-      border-radius: var(--radius-sm); background: none; cursor: pointer;
+      width: 100%; flex: 1; border: none; background: none; cursor: pointer;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 4px; color: var(--muted); font-family: var(--sans);
-      font-size: 11px; font-weight: 500;
-      transition: border-color 0.14s, color 0.14s;
+      gap: 6px; color: var(--muted); font-family: var(--sans);
+      font-size: 11px; font-weight: 500; min-height: 80px;
+      transition: color 0.14s;
     }
-    .photo-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Unified modal classes ───────────────────────────────────────────── */
+    .dc-modal-backdrop {
+      display: none; position: fixed; inset: 0; z-index: 8000;
+      background: rgba(0,0,0,0.45); align-items: center; justify-content: center; padding: 20px;
+    }
+    .dc-modal-backdrop.open { display: flex; }
+    .dc-modal-box {
+      background: var(--surface); border-radius: var(--radius-lg); padding: 24px;
+      width: 100%; max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 1.5px solid var(--border);
+    }
+    .dc-modal-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+    .dc-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+
+    /* ── Coarse-pointer touch targets ────────────────────────────────────── */
+    @media (pointer: coarse) {
+      .btn-primary, .btn-secondary, .btn-export, .btn-template { min-height: 44px; }
+      #form-actionbar-back { min-height: 40px; }
+    }
 
     /* ── Temperature block ───────────────────────────────────────────────── */
     .temp-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
@@ -556,7 +589,12 @@
       .section-card-body { padding: 14px; }
       .dash-hero { padding: 24px 16px 20px; }
       .dash-hero h1 { font-size: 22px; }
-      #form-actionbar { padding: 7px 10px; gap: 6px; flex-wrap: nowrap; }
+      #form-actionbar {
+        padding: 7px 10px; gap: 6px;
+        overflow-x: auto; scrollbar-width: none;
+      }
+      #form-actionbar::-webkit-scrollbar { display: none; }
+      #form-actionbar > * { flex-shrink: 0; }
       #form-actionbar-title { display: none; }
       .btn-secondary, .btn-export, .btn-template { padding: 6px 9px; font-size: 11px; }
       .temp-grid { grid-template-columns: 1fr 1fr; }
@@ -598,12 +636,12 @@
   <div id="toast-ct" role="status" aria-live="polite" aria-atomic="false"></div>
 
   <!-- ── Template name modal ─────────────────────────────────────────────── -->
-  <div id="template-modal" role="dialog" aria-modal="true" aria-labelledby="tpl-modal-title">
-    <div class="template-modal-box">
-      <div class="template-modal-title" id="tpl-modal-title">Save as Template</div>
+  <div id="template-modal" class="dc-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="tpl-modal-title">
+    <div class="dc-modal-box template-modal-box">
+      <div class="dc-modal-title template-modal-title" id="tpl-modal-title">Save as Template</div>
       <input id="template-name-input" class="template-modal-input" type="text" maxlength="60"
         placeholder="Template name (e.g. Route 9 Overlay Project)" aria-label="Template name">
-      <div class="template-modal-actions">
+      <div class="dc-modal-actions template-modal-actions">
         <button class="btn-secondary" onclick="closeTemplateModal()">Cancel</button>
         <button class="btn-primary" onclick="confirmSaveTemplate()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -639,7 +677,7 @@
     <div id="form-actionbar" role="toolbar" aria-label="Form actions">
       <button id="form-actionbar-back" onclick="showDashboard()" aria-label="Back to report selection">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
-        Back
+        Back to Reports
       </button>
       <div class="actionbar-divider" aria-hidden="true"></div>
       <span id="form-actionbar-title">Report</span>

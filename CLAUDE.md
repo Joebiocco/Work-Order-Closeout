@@ -24,7 +24,7 @@
 
 > **Purpose:** This file is the authoritative quick-reference for the NJDOT Field Tools project. Read this FIRST before reading any HTML file. It contains every architectural decision, storage key, design token, and critical constraint so we can make changes without re-reading 6,800+ lines of HTML.
 >
-> **Last updated:** 2026-05-26 · v1.12
+> **Last updated:** 2026-05-26 · v1.14
 >
 > **Live site:** `https://joebiocco.github.io/NJDOT-Field-Tools-Hub/`
 > **Repo:** `https://github.com/Joebiocco/NJDOT-Field-Tools-Hub` (renamed from `Work-Order-Closeout`)
@@ -410,20 +410,25 @@ Two parallel implementations, identical behavior:
 - **Session isolation:** Each session is tied to exactly one tab (a/b/c/d). `tab` field is the discriminator.
 - **Row caps per tab:** a=17, b=19, c=18, d=24. `addGridRow()` disables add button when limit reached.
 - **Remarks fields:** Single unified `<textarea>` per remarks region, not line-by-line row inputs.
-- **Photo appendix:** Photos are written to a separate 'Photo Appendix' worksheet only; never injected inline into data cells. Remarks text gets `[See Photo Appendix — Photo N]` markers. Photo row height is calculated from stored `widthPx`/`heightPx` to preserve aspect ratio (column 60 chars wide ≈ 450pts; height clamped 100–450pts).
-- **Template:** `data/dc144-template.xlsx` — must be created manually from the original XLS. Export falls back to a minimal workbook if 404.
-- **Image compression:** Canvas → 1400px max long side → JPEG 0.72 → fallback 0.58. Target ≤200KB per photo. Stores `widthPx`/`heightPx` in photo object for aspect ratio export.
+- **Photo appendix:** Photos go to separate 'Photo Appendix' worksheet only. Each photo gets 4 rows: title (Photo N — caption), metadata (section · timestamp), image, spacer. Image placed with `ext: {width, height}` pixel dimensions (not fragile `tl/br`). Helpers: `getDisplayImageSize()` (DISPLAY_W=420px, aspect-ratio clamped 80–380px), `getFriendlySectionLabel()`, `formatDateTime()`. Sanity check: `assertPhotoAppendixPreserved(wb, session)` called before `writeBuffer()` — verifies worksheet exists, image count, caption cell not blank.
+- **Remarks photo reference format:** Compact inline — `"text [Photos in Appendix: 1, 2]"` (NOT multi-line `"\n\n[See Photo Appendix…]"`).
+- **Photo UI:** Grid card layout (`.photo-strip` = `grid; auto-fill; minmax(140px,1fr)`). Each photo is a `.photo-item` card with `aspect-ratio:4/3` thumbnail + `.photo-caption-label` + `.photo-caption-input` (textarea). Add button is `.photo-item.photo-add-item` (dashed border card). Old `.photo-caption` input class is GONE — use `.photo-caption-input` textarea.
+- **Template:** `data/dc144-template.xlsx` — must be created manually from the original XLS. No blank-workbook fallback — export fails explicitly if template is missing.
+- **Image compression:** Canvas → 1400px max long side → JPEG 0.72 → fallback 0.58. Target ≤200KB per photo. WebP/HEIC/HEIF always go through canvas pipeline (`needsNormalize` flag). Stores `widthPx`/`heightPx` in photo object for aspect ratio export.
 - **ExcelJS cell addressing:** All uses `ws.getCell(row, col)` with 1-based row/col from `DC144_CELL_MAP`.
 - **IDB store:** `dc144_sessions` in `ft_photos` v2. Key = `photoKey` from `ft_dc144_recent` rec.
 - **Auto-save:** 2000ms debounce on `input`/`change` events. Writes full session JSON to IDB + updates `ft_dc144_recent` chip. Status indicator: "Saving…" → "Draft Saved" (clears after 3s) in `#autosave-status` span.
 - **Filename pattern:** `DC-144-[TAB]-[YYYYMMDD]-[SafeProjectName].xlsx`
 - **Tab color palette:** a=indigo `#4338ca`, b=amber `#92400e`, c=teal `#0e7490`, d=rose `#9f1239`
-- **Template system:** `ft_dc144_templates` localStorage key (max 10). "Save as Template" button in form actionbar saves header fields only (projectName, contractId, contractor, inspectorName). "Load" shows tab-picker overlay then starts a new session with header pre-populated. Templates rendered in dashboard "Your Templates" section.
-- **Unit dropdowns (Tab A):** Placed Qty and As Built Qty columns use `type:'qty-unit'` — renders `.qty-cell-wrap` with number input + unit select (SF/LF/SY/TONS/CY/UNIT/LS/Custom) + custom text input (shown only when Custom selected). Export concatenates: `"450 SY"`, `"1 LS"`, `"12 BNDL"` etc.
+- **Template system:** `ft_dc144_templates` localStorage key (max 10). "Save as Template" saves header fields only. "Load" shows tab-picker overlay then starts new session with header pre-populated.
+- **Unit dropdowns (Tab A):** Placed Qty and As Built Qty columns use `type:'qty-unit'` — renders `.qty-cell-wrap` (now `flex-wrap: wrap`) with number input + unit select (SF/LF/SY/TONS/CY/UNIT/LS/Custom) + custom text input. Export concatenates: `"450 SY"`, `"1 LS"`, `"12 BNDL"` etc.
 - **Dark mode:** Page ONLY reads `field_dark_mode` from localStorage at load — never writes it. No local dark toggle exists on this page.
-- **Navigation:** Topbar back button always shows "Home" (house icon). Form actionbar "← Back" returns to dashboard without page navigation. Topbar back from dashboard triggers `exiting-to-hub` animation then navigates to `../index.html`.
-- **Sticky actionbar gap fix:** `#form-actionbar` top CSS transitions between `var(--topbar-h)` (topbar visible) and `0px` (topbar hidden) via `initSmartHeader()` → `updateActionbarTop()`.
-- **Excel borders:** `applyDataRowBorders()` applies thin gray borders to all grid data rows after patching. `applyRemarksMerges()` programmatically merges remarks zones (try/catch safe against pre-existing merges from template).
+- **Navigation:** Topbar back button always shows "Home" (house icon). Form actionbar "← Back to Reports" button goes back to dashboard. Topbar back from dashboard triggers `exiting-to-hub` animation then navigates to `../index.html`. Topbar export button is ALWAYS hidden (`display:none`) — single export location is the actionbar only.
+- **Screen transitions:** `playScreenTransition(el, 'forward'|'back')` adds `.screen-entering-forward` (slide from right) or `.screen-entering-back` (slide from left) for 240ms. Called by `showDashboard()` and `showForm()`.
+- **Unified modal CSS:** `.dc-modal-backdrop`, `.dc-modal-box`, `.dc-modal-title`, `.dc-modal-actions` — template modal uses these plus its own `.template-modal-*` classes.
+- **Sticky actionbar gap fix:** `#form-actionbar` top CSS transitions between `var(--topbar-h)` (topbar visible) and `0px` (topbar hidden) via `initSmartHeader()` → `updateActionbarTop()`. Mobile actionbar: `overflow-x: auto; scrollbar-width: none` so buttons don't wrap.
+- **Form screen width:** `#form-screen .page-content { max-width: 1180px; }` (wider than dashboard 900px).
+- **Touch targets:** `@media (pointer: coarse)` sets `.btn-primary/.btn-secondary/.btn-export/.btn-template` to `min-height: 44px`.
 
 ### Hub install/bookmark popup
 

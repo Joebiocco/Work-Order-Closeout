@@ -543,12 +543,20 @@ function handleTopbarBack() {
   }
 }
 
+function playScreenTransition(el, direction) {
+  var cls = direction === 'forward' ? 'screen-entering-forward' : 'screen-entering-back';
+  el.classList.add(cls);
+  setTimeout(function() { el.classList.remove(cls); }, 280);
+}
+
 function showDashboard() {
-  document.getElementById('form-screen').style.display      = 'none';
-  document.getElementById('dashboard-screen').style.display = '';
-  document.getElementById('topbar-title').textContent       = 'DC-144 Field Form';
+  var form = document.getElementById('form-screen');
+  var dash = document.getElementById('dashboard-screen');
+  form.style.display = 'none';
+  dash.style.display = '';
+  playScreenTransition(dash, 'back');
+  document.getElementById('topbar-title').textContent        = 'DC-144 Field Form';
   document.getElementById('topbar-export-btn').style.display = 'none';
-  // Reset actionbar top to default (topbar is visible on dashboard)
   updateActionbarTop(false);
   currentTab     = null;
   currentSession = null;
@@ -559,10 +567,13 @@ function showDashboard() {
 function showForm(tab, session) {
   currentTab     = tab;
   currentSession = session;
-  document.getElementById('dashboard-screen').style.display = 'none';
-  document.getElementById('form-screen').style.display      = '';
-  document.getElementById('topbar-title').textContent       = TAB_META[tab].label;
-  document.getElementById('topbar-export-btn').style.display = '';
+  var dash = document.getElementById('dashboard-screen');
+  var form = document.getElementById('form-screen');
+  dash.style.display = 'none';
+  form.style.display = '';
+  playScreenTransition(form, 'forward');
+  document.getElementById('topbar-title').textContent        = TAB_META[tab].label;
+  document.getElementById('topbar-export-btn').style.display = 'none';
   document.getElementById('form-actionbar-title').textContent = TAB_META[tab].label + ' — ' + TAB_META[tab].name;
   setAutosaveStatus('');
   renderForm(tab, session);
@@ -1576,10 +1587,10 @@ function renderPhotoStripForSection(sectionKey) {
   }
 
   var addItem = document.createElement('div');
-  addItem.className = 'photo-item';
+  addItem.className = 'photo-item photo-add-item';
   addItem.innerHTML =
     '<button class="photo-add-btn" data-section-key="' + esc(sectionKey) + '" aria-label="Add photo to ' + sectionKey + '">' +
-      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' +
+      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' +
       'Add Photo' +
     '</button>';
   addItem.querySelector('.photo-add-btn').addEventListener('click', function() {
@@ -1598,8 +1609,16 @@ function buildPhotoThumb(photo, idx) {
       '<img src="' + photo.base64 + '" alt="Photo ' + (idx+1) + '" loading="lazy">' +
       '<button class="photo-del-btn" data-photo-idx="' + idx + '" aria-label="Delete photo ' + (idx+1) + '">×</button>' +
     '</div>' +
-    '<input class="photo-caption" type="text" data-photo-caption-idx="' + idx + '" placeholder="Caption…" value="' + esc(photo.caption||'') + '" aria-label="Caption for photo ' + (idx+1) + '" maxlength="120">';
+    '<label class="photo-caption-label" for="photo-cap-' + idx + '">Caption</label>' +
+    '<textarea class="photo-caption-input" id="photo-cap-' + idx + '" data-photo-caption-idx="' + idx + '" rows="2" placeholder="Add a caption…" aria-label="Caption for photo ' + (idx+1) + '" maxlength="200">' + esc(photo.caption||'') + '</textarea>';
   item.querySelector('.photo-del-btn').addEventListener('click', function() { deletePhoto(idx); });
+  var ta = item.querySelector('.photo-caption-input');
+  ta.addEventListener('input', function() {
+    if (currentSession && currentSession.photos[idx]) {
+      currentSession.photos[idx].caption = ta.value;
+    }
+    scheduleAutosave();
+  });
   return item;
 }
 
@@ -1658,10 +1677,13 @@ function reRenderAllPhotoStrips() {
 
 /* ── Image compression pipeline ─────────────────────────────── */
 function compressImage(file, callback) {
-  var MAX_LONG_SIDE = 1400;
-  var BYPASS_SIZE   = 150 * 1024;
+  var MAX_LONG_SIDE  = 1400;
+  var BYPASS_SIZE    = 150 * 1024;
+  // WebP and HEIC/HEIF must always go through the canvas pipeline so they
+  // are normalized to JPEG before storage. ExcelJS only accepts PNG/JPEG.
+  var needsNormalize = /webp|heic|heif/i.test(file.type);
 
-  if (file.size < BYPASS_SIZE) {
+  if (file.size < BYPASS_SIZE && !needsNormalize) {
     var reader = new FileReader();
     reader.onloadend = function() {
       var img    = new Image();
@@ -1771,9 +1793,7 @@ function handleExport() {
     .then(function(wb) { return buildDc144WorkbookFromTemplate(wb, currentSession); })
     .then(function(wb) {
       assertDc144TemplatePreserved(wb, currentSession.tab);
-      // Tell Excel to recalc every preserved formula on first open so any
-      // computed cells (e.g. tonnage roll-ups on Tab B) reflect the values
-      // we just wrote into their inputs.
+      assertPhotoAppendixPreserved(wb, currentSession);
       wb.calcProperties = wb.calcProperties || {};
       wb.calcProperties.fullCalcOnLoad = true;
       return wb.xlsx.writeBuffer();
@@ -1991,8 +2011,9 @@ function patchRemarksFields(ws, session) {
   function buildRemarksText(text, sectionKey) {
     var photosForSection = (session.photos || []).filter(function(p) { return p.sectionKey === sectionKey; });
     if (!photosForSection.length) return text || '';
-    var indices = photosForSection.map(function(p) { return 'Photo ' + p.photoIndex; }).join(', ');
-    return (text ? text + '\n\n' : '') + '[See Photo Appendix — ' + indices + ']';
+    var nums = photosForSection.map(function(p) { return p.photoIndex; }).join(', ');
+    var base = text ? text.replace(/\s+$/, '') + ' ' : '';
+    return base + '[Photos in Appendix: ' + nums + ']';
   }
 
   if (tab === 'a') {
@@ -2060,6 +2081,39 @@ function patchPileDescriptor(ws, session) {
   setCellValue(ws, map.typeHammer.r, map.typeHammer.c, pd.typeHammer || '');
 }
 
+/* ── Photo appendix helpers ──────────────────────────────────── */
+function getFriendlySectionLabel(sectionKey) {
+  var labels = {
+    environmental:    'Environmental Remarks',
+    trafficControl:   'Traffic Control Safety Remarks',
+    workObservations: 'Work Observations',
+    appendixOnly:     'General Appendix'
+  };
+  return labels[sectionKey] || (sectionKey || 'Appendix');
+}
+
+function formatDateTime(iso) {
+  if (!iso) return '';
+  try {
+    var d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
+           ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  } catch(e) { return iso.slice(0, 16).replace('T', ' '); }
+}
+
+function getDisplayImageSize(photo) {
+  // Column A is 60 char-width units. At ~7px/char that is ≈420 display px.
+  var DISPLAY_W = 420;
+  var MIN_H     = 80;
+  var MAX_H     = 380;
+  if (photo.widthPx && photo.heightPx && photo.widthPx > 0) {
+    var h = Math.round(DISPLAY_W * photo.heightPx / photo.widthPx);
+    h = Math.max(MIN_H, Math.min(MAX_H, h));
+    return { width: DISPLAY_W, height: h };
+  }
+  return { width: DISPLAY_W, height: 280 };
+}
+
 /* ── Photo Appendix sheet ────────────────────────────────────── */
 function appendPhotoSheet(wb, photos) {
   if (!photos || !photos.length) return;
@@ -2069,60 +2123,84 @@ function appendPhotoSheet(wb, photos) {
 
   var ws = wb.addWorksheet('Photo Appendix');
 
-  // Image column — 60 character-width units ≈ 450 pts displayed width
-  var IMAGE_COL_WIDTH      = 60;
-  var IMAGE_DISPLAY_PTS    = IMAGE_COL_WIDTH * 7.5;
-  var IMAGE_HEIGHT_MIN     = 100;
-  var IMAGE_HEIGHT_MAX     = 450;
-  var CAPTION_HEIGHT       = 22;
+  ws.getColumn(1).width = 60; // ≈420 display px
+  ws.getColumn(2).width = 40; // metadata overflow
 
-  ws.getColumn(1).width = IMAGE_COL_WIDTH;
-  ws.getColumn(2).width = 20;
+  var CAPTION_H = 36; // pts — title row
+  var META_H    = 18; // pts — section/timestamp row
+  var SPACER_H  = 10; // pts — gap between photos
 
-  var currentRow = 1;
+  var currentRow = 1; // 1-based
 
   photos.forEach(function(photo) {
-    // Caption row
+    // ── Row 1: title (Photo N — caption) ─────────────────────
     var captionRow  = ws.getRow(currentRow);
-    captionRow.height = CAPTION_HEIGHT;
+    captionRow.height = CAPTION_H;
     var captionCell = captionRow.getCell(1);
-    captionCell.value = 'Photo ' + photo.photoIndex +
-      (photo.caption ? ' — ' + photo.caption : '') +
-      (photo.sectionKey && photo.sectionKey !== 'appendixOnly' ? ' [' + photo.sectionKey + ']' : '');
-    captionCell.font  = { bold: true, size: 11, color: { argb: 'FF1e2939' } };
-    captionCell.fill  = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFDF6E3' } };
+    captionCell.value = 'Photo ' + photo.photoIndex + (photo.caption ? ' — ' + photo.caption : '');
+    captionCell.font      = { bold: true, size: 12, color: { argb: 'FF1e2939' } };
+    captionCell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFDF6E3' } };
+    captionCell.alignment = { vertical: 'middle', wrapText: true };
 
-    // Calculate image row height preserving aspect ratio
-    var imageHeightPts = IMAGE_HEIGHT_MAX;
-    if (photo.widthPx && photo.heightPx && photo.widthPx > 0) {
-      imageHeightPts = Math.round(IMAGE_DISPLAY_PTS * (photo.heightPx / photo.widthPx));
-      if (imageHeightPts < IMAGE_HEIGHT_MIN) imageHeightPts = IMAGE_HEIGHT_MIN;
-      if (imageHeightPts > IMAGE_HEIGHT_MAX) imageHeightPts = IMAGE_HEIGHT_MAX;
-    }
+    // ── Row 2: metadata (section · timestamp) ─────────────────
+    var metaRow  = ws.getRow(currentRow + 1);
+    metaRow.height = META_H;
+    var metaCell = metaRow.getCell(1);
+    metaCell.value = getFriendlySectionLabel(photo.sectionKey || '') +
+                     (photo.capturedAt ? ' · ' + formatDateTime(photo.capturedAt) : '');
+    metaCell.font      = { size: 9, italic: true, color: { argb: 'FF6b7280' } };
+    metaCell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFDF6E3' } };
+    metaCell.alignment = { vertical: 'middle' };
 
-    // Image row
-    var imageRowNum  = currentRow + 1;
-    var imageRow     = ws.getRow(imageRowNum);
-    imageRow.height  = imageHeightPts;
+    // ── Row 3: image ──────────────────────────────────────────
+    var size       = getDisplayImageSize(photo);
+    var imageRowN  = currentRow + 2; // 1-based
+    var imageRow   = ws.getRow(imageRowN);
+    // 1 px ≈ 0.75 pts
+    imageRow.height = Math.max(60, Math.round(size.height * 0.75));
 
     try {
       var base64Data = photo.base64.replace(/^data:image\/\w+;base64,/, '');
-      var ext        = photo.base64.indexOf('data:image/png') === 0 ? 'png' : 'jpeg';
-      var imageId    = wb.addImage({ base64: base64Data, extension: ext });
-      // tl/br use 0-based row/col; col 0→1 = column A only for correct width
+      var imgExt     = photo.base64.indexOf('data:image/png') === 0 ? 'png' : 'jpeg';
+      var imageId    = wb.addImage({ base64: base64Data, extension: imgExt });
+      // tl uses 0-based row/col; imageRowN is 1-based so tl.row = imageRowN - 1
       ws.addImage(imageId, {
-        tl:     { col: 0, row: currentRow },
-        br:     { col: 1, row: currentRow + 1 },
+        tl:     { col: 0, row: imageRowN - 1 },
+        ext:    { width: size.width, height: size.height },
         editAs: 'oneCell'
       });
     } catch(imgErr) {
       imageRow.getCell(1).value = '[Image: ' + (photo.originalName || 'photo') + ']';
     }
 
-    // Spacer row
-    ws.getRow(currentRow + 2).height = 8;
-    currentRow += 3;
+    // ── Row 4: spacer ─────────────────────────────────────────
+    ws.getRow(currentRow + 3).height = SPACER_H;
+    currentRow += 4;
   });
+}
+
+/* ── Photo appendix sanity check ─────────────────────────────── */
+function assertPhotoAppendixPreserved(wb, session) {
+  var photos = (session && session.photos) || [];
+  if (!photos.length) return;
+
+  var ws = wb.getWorksheet('Photo Appendix');
+  if (!ws) {
+    throw new Error('Photo Appendix worksheet missing after export build (' + photos.length + ' photos were in session).');
+  }
+
+  var images = (typeof ws.getImages === 'function') ? (ws.getImages() || []) : [];
+  if (images.length < photos.length) {
+    throw new Error(
+      'Photo Appendix has ' + images.length + ' image(s) but session has ' + photos.length +
+      ' photo(s). Some photos may not have exported correctly.'
+    );
+  }
+
+  var firstCaption = ws.getCell(1, 1).value;
+  if (!firstCaption) {
+    throw new Error('Photo Appendix caption cell A1 is blank — appendix may not have rendered.');
+  }
 }
 
 /* ── Download helper ─────────────────────────────────────────── */
