@@ -1226,7 +1226,34 @@ var TABLE_DEFS = {
   }
 };
 
-var QTY_UNIT_OPTIONS = ['SF', 'LF', 'SY', 'TONS', 'CY', 'UNIT', 'LS', 'Custom'];
+/* Qty/unit options for Tab A.
+   value = stored string (lowercase 'custom' marker triggers customUnit input);
+   label = visible dropdown text. */
+var QTY_UNIT_OPTIONS = [
+  { value: 'SF',     label: 'SF'     },
+  { value: 'LF',     label: 'LF'     },
+  { value: 'SY',     label: 'SY'     },
+  { value: 'TONS',   label: 'TONS'   },
+  { value: 'CY',     label: 'CY'     },
+  { value: 'UNIT',   label: 'UNIT'   },
+  { value: 'LS',     label: 'LS'     },
+  { value: 'custom', label: 'Custom' }
+];
+
+function isCustomUnit(u) {
+  return String(u || '').toLowerCase() === 'custom';
+}
+
+function normalizeUnit(u) {
+  // Migrate legacy capital-C 'Custom' drafts to canonical lowercase 'custom'.
+  if (isCustomUnit(u)) return 'custom';
+  return u || '';
+}
+
+function getResolvedUnit(unit, customUnit) {
+  if (isCustomUnit(unit)) return String(customUnit || '').trim();
+  return String(unit || '').trim();
+}
 
 function buildDynamicTable(tab, rows) {
   var def     = TABLE_DEFS[tab];
@@ -1303,21 +1330,26 @@ function buildDynamicTable(tab, rows) {
 
 function buildTableRow(tab, rowData, def) {
   var tr     = document.createElement('tr');
-  tr.dataset.rowIndex = rowData.rowIndex;
   var rowNum = rowData.rowIndex + 1;
+  // data-row-index is 0-based (used by deleteGridRow/collectGridRows logic).
+  // data-entry-num is 1-based (used by mobile CSS ::before "Entry N" label).
+  tr.dataset.rowIndex = rowData.rowIndex;
+  tr.dataset.entryNum = rowNum;
 
   var tdNum = document.createElement('td');
-  tdNum.className   = 'row-num';
-  tdNum.textContent = rowNum;
+  tdNum.className     = 'row-num';
+  tdNum.dataset.label = 'Entry';
+  tdNum.textContent   = rowNum;
   tr.appendChild(tdNum);
 
   def.cols.forEach(function(col) {
     var td = document.createElement('td');
+    td.dataset.label = col.label;
 
     if (col.type === 'qty-unit') {
       var unitKey       = col.key + 'Unit';
       var unitCustomKey = col.key + 'UnitCustom';
-      var currentUnit   = rowData[unitKey] || 'UNIT';
+      var currentUnit   = normalizeUnit(rowData[unitKey] || 'UNIT');
 
       var wrap = document.createElement('div');
       wrap.className = 'qty-cell-wrap';
@@ -1341,10 +1373,10 @@ function buildTableRow(tab, rowData, def) {
       sel.dataset.gridTab  = tab;
       sel.setAttribute('aria-label', col.label + ' unit row ' + rowNum);
       QTY_UNIT_OPTIONS.forEach(function(opt) {
-        var option       = document.createElement('option');
-        option.value     = opt;
-        option.textContent = opt;
-        if (opt === currentUnit) option.selected = true;
+        var option         = document.createElement('option');
+        option.value       = opt.value;
+        option.textContent = opt.label;
+        if (opt.value === currentUnit) option.selected = true;
         sel.appendChild(option);
       });
       wrap.appendChild(sel);
@@ -1356,13 +1388,18 @@ function buildTableRow(tab, rowData, def) {
       customInput.dataset.colKey   = unitCustomKey;
       customInput.dataset.gridTab  = tab;
       customInput.value            = rowData[unitCustomKey] || '';
-      customInput.placeholder      = 'Unit';
-      customInput.style.display    = currentUnit === 'Custom' ? '' : 'none';
+      customInput.placeholder      = 'Enter unit';
+      customInput.hidden           = !isCustomUnit(currentUnit);
+      customInput.disabled         = !isCustomUnit(currentUnit);
       customInput.setAttribute('aria-label', col.label + ' custom unit row ' + rowNum);
       wrap.appendChild(customInput);
 
       sel.addEventListener('change', function() {
-        customInput.style.display = sel.value === 'Custom' ? '' : 'none';
+        var custom = isCustomUnit(sel.value);
+        customInput.hidden   = !custom;
+        customInput.disabled = !custom;
+        if (!custom) customInput.value = '';
+        if (custom) requestAnimationFrame(function() { customInput.focus(); });
         scheduleAutosave();
       });
 
@@ -1383,7 +1420,8 @@ function buildTableRow(tab, rowData, def) {
     tr.appendChild(td);
   });
 
-  var tdDel  = document.createElement('td');
+  var tdDel = document.createElement('td');
+  tdDel.dataset.label = 'Delete';
   var delBtn = document.createElement('button');
   delBtn.className = 'btn-del-row';
   delBtn.setAttribute('aria-label', 'Delete row ' + rowNum);
@@ -1432,6 +1470,7 @@ function deleteGridRow(tab, rowIndex, maxRows) {
   var remaining = tbody.querySelectorAll('tr');
   remaining.forEach(function(r, i) {
     r.dataset.rowIndex = i;
+    r.dataset.entryNum = i + 1;
     var numCell = r.querySelector('.row-num');
     if (numCell) numCell.textContent = i + 1;
     r.querySelectorAll('[data-row-index]').forEach(function(inp) { inp.dataset.rowIndex = i; });
@@ -1771,6 +1810,11 @@ function loadDc144TemplateWorkbook() {
 function handleExport() {
   if (!currentSession) return;
   collectFormData();
+  var validationError = validateBeforeExport(currentSession);
+  if (validationError) {
+    showToast(validationError + ' Enter a custom unit or pick a standard unit.', 'err', 5500);
+    return;
+  }
   var exportBtn1 = document.getElementById('topbar-export-btn');
   var exportBtn2 = document.getElementById('actionbar-export-btn');
 
@@ -1794,6 +1838,9 @@ function handleExport() {
     .then(function(wb) {
       assertDc144TemplatePreserved(wb, currentSession.tab);
       assertPhotoAppendixPreserved(wb, currentSession);
+      // Drop the three unused DC-144 sheets so an A-only export does not
+      // ship blank B/C/D forms. Photo Appendix is kept when present.
+      pruneWorkbookToSelectedForm(wb, currentSession.tab, false);
       wb.calcProperties = wb.calcProperties || {};
       wb.calcProperties.fullCalcOnLoad = true;
       return wb.xlsx.writeBuffer();
@@ -1930,11 +1977,106 @@ function setCellValue(ws, r, c, value) {
   } catch(e) {}
 }
 
+/* Like setCellValue but preserves existing template alignment and lets
+   callers opt into wrap/shrink/top to keep long user text inside the
+   official DC-144 cell bounds — without expanding row heights. */
+function setCellValueReadable(ws, r, c, value, opts) {
+  if (!r || !c) return;
+  try {
+    var cell = ws.getCell(r, c);
+    cell.value = (value !== undefined && value !== null) ? value : '';
+    opts = opts || {};
+    var existing = cell.alignment || {};
+    var alignment = {
+      horizontal:  existing.horizontal,
+      vertical:    existing.vertical,
+      wrapText:    existing.wrapText,
+      shrinkToFit: existing.shrinkToFit,
+      indent:      existing.indent
+    };
+    if (opts.wrap)   alignment.wrapText    = true;
+    if (opts.shrink) alignment.shrinkToFit = true;
+    if (opts.top)    alignment.vertical    = 'top';
+    cell.alignment = alignment;
+  } catch(e) {}
+}
+
+/* Collapse a sorted list of photo numbers into a compact range string.
+   [1,2,3,5,7,8] → "1–3, 5, 7–8".  Used in remarks text. */
+function compactPhotoNumbers(nums) {
+  nums = (nums || [])
+    .map(function(n) { return Number(n); })
+    .filter(function(n) { return isFinite(n); })
+    .sort(function(a, b) { return a - b; });
+  if (!nums.length) return '';
+
+  var ranges = [];
+  var start  = nums[0];
+  var prev   = nums[0];
+  for (var i = 1; i <= nums.length; i++) {
+    var n = nums[i];
+    if (n === prev + 1) { prev = n; continue; }
+    ranges.push(start === prev ? String(start) : start + '–' + prev);
+    start = n;
+    prev  = n;
+  }
+  return ranges.join(', ');
+}
+
+/* Pre-export validation. Returns an error string or null. */
+function validateBeforeExport(session) {
+  if (!session || session.tab !== 'a') return null;
+  var rows = (session.section && session.section.payItems) || [];
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    if (isCustomUnit(row.placedQtyUnit) && !String(row.placedQtyUnitCustom || '').trim()) {
+      return 'Row ' + (i + 1) + ' Placed Qty has Custom selected but no unit typed.';
+    }
+    if (isCustomUnit(row.asBuiltQtyUnit) && !String(row.asBuiltQtyUnitCustom || '').trim()) {
+      return 'Row ' + (i + 1) + ' As Built Qty has Custom selected but no unit typed.';
+    }
+  }
+  return null;
+}
+
+/* Remove unused blank DC-144 worksheets from the export so an A-only export
+   does not ship blank B/C/D sheets. Photo Appendix is always kept.
+   includeAllForms=true bypasses pruning entirely. */
+function pruneWorkbookToSelectedForm(wb, activeTab, includeAllForms) {
+  if (includeAllForms) return;
+  var activeSheetName = DC144_SHEET_NAME_BY_TAB[activeTab];
+  if (!activeSheetName) return;
+  var keepNames = {};
+  keepNames[activeSheetName] = true;
+  if (wb.getWorksheet('Photo Appendix')) keepNames['Photo Appendix'] = true;
+  wb.worksheets.slice().forEach(function(ws) {
+    if (!keepNames[ws.name]) {
+      try { wb.removeWorksheet(ws.id); } catch(e) {}
+    }
+  });
+  try { wb.views = [{ activeTab: 0 }]; } catch(e) {}
+}
+
+// Header fields that often contain wide user prose. shrinkToFit prevents
+// long text from clipping or pushing into adjacent cells.
+var DC144_SHRINK_HEADER_FIELDS = {
+  projectName:     true,
+  contractor:      true,
+  inspectorName:   true,
+  contractId:      true,
+  itemDescription: true
+};
+
 function patchHeaderFields(ws, session) {
-  var map    = DC144_CELL_MAP[session.tab].header;
-  var h      = session.header;
+  var map = DC144_CELL_MAP[session.tab].header;
+  var h   = session.header;
   Object.keys(map).forEach(function(f) {
-    if (h[f] !== undefined) setCellValue(ws, map[f].r, map[f].c, h[f]);
+    if (h[f] === undefined) return;
+    if (DC144_SHRINK_HEADER_FIELDS[f]) {
+      setCellValueReadable(ws, map[f].r, map[f].c, h[f], { shrink: true });
+    } else {
+      setCellValue(ws, map[f].r, map[f].c, h[f]);
+    }
   });
 }
 
@@ -1942,9 +2084,9 @@ function patchItemHeader(ws, session) {
   if (session.tab === 'a' || !session.itemHeader) return;
   var map = DC144_CELL_MAP[session.tab].header;
   var ih  = session.itemHeader;
-  if (map.itemNumber)      setCellValue(ws, map.itemNumber.r,      map.itemNumber.c,      ih.itemNumber);
-  if (map.itemDescription) setCellValue(ws, map.itemDescription.r, map.itemDescription.c, ih.description);
-  if (map.itemCode)        setCellValue(ws, map.itemCode.r,        map.itemCode.c,        ih.itemCode);
+  if (map.itemNumber)      setCellValue(ws, map.itemNumber.r, map.itemNumber.c, ih.itemNumber);
+  if (map.itemDescription) setCellValueReadable(ws, map.itemDescription.r, map.itemDescription.c, ih.description, { shrink: true });
+  if (map.itemCode)        setCellValue(ws, map.itemCode.r, map.itemCode.c, ih.itemCode);
 }
 
 function patchDataRows(ws, session) {
@@ -1952,22 +2094,30 @@ function patchDataRows(ws, session) {
   var s   = session.section;
 
   if (tab === 'a') {
-    var piMap = DC144_CELL_MAP.a.payItems;
+    var piMap          = DC144_CELL_MAP.a.payItems;
+    // Long-text item-row fields get shrinkToFit so wide user text stays on its row.
+    var shrinkFields   = { description: true, location: true, subcontractor: true };
     (s.payItems || []).slice(0, piMap.maxRows).forEach(function(row) {
       var excelRow = piMap.baseRow + row.rowIndex;
       // Write non-qty fields
       ['itemNo','description','itemCode','planPageNum','location','subcontractor'].forEach(function(field) {
-        if (piMap.cols[field]) setCellValue(ws, excelRow, piMap.cols[field], row[field] || '');
+        if (!piMap.cols[field]) return;
+        if (shrinkFields[field]) {
+          setCellValueReadable(ws, excelRow, piMap.cols[field], row[field] || '', { shrink: true });
+        } else {
+          setCellValue(ws, excelRow, piMap.cols[field], row[field] || '');
+        }
       });
-      // Qty + unit concatenation
+      // Qty + unit concatenation. Never write the literal word "custom" —
+      // when unit === 'custom' but customUnit is empty, export qty alone.
       var formatQty = function(qtyVal, unitVal, customVal) {
         var q = String(qtyVal || '').trim();
         if (!q) return '';
-        var u = unitVal === 'Custom' ? String(customVal || '').trim() : String(unitVal || '').trim();
+        var u = getResolvedUnit(unitVal, customVal);
         return u ? q + ' ' + u : q;
       };
-      setCellValue(ws, excelRow, piMap.cols.placedQty,  formatQty(row.placedQty,  row.placedQtyUnit,  row.placedQtyUnitCustom));
-      setCellValue(ws, excelRow, piMap.cols.asBuiltQty, formatQty(row.asBuiltQty, row.asBuiltQtyUnit, row.asBuiltQtyUnitCustom));
+      setCellValueReadable(ws, excelRow, piMap.cols.placedQty,  formatQty(row.placedQty,  row.placedQtyUnit,  row.placedQtyUnitCustom), { shrink: true });
+      setCellValueReadable(ws, excelRow, piMap.cols.asBuiltQty, formatQty(row.asBuiltQty, row.asBuiltQtyUnit, row.asBuiltQtyUnitCustom), { shrink: true });
     });
   }
 
@@ -2009,34 +2159,41 @@ function patchRemarksFields(ws, session) {
   var s   = session.section;
 
   function buildRemarksText(text, sectionKey) {
-    var photosForSection = (session.photos || []).filter(function(p) { return p.sectionKey === sectionKey; });
-    if (!photosForSection.length) return text || '';
-    var nums = photosForSection.map(function(p) { return p.photoIndex; }).join(', ');
-    var base = text ? text.replace(/\s+$/, '') + ' ' : '';
-    return base + '[Photos in Appendix: ' + nums + ']';
+    var photosForSection = (session.photos || []).filter(function(p) {
+      return p.sectionKey === sectionKey;
+    });
+    var cleanText = String(text || '').replace(/\s+$/, '');
+    if (!photosForSection.length) return cleanText;
+    var nums = compactPhotoNumbers(photosForSection.map(function(p) { return p.photoIndex; }));
+    var ref  = nums ? '[See Appendix: Photos ' + nums + ']' : '[See Appendix]';
+    return cleanText ? cleanText + ' ' + ref : ref;
   }
+
+  // Remarks/observations cells: wrap text + top-align so long user prose
+  // stays inside its cell band without overflowing.
+  var wrapOpts = { wrap: true, top: true };
 
   if (tab === 'a') {
     var rm = DC144_CELL_MAP.a.remarks;
-    setCellValue(ws, rm.environmental.r,    rm.environmental.c,    buildRemarksText(s.remarks.environmental, 'environmental'));
-    setCellValue(ws, rm.trafficControl.r,   rm.trafficControl.c,   buildRemarksText(s.remarks.trafficControl, 'trafficControl'));
-    setCellValue(ws, rm.workObservations.r, rm.workObservations.c, buildRemarksText(s.remarks.workObservations, 'workObservations'));
+    setCellValueReadable(ws, rm.environmental.r,    rm.environmental.c,    buildRemarksText(s.remarks.environmental, 'environmental'), wrapOpts);
+    setCellValueReadable(ws, rm.trafficControl.r,   rm.trafficControl.c,   buildRemarksText(s.remarks.trafficControl, 'trafficControl'), wrapOpts);
+    setCellValueReadable(ws, rm.workObservations.r, rm.workObservations.c, buildRemarksText(s.remarks.workObservations, 'workObservations'), wrapOpts);
   }
   if (tab === 'b') {
     var wobB = DC144_CELL_MAP.b.workObservations;
-    setCellValue(ws, wobB.r, wobB.c, buildRemarksText(s.workObservations, 'workObservations'));
+    setCellValueReadable(ws, wobB.r, wobB.c, buildRemarksText(s.workObservations, 'workObservations'), wrapOpts);
   }
   if (tab === 'c') {
     var wobC  = DC144_CELL_MAP.c.workObservations;
     var stMap = DC144_CELL_MAP.c.specifiedTempRange;
     var srMap = DC144_CELL_MAP.c.specifiedRateOfApplication;
-    setCellValue(ws, wobC.r,  wobC.c,  buildRemarksText(s.workObservations, 'workObservations'));
+    setCellValueReadable(ws, wobC.r,  wobC.c,  buildRemarksText(s.workObservations, 'workObservations'), wrapOpts);
     setCellValue(ws, stMap.r, stMap.c, s.specifiedTempRange);
     setCellValue(ws, srMap.r, srMap.c, s.specifiedRateOfApplication);
   }
   if (tab === 'd') {
     var wobD = DC144_CELL_MAP.d.workObservations;
-    setCellValue(ws, wobD.r, wobD.c, buildRemarksText(s.workObservations, 'workObservations'));
+    setCellValueReadable(ws, wobD.r, wobD.c, buildRemarksText(s.workObservations, 'workObservations'), wrapOpts);
   }
 }
 

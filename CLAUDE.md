@@ -24,7 +24,7 @@
 
 > **Purpose:** This file is the authoritative quick-reference for the NJDOT Field Tools project. Read this FIRST before reading any HTML file. It contains every architectural decision, storage key, design token, and critical constraint so we can make changes without re-reading 6,800+ lines of HTML.
 >
-> **Last updated:** 2026-05-26 · v1.14
+> **Last updated:** 2026-05-26 · v1.15
 >
 > **Live site:** `https://joebiocco.github.io/NJDOT-Field-Tools-Hub/`
 > **Repo:** `https://github.com/Joebiocco/NJDOT-Field-Tools-Hub` (renamed from `Work-Order-Closeout`)
@@ -411,7 +411,7 @@ Two parallel implementations, identical behavior:
 - **Row caps per tab:** a=17, b=19, c=18, d=24. `addGridRow()` disables add button when limit reached.
 - **Remarks fields:** Single unified `<textarea>` per remarks region, not line-by-line row inputs.
 - **Photo appendix:** Photos go to separate 'Photo Appendix' worksheet only. Each photo gets 4 rows: title (Photo N — caption), metadata (section · timestamp), image, spacer. Image placed with `ext: {width, height}` pixel dimensions (not fragile `tl/br`). Helpers: `getDisplayImageSize()` (DISPLAY_W=420px, aspect-ratio clamped 80–380px), `getFriendlySectionLabel()`, `formatDateTime()`. Sanity check: `assertPhotoAppendixPreserved(wb, session)` called before `writeBuffer()` — verifies worksheet exists, image count, caption cell not blank.
-- **Remarks photo reference format:** Compact inline — `"text [Photos in Appendix: 1, 2]"` (NOT multi-line `"\n\n[See Photo Appendix…]"`).
+- **Remarks photo reference format:** Compact inline — `"text [See Appendix: Photos 1–3]"` (or `"text [See Appendix]"` when photo numbers are absent). `compactPhotoNumbers([1,2,3,5,7,8])` collapses to `"1–3, 5, 7–8"`. Never use multi-line `"\n\n[See Photo Appendix…]"`.
 - **Photo UI:** Grid card layout (`.photo-strip` = `grid; auto-fill; minmax(140px,1fr)`). Each photo is a `.photo-item` card with `aspect-ratio:4/3` thumbnail + `.photo-caption-label` + `.photo-caption-input` (textarea). Add button is `.photo-item.photo-add-item` (dashed border card). Old `.photo-caption` input class is GONE — use `.photo-caption-input` textarea.
 - **Template:** `data/dc144-template.xlsx` — must be created manually from the original XLS. No blank-workbook fallback — export fails explicitly if template is missing.
 - **Image compression:** Canvas → 1400px max long side → JPEG 0.72 → fallback 0.58. Target ≤200KB per photo. WebP/HEIC/HEIF always go through canvas pipeline (`needsNormalize` flag). Stores `widthPx`/`heightPx` in photo object for aspect ratio export.
@@ -421,12 +421,15 @@ Two parallel implementations, identical behavior:
 - **Filename pattern:** `DC-144-[TAB]-[YYYYMMDD]-[SafeProjectName].xlsx`
 - **Tab color palette:** a=indigo `#4338ca`, b=amber `#92400e`, c=teal `#0e7490`, d=rose `#9f1239`
 - **Template system:** `ft_dc144_templates` localStorage key (max 10). "Save as Template" saves header fields only. "Load" shows tab-picker overlay then starts new session with header pre-populated.
-- **Unit dropdowns (Tab A):** Placed Qty and As Built Qty columns use `type:'qty-unit'` — renders `.qty-cell-wrap` (now `flex-wrap: wrap`) with number input + unit select (SF/LF/SY/TONS/CY/UNIT/LS/Custom) + custom text input. Export concatenates: `"450 SY"`, `"1 LS"`, `"12 BNDL"` etc.
+- **Unit dropdowns (Tab A):** `QTY_UNIT_OPTIONS` is an array of `{value, label}` objects. Dropdown stores lowercase `'custom'` (display label "Custom"); legacy capital-C `'Custom'` drafts are migrated via `normalizeUnit()`. Helpers: `isCustomUnit(u)`, `getResolvedUnit(unit, customUnit)`. The custom text input uses the `hidden` and `disabled` attributes (NOT `style.display`) so the `[hidden]` CSS rule covers all states. Export: never writes the literal word "custom" — if `unit==='custom'` and `customUnit` is empty, the qty exports alone (no unit). `validateBeforeExport(session)` blocks export with a toast if any row has `unit==='custom'` but `customUnit===''`.
+- **Excel cell write helpers:** `setCellValue(ws,r,c,v)` writes the value only. `setCellValueReadable(ws,r,c,v,opts)` preserves existing template alignment and lets callers opt into `{wrap:true,top:true}` (remarks/observations) or `{shrink:true}` (long-text header fields like projectName/contractor/inspectorName/itemDescription, and item-row description/location/subcontractor cells). Never expands official row heights.
+- **Sheet pruning at export:** `pruneWorkbookToSelectedForm(wb, tab, includeAllForms=false)` runs after both assertions and before `writeBuffer()`. A-only exports drop the blank B/C/D sheets and keep only the active form + Photo Appendix. To revert, call with `includeAllForms=true` or remove the call.
 - **Dark mode:** Page ONLY reads `field_dark_mode` from localStorage at load — never writes it. No local dark toggle exists on this page.
 - **Navigation:** Topbar back button always shows "Home" (house icon). Form actionbar "← Back to Reports" button goes back to dashboard. Topbar back from dashboard triggers `exiting-to-hub` animation then navigates to `../index.html`. Topbar export button is ALWAYS hidden (`display:none`) — single export location is the actionbar only.
 - **Screen transitions:** `playScreenTransition(el, 'forward'|'back')` adds `.screen-entering-forward` (slide from right) or `.screen-entering-back` (slide from left) for 240ms. Called by `showDashboard()` and `showForm()`.
 - **Unified modal CSS:** `.dc-modal-backdrop`, `.dc-modal-box`, `.dc-modal-title`, `.dc-modal-actions` — template modal uses these plus its own `.template-modal-*` classes.
-- **Sticky actionbar gap fix:** `#form-actionbar` top CSS transitions between `var(--topbar-h)` (topbar visible) and `0px` (topbar hidden) via `initSmartHeader()` → `updateActionbarTop()`. Mobile actionbar: `overflow-x: auto; scrollbar-width: none` so buttons don't wrap.
+- **Sticky actionbar gap fix:** `#form-actionbar` top CSS transitions between `var(--topbar-h)` (topbar visible) and `0px` (topbar hidden) via `initSmartHeader()` → `updateActionbarTop()`. **Mobile actionbar is a 2×2 grid** (`grid-template-areas: "back export" / "save template"`) — no horizontal scrolling. Export XLSX is always immediately visible. Title/divider/spacer/autosave-status are hidden on mobile. At ≤380px the Save-as-Template label collapses to just "Template" via a `font-size:0` + `::after` trick.
+- **Mobile data tables as cards:** desktop keeps the `.data-table` HTML table layout. At `@media (max-width: 720px)`, `thead` hides, each `tr` becomes a card (border, padding, shadow), `tr::before` shows "Entry N" using `data-entry-num`, and each `td::before` shows the column label using `data-label`. `buildTableRow()` writes both attributes (1-based `entryNum` for display, 0-based `rowIndex` for delete/reindex logic). On mobile, `qty-cell-wrap` becomes a 2-col grid with the custom unit input on its own full-width row.
 - **Form screen width:** `#form-screen .page-content { max-width: 1180px; }` (wider than dashboard 900px).
 - **Touch targets:** `@media (pointer: coarse)` sets `.btn-primary/.btn-secondary/.btn-export/.btn-template` to `min-height: 44px`.
 

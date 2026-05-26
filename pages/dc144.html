@@ -93,6 +93,9 @@
     }
     .screen-entering-forward { animation: screenSlideInRight 240ms cubic-bezier(0.22, 1, 0.36, 1) both; }
     .screen-entering-back    { animation: screenSlideInLeft  240ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+    @media (prefers-reduced-motion: reduce) {
+      .screen-entering-forward, .screen-entering-back { animation: none !important; }
+    }
 
     html.theme-transitioning * {
       transition:
@@ -469,9 +472,10 @@
       border: 1px solid var(--border); border-radius: 4px;
       background: var(--surface); color: var(--text);
       font-family: var(--sans); font-size: 11px; outline: none;
-      transition: border-color 0.11s; flex-shrink: 1; display: none;
+      transition: border-color 0.11s; flex-shrink: 1;
     }
     .qty-custom-input:focus { border-color: var(--accent); }
+    .qty-custom-input[hidden] { display: none !important; }
     .field-input,
     .remarks-textarea { max-width: 100%; min-width: 0; }
     .row-num { font-size: 11px; font-weight: 600; color: var(--muted); text-align: center; padding: 0 4px; min-width: 24px; }
@@ -508,24 +512,28 @@
 
     /* ── Photo card grid ─────────────────────────────────────────────────── */
     .photo-strip {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 10px; margin-top: 12px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px; margin-top: 12px; align-items: start;
     }
     .photo-item {
-      display: flex; flex-direction: column;
-      background: var(--surface); border: 1.5px solid var(--border-lo);
-      border-radius: var(--radius); overflow: hidden;
+      display: grid; gap: 0.45rem; align-items: start;
+      padding: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border-lo);
+      border-radius: var(--radius-sm);
       transition: border-color 0.14s, box-shadow 0.14s;
     }
     .photo-item:not(.photo-add-item):hover { border-color: var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    .photo-add-item { border: 2px dashed var(--border); background: transparent; }
+    .photo-add-item { border: 1.5px dashed var(--border); background: transparent; min-height: 140px; }
     .photo-add-item:hover { border-color: var(--accent); }
     .photo-add-item:hover .photo-add-btn { color: var(--accent); }
     .photo-thumb {
-      position: relative; width: 100%; aspect-ratio: 4/3;
-      overflow: hidden; background: var(--bg); flex-shrink: 0;
+      position: relative; width: 100%; aspect-ratio: 4/3; height: auto;
+      border-radius: var(--radius-sm); overflow: hidden;
+      border: 1.5px solid var(--border); background: var(--bg);
     }
-    .photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .photo-thumb img,
+    .photo-thumb-img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .photo-del-btn {
       position: absolute; top: 4px; right: 4px;
       background: rgba(0,0,0,0.65); color: #fff; border: none;
@@ -535,20 +543,33 @@
       transition: background 0.12s; padding: 0; font-family: var(--sans);
     }
     .photo-del-btn:hover { background: rgba(220,38,38,0.9); }
-    .photo-caption-label { font-size: 10px; font-weight: 600; color: var(--muted2); padding: 5px 8px 1px; flex-shrink: 0; }
+    .photo-caption-label { font-size: 0.72rem; font-weight: 700; color: var(--muted2); }
+    .photo-caption,
     .photo-caption-input {
-      width: 100%; resize: none;
-      font-family: var(--sans); font-size: 11px; color: var(--text); line-height: 1.4;
-      background: transparent; border: none; border-top: 1px solid var(--border-lo);
-      padding: 5px 8px; outline: none; min-height: 42px;
+      width: 100%; min-width: 0; min-height: 42px;
+      resize: vertical;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface); color: var(--text);
+      padding: 0.55rem 0.65rem;
+      font: inherit; font-family: var(--sans);
+      font-size: 0.82rem; line-height: 1.35; text-align: left;
+      outline: none;
+      transition: border-color 0.12s, box-shadow 0.12s;
     }
-    .photo-caption-input:focus { background: var(--accent-lo); }
+    .photo-caption:focus,
+    .photo-caption-input:focus {
+      border-color: var(--accent); outline: none;
+      box-shadow: 0 0 0 3px rgba(26,86,219,0.10);
+    }
+    .photo-caption::placeholder,
     .photo-caption-input::placeholder { color: var(--muted); }
     .photo-add-btn {
-      width: 100%; flex: 1; border: none; background: none; cursor: pointer;
+      width: 100%; min-height: 120px;
+      border: none; background: none; cursor: pointer;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 6px; color: var(--muted); font-family: var(--sans);
-      font-size: 11px; font-weight: 500; min-height: 80px;
+      font-size: 12px; font-weight: 500;
       transition: color 0.14s;
     }
 
@@ -589,22 +610,129 @@
       .section-card-body { padding: 14px; }
       .dash-hero { padding: 24px 16px 20px; }
       .dash-hero h1 { font-size: 22px; }
-      #form-actionbar {
-        padding: 7px 10px; gap: 6px;
-        overflow-x: auto; scrollbar-width: none;
-      }
-      #form-actionbar::-webkit-scrollbar { display: none; }
-      #form-actionbar > * { flex-shrink: 0; }
-      #form-actionbar-title { display: none; }
-      .btn-secondary, .btn-export, .btn-template { padding: 6px 9px; font-size: 11px; }
       .temp-grid { grid-template-columns: 1fr 1fr; }
       .hours-input { width: 65px; }
+
+      /* Mobile actionbar — 2x2 grid so Export is always visible without
+         horizontal sliding. Hides title/divider/spacer/autosave-status. */
+      #form-actionbar {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+          "back   export"
+          "save   template";
+        gap: 8px;
+        padding: 8px 10px;
+        overflow: visible;
+        align-items: stretch;
+      }
+      #form-actionbar-title,
+      #autosave-status,
+      #form-actionbar .actionbar-divider,
+      #form-actionbar > div[style*="flex"] { display: none !important; }
+
+      #form-actionbar-back    { grid-area: back;     width: 100%; justify-content: center; min-height: 44px; padding: 8px 10px; }
+      #actionbar-export-btn   { grid-area: export;   width: 100%; justify-content: center; min-height: 44px; padding: 8px 10px; font-size: 12px; }
+      #form-actionbar .btn-secondary { grid-area: save; width: 100%; justify-content: center; min-height: 42px; padding: 8px 10px; font-size: 12px; }
+      #save-template-btn      { grid-area: template; width: 100%; justify-content: center; min-height: 42px; padding: 8px 10px; font-size: 12px; }
+
+      #form-content.page-content { padding-bottom: 140px; }
+
+      /* Mobile data table → card layout. Desktop table stays unchanged. */
+      .data-table-wrap {
+        overflow: visible;
+        border: none;
+        border-radius: 0;
+        white-space: normal;
+      }
+      .data-table {
+        width: 100%;
+        min-width: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 13px;
+      }
+      .data-table thead { display: none; }
+      .data-table tbody { display: grid; gap: 12px; }
+      .data-table tbody tr {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 12px;
+        border: 1px solid var(--border-lo);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+      }
+      .data-table tbody tr::before {
+        content: "Entry " attr(data-entry-num);
+        display: block;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted2);
+      }
+      .data-table tbody td {
+        display: block;
+        padding: 0;
+        border: none;
+      }
+      .data-table tbody td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted2);
+      }
+      .data-table tbody td.row-num { display: none; }
+
+      .grid-input,
+      .grid-select,
+      .qty-custom-input {
+        width: 100%;
+        min-height: 42px;
+        font-size: 14px;
+      }
+
+      .qty-cell-wrap {
+        display: grid;
+        grid-template-columns: minmax(90px, 1fr) minmax(86px, auto);
+        gap: 6px;
+        align-items: center;
+      }
+      .qty-cell-wrap .grid-input  { min-width: 0; width: 100%; flex-shrink: 1; }
+      .qty-cell-wrap .grid-select { min-width: 86px; max-width: none; }
+      .qty-custom-input           { grid-column: 1 / -1; min-width: 0; width: 100%; }
+
+      .data-table tfoot,
+      .data-table tfoot tr,
+      .data-table tfoot td { display: block; width: 100%; }
+
+      .btn-add-row {
+        width: 100%;
+        justify-content: center;
+        min-height: 48px;
+        margin-top: 10px;
+        font-size: 14px;
+      }
+      .btn-del-row {
+        width: 100%;
+        min-height: 42px;
+        justify-content: center;
+      }
     }
     @media (max-width: 520px) {
       #topbar-title { display: none; }
       .state-badge { display: none; }
       .tab-cards-grid { grid-template-columns: 1fr; }
-      #autosave-status { display: none; }
+    }
+    @media (max-width: 380px) {
+      /* Save as Template label collapses to just "Template" on very narrow
+         screens so the 2x2 actionbar grid never overflows. */
+      #save-template-btn { font-size: 0; }
+      #save-template-btn::after { content: "Template"; font-size: 12px; }
     }
 
     /* ── Reduced motion ──────────────────────────────────────────────────── */
