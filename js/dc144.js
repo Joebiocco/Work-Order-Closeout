@@ -2344,6 +2344,26 @@ function buildDc144WorkbookFromTemplate(wb, session) {
   if (tab === 'c') patchMaterialInfo(ws, session);
   if (tab === 'd') patchPileDescriptor(ws, session);
 
+  // Insert a manual page break before the Work Observations section so that
+  // section always starts on page 2. Without this, Work Observations begins
+  // at the very bottom of page 1 and spills onto page 2.
+  (function() {
+    var wobMap = {
+      a: DC144_CELL_MAP.a.remarks.workObservations,
+      b: DC144_CELL_MAP.b.workObservations,
+      c: DC144_CELL_MAP.c.workObservations,
+      d: DC144_CELL_MAP.d.workObservations
+    };
+    var wobRef = wobMap[tab];
+    if (wobRef && wobRef.r > 1) {
+      var breakAfterRow = wobRef.r - 1; // page break after the row before work observations
+      if (!ws.model.rowBreaks) ws.model.rowBreaks = [];
+      // Remove any existing break at this position before adding ours
+      ws.model.rowBreaks = ws.model.rowBreaks.filter(function(b) { return b.id !== breakAfterRow; });
+      ws.model.rowBreaks.push({ id: breakAfterRow, max: 16383, man: 1 });
+    }
+  }());
+
   // Replace the template's "Attach additional sketches..." footer text
   // with a friendlier appendix pointer + center the cell.
   rewriteAppendixFooterText(ws, session);
@@ -2397,13 +2417,15 @@ function rewriteAppendixFooterText(ws, session) {
       for (var m = 0; m < markers.length; m++) {
         if (lower.indexOf(markers[m]) !== -1) {
           // Preserve existing font/border/fill — only change value + alignment.
+          // Do not use shrinkToFit here — the cell is narrow at the bottom of the
+          // form and shrinkToFit would compress the text to an unreadably tiny size.
           cell.value = newText;
           var existing = cell.alignment || {};
           cell.alignment = {
             horizontal:  'center',
             vertical:    'middle',
             wrapText:    false,
-            shrinkToFit: true,
+            shrinkToFit: false,
             indent:      existing.indent
           };
           found = true;
@@ -2433,12 +2455,13 @@ function embedInspectorSignature(wb, ws, session) {
     // Place at row of inspector name, offset 2 columns right of name cell.
     var anchorCol = (nameMap.c - 1) + 2; // 0-based
     var anchorRow = (nameMap.r - 1);     // 0-based
-    // Compute correct height from stored canvas dimensions so the signature
-    // is not stretched or squashed in Excel.
+    // Cap the embed height to 22px (~16pt) so the signature stays within the
+    // inspector-name row and does not bleed into the weather rows below.
+    // Width is derived from the stored canvas aspect ratio to avoid distortion.
     var sigW = session.inspectorSignatureWidth  || 400;
     var sigH = session.inspectorSignatureHeight || 100;
-    var embedW = 200;
-    var embedH = Math.max(20, Math.round(embedW * sigH / sigW));
+    var embedH = 22;
+    var embedW = Math.max(60, Math.round(embedH * sigW / sigH));
     ws.addImage(imageId, {
       tl:     { col: anchorCol, row: anchorRow },
       ext:    { width: embedW, height: embedH },
@@ -2540,8 +2563,8 @@ function setCellValue(ws, r, c, value) {
 }
 
 /* Like setCellValue but preserves existing template alignment and lets
-   callers opt into wrap/shrink/top/center to keep long user text inside
-   the official DC-144 cell bounds — without expanding row heights. */
+   callers opt into wrap/shrink/top/center/middle/bottom to keep long user
+   text inside the official DC-144 cell bounds — without expanding row heights. */
 function setCellValueReadable(ws, r, c, value, opts) {
   if (!r || !c) return;
   try {
@@ -2561,6 +2584,7 @@ function setCellValueReadable(ws, r, c, value, opts) {
     if (opts.top)     alignment.vertical    = 'top';
     if (opts.center)  alignment.horizontal  = 'center';
     if (opts.middle)  alignment.vertical    = 'middle';
+    if (opts.bottom)  alignment.vertical    = 'bottom';
     cell.alignment = alignment;
   } catch(e) {}
 }
@@ -2637,6 +2661,13 @@ function pruneWorkbookToSelectedForm(wb, activeTab, includeAllForms) {
   try { wb.views = [{ activeTab: 0 }]; } catch(e) {}
 }
 
+// Inspector name and date sit on a printed underline — bottom-align so the
+// text rests on that underline rather than floating above it.
+var DC144_BOTTOM_ALIGN_HEADER_FIELDS = {
+  inspectorName: true,
+  date:          true
+};
+
 // Header fields that often contain wide user prose. shrinkToFit prevents
 // long text from clipping or pushing into adjacent cells.
 // Weather condition/temp fields are included so longer entries like
@@ -2676,13 +2707,15 @@ function patchHeaderFields(ws, session) {
     // Skip undefined or blank values — an empty write would erase the
     // template's printed label/underline text for that field.
     if (h[f] === undefined || h[f] === null || h[f] === '') return;
-    var needsShrink = !!DC144_SHRINK_HEADER_FIELDS[f];
-    var needsCenter = !!DC144_CENTER_HEADER_FIELDS[f];
-    if (needsShrink || needsCenter) {
+    var needsShrink  = !!DC144_SHRINK_HEADER_FIELDS[f];
+    var needsCenter  = !!DC144_CENTER_HEADER_FIELDS[f];
+    var needsBottom  = !!DC144_BOTTOM_ALIGN_HEADER_FIELDS[f];
+    if (needsShrink || needsCenter || needsBottom) {
       setCellValueReadable(ws, map[f].r, map[f].c, h[f], {
         shrink: needsShrink,
         center: needsCenter,
-        middle: needsCenter
+        middle: needsCenter,
+        bottom: needsBottom
       });
     } else {
       setCellValue(ws, map[f].r, map[f].c, h[f]);
