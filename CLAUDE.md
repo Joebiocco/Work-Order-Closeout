@@ -24,7 +24,7 @@
 
 > **Purpose:** This file is the authoritative quick-reference for the NJDOT Field Tools project. Read this FIRST before reading any HTML file. It contains every architectural decision, storage key, design token, and critical constraint so we can make changes without re-reading 6,800+ lines of HTML.
 >
-> **Last updated:** 2026-05-27 · v1.19 (next push will be v1.20)
+> **Last updated:** 2026-05-27 · v1.20
 >
 > **Branch `ui/shared-css-extraction`:** `css/field-ui.css` shared stylesheet has been created and linked into all pages. See §2 (File Structure) and §13 (Shared CSS) for details.
 >
