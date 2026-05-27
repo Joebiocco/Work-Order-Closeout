@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/field-ui.css">
 
   <!-- Dark mode applied before first paint — reads global state, never writes it -->
   <script>
@@ -43,28 +44,13 @@
   </script>
 
   <style>
-    /* ── Design tokens (mirrors all other Field Tools pages) ─────────────── */
+    /* ── Design tokens now in ../css/field-ui.css ────────────────────────── */
+    /* dc144-specific extras: */
     :root {
-      --bg: #eef0f4; --surface: #ffffff; --border: #d1d9e0;
-      --border-lo: #e8ecf0; --accent: #1a56db;
-      --accent-lo: rgba(26,86,219,0.08);
-      --red: #dc2626;
-      --text: #111827; --muted: #6b7280; --muted2: #4b5563;
-      --radius-sm: 5px; --radius: 8px; --radius-lg: 12px;
-      --sans: 'Inter', system-ui, -apple-system, Arial, sans-serif;
-      --transition: 0.14s ease;
-      --topbar-h: 58px;
+      --radius-lg: 12px; /* dc144 uses 12px vs shared 10px */
+      --topbar-h: 58px;  /* used for sticky actionbar gap calculation */
     }
-    html { background: var(--bg); }
-    html[data-dark] {
-      --bg: #0f1117; --surface: #1c1e26; --border: #2d3748;
-      --border-lo: #1f2937; --text: #FEE9A1; --muted: #C9971A;
-      --muted2: #E5B33B; --accent-lo: rgba(26,86,219,0.15);
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: var(--sans);
-      background: var(--bg); color: var(--text);
       min-height: 100vh;
       animation: pageFadeIn 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
     }
@@ -130,41 +116,21 @@
     .toast.out { opacity: 0; transform: translateY(8px) scale(0.97); transition: opacity 240ms ease, transform 240ms ease; }
 
     /* ── Topbar ──────────────────────────────────────────────────────────── */
+    /* Shell from field-ui.css; local overrides below */
     #topbar {
-      height: var(--topbar-h); background: #1e2939;
-      border-bottom: 2px solid #E5B33B;
-      display: flex; align-items: center; padding: 0 20px; gap: 14px;
-      flex-shrink: 0; position: sticky; top: 0; z-index: 600;
+      height: var(--topbar-h); /* use CSS var so actionbar gap JS can read it */
+      position: sticky; top: 0; z-index: 600;
       will-change: transform;
-      transition: transform 460ms cubic-bezier(0.65, 0, 0.35, 1),
-                  opacity 460ms cubic-bezier(0.65, 0, 0.35, 1);
     }
-    #topbar.header-hidden { transform: translateY(-100%); opacity: 0; pointer-events: none; }
     .header-hover-zone {
       position: fixed; top: 0; left: 0; right: 0;
       height: 18px; z-index: 599; pointer-events: auto;
     }
-    .topbar-back {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 5px 12px 5px 9px;
-      background: rgba(229,179,59,0.08); border: 1px solid rgba(229,179,59,0.30);
-      border-radius: 999px; color: #E5B33B; text-decoration: none;
-      font-size: 12px; font-weight: 600; letter-spacing: 0.02em; cursor: pointer;
-      transition: background 0.15s, border-color 0.15s, color 0.15s;
-      flex-shrink: 0; white-space: nowrap; font-family: var(--sans);
-    }
-    .topbar-back:hover { background: #C9971A; border-color: #C9971A; color: #fff; }
+    .topbar-back { font-family: var(--sans); } /* adds font-family to shared styles */
     .topbar-back:active { transform: scale(0.96); transition: transform 80ms ease-out; }
-    .topbar-div { width: 1px; height: 22px; background: #374557; flex-shrink: 0; }
-    .topbar-spacer { flex: 1; }
     #topbar-title {
       color: #fff; font-size: 16px; font-weight: 600;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px;
-    }
-    .state-badge {
-      background: rgba(229,179,59,0.15); border: 1px solid rgba(229,179,59,0.3);
-      color: #E5B33B; font-size: 10px; font-weight: 700;
-      padding: 2px 9px; border-radius: 100px; letter-spacing: 0.06em; flex-shrink: 0;
     }
 
     /* ── Toast container ─────────────────────────────────────────────────── */
@@ -1048,6 +1014,7 @@
       <div id="tab-cards-grid" class="tab-cards-grid"></div>
 
       <p class="sec-label">Recent Drafts</p>
+      <div class="ft-notice-local" style="margin-bottom:12px;">Saved on this device only. Export a backup for long-term storage.</div>
       <div id="recent-chips-container"></div>
 
       <div id="templates-section" style="margin-top:28px;">

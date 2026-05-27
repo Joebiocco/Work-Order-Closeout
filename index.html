@@ -9,44 +9,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/field-ui.css">
   <style>
-    :root {
-      --bg: #eef0f4; --surface: #ffffff; --border: #d1d9e0;
-      --border-lo: #e8ecf0; --accent: #1a56db;
-      --accent-lo: rgba(26,86,219,0.08);
-      --text: #111827; --muted: #6b7280; --muted2: #4b5563;
-      --radius-sm: 5px; --radius: 8px; --radius-lg: 12px;
-      --sans: 'Inter', system-ui, -apple-system, Arial, sans-serif;
-      --transition: 0.14s ease;
-    }
-    html { background: #eef0f4; transition: background-color 380ms ease-in-out; }
-    html[data-dark] { background: #0f1117; }
-    html[data-dark] {
-      --bg: #0f1117; --surface: #1c1e26; --border: #2d3748;
-      --border-lo: #1f2937; --text: #FEE9A1; --muted: #C9971A;
-      --muted2: #E5B33B; --accent-lo: rgba(26,86,219,0.15);
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    /* Design tokens + body base now in css/field-ui.css */
+    /* index.html overrides: --radius-lg is 12px here vs 10px in shared tokens */
+    :root { --radius-lg: 12px; }
     body {
-      font-family: var(--sans);
-      background: var(--bg);
-      color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
-    /* Topbar */
-    #topbar {
-      height: 58px;
-      background: #1e2939;
-      border-bottom: 2px solid #E5B33B;
-      display: flex;
-      align-items: center;
-      padding: 0 24px;
-      gap: 12px;
-      flex-shrink: 0;
-    }
+    /* Topbar — shared shell from field-ui.css; hub uses wider padding/tighter gap */
+    #topbar { padding: 0 24px; gap: 12px; }
     .topbar-icon { height: 42px; flex-shrink: 0; display: flex; align-items: center; }
     .topbar-icon img { height: 38px; width: auto; max-width: 160px; object-fit: contain; }
     #topbar h1 { color: #fff; font-size: 16px; font-weight: 700; letter-spacing: 0.01em; }
@@ -96,16 +71,6 @@
       margin-top: 8px;
       padding-bottom: 10px;
       border-bottom: 2px solid var(--border);
-    }
-
-    :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-      outline: 3px solid rgba(229,179,59,0.95);
-      outline-offset: 3px;
-      box-shadow: 0 0 0 5px rgba(26,86,219,0.18);
-    }
-    html[data-dark] :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-      outline-color: #FEE9A1;
-      box-shadow: 0 0 0 5px rgba(254,233,161,0.16);
     }
 
     .home-controls {
@@ -792,7 +757,7 @@
       </div>
       <div class="card-body">
         <div class="card-title">DC-144 Field Form</div>
-        <div class="card-desc">Capture daily field data for pavement, HMA, concrete, and pile work. Exports to .xlsx. <em style="color:var(--muted);">Work in progress — features may change.</em></div>
+        <div class="card-desc">Capture daily work reports, HMA paving, bituminous material application, and pile driving logs. Exports to XLSX.</div>
       </div>
       <div class="card-footer">
         <span class="card-tag tag-dc">DC-144</span>
@@ -836,7 +801,7 @@
 
 </div>
 
-<div class="page-footer">Field Tools &mdash; Internal Use &middot; <span class="version-stamp" title="Build version — if you spot a user with an older version, ask them to refresh">v1.19 &middot; 2026-05-27</span></div>
+<div class="page-footer">Field Tools &mdash; Internal Use &middot; <span class="version-stamp" title="Build version — if you spot a user with an older version, ask them to refresh">v1.20 &middot; 2026-05-27</span></div>
 
 <!-- Install App Banner -->
 <div id="install-banner" class="install-banner" role="banner" aria-live="polite">

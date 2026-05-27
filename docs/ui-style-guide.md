@@ -1,0 +1,312 @@
+# Field Tools UI Style Guide
+
+## Overview
+
+Bridge Navigator (`njsearch.html`) and Fuel Finder (`njfuel.html`) are the **visual reference** for the shared app shell. When in doubt about spacing, color, topbar layout, card style, or button hierarchy — match those two pages.
+
+---
+
+## Shared CSS file
+
+`css/field-ui.css` — loaded **before** each page's local `<style>` block:
+
+```html
+<!-- index.html (root) -->
+<link rel="stylesheet" href="css/field-ui.css">
+
+<!-- pages/*.html -->
+<link rel="stylesheet" href="../css/field-ui.css">
+```
+
+Page-local `<style>` comes after the `<link>`, so page CSS wins on equal specificity. This is intentional — shared styles are defaults, per-page styles are overrides.
+
+---
+
+## ft-* class system (currently in field-ui.css)
+
+| Class | Purpose | Status |
+|---|---|---|
+| `.ft-topbar` | Topbar shell (navy bg, gold border) — alias for `#topbar`/`.topbar` | Active |
+| `.ft-back-link` / `.ft-home-link` | Gold pill back/home navigation — alias for `.topbar-back`/`.hub-back` | Active |
+| `.ft-topbar-div` | 1px vertical topbar divider — alias for `.topbar-div` | Active |
+| `.ft-topbar-spacer` | Flex spacer pushing right-side controls right — alias for `.topbar-spacer` | Active |
+| `.ft-badge` | Gold pill label badge (topbar) — alias for `.state-badge` | Active |
+| `.ft-help-btn` | 32px circle help button (topbar) — alias for `.topbar-help` | Active |
+| `.ft-btn` | Base button (flex, padding, radius, weight, transition) | Active |
+| `.ft-btn-primary` | Blue accent bg, white text | Active |
+| `.ft-notice-local` | Amber left-border notice: "Saved on this device only…" | Active |
+| `.ft-modal-backdrop` | Fixed full-screen modal overlay — add `.open` class to show | Active |
+| `.ft-modal-box` | Centered modal content box with entrance animation | Active |
+| `.ft-modal-title` | Modal heading (1.05rem, bold) | Active |
+| `.ft-modal-actions` | Modal button row (right-aligned flex) | Active |
+
+**Deferred classes (not in field-ui.css yet — add when first needed):**
+`ft-btn-secondary`, `ft-btn-ghost`, `ft-btn-danger`, `ft-card`, `ft-section-card`, `ft-notice`, `ft-empty-state`, `ft-toast`, `ft-status-pill`. When you need one of these, add it to `css/field-ui.css` with a comment, then use it — do not define it locally in a page.
+
+---
+
+## Design tokens (from field-ui.css :root)
+
+```css
+--bg:        #eef0f4;   /* page background */
+--surface:   #ffffff;   /* cards/panels */
+--border:    #d1d9e0;
+--border-lo: #e8ecf0;   /* subtle borders */
+--accent:    #1a56db;   /* primary blue — buttons, links, focus */
+--accent-lo: rgba(26,86,219,0.08);
+--red:       #dc2626;
+--text:      #111827;
+--muted:     #6b7280;
+--muted2:    #4b5563;
+--radius-sm: 5px;
+--radius:    8px;
+--radius-lg: 10px;      /* pages may override locally — index/dc144 use 12px */
+--sans:      'Inter', system-ui, -apple-system, Arial, sans-serif;
+--transition: 0.14s ease;
+```
+
+Dark mode is toggled via `html[data-dark]` attribute on `<html>`. Dark mode token overrides are in `field-ui.css`. The global state key is `field_dark_mode` in localStorage (read-only on tool pages — only index.html writes it).
+
+**Dark mode text color note:** Most pages use `--text: #FEE9A1` (gold) in dark mode. Milepost and Payroll Calculator override locally to `#f1f5f9` (neutral grey). Do not assume the default is grey.
+
+---
+
+## Brand colors (hardcoded, not in tokens)
+
+| Role | Hex | Notes |
+|---|---|---|
+| Topbar background | `#1e2939` | Dark navy, always dark regardless of theme |
+| Header accent / gold | `#E5B33B` | Topbar border, back pill, badges, help button |
+| Back pill hover (light) | `#C9971A` | Darker gold on hover |
+| Back pill hover (dark) | `#FEE9A1` | Light gold on dark background |
+| Bookmark star | `#f59e0b` | Amber-500 — NEVER change to header accent gold |
+
+---
+
+## Action hierarchy
+
+| Level | Purpose | Class |
+|---|---|---|
+| Primary | Search / Find Near Me / Export PDF or XLSX | `.ft-btn .ft-btn-primary` |
+| Secondary | Save Draft / Refresh / Add Page | `.ft-btn` (plain) or local `.btn-secondary` |
+| Danger | Clear Form / Delete Draft / Remove Page | local `.btn-danger` or `ft-btn-danger` when added |
+
+Primary action must be visually strongest. Danger actions must be separated from primary actions.
+
+---
+
+## Local-storage notice
+
+Add `.ft-notice-local` wherever the page saves user data to localStorage or IndexedDB:
+
+```html
+<div class="ft-notice-local">Saved on this device only. Export a backup for long-term storage.</div>
+```
+
+**Currently used on:** `njsearch.html` (bookmarks), `njfuel.html` (bookmarks), `dc144.html` (drafts/templates/photos), `timesheet.html` (entries/settings), `WorkOrderCloseout.html` (existing `.local-storage-note`).
+
+**Do not add to:** `index.html` homepage tiles, `milemarker.html` (saves no user data).
+
+---
+
+## Modal pattern
+
+Use `.ft-modal-backdrop` + `.ft-modal-box` for new help/confirmation modals. Toggle visibility with the `.open` class:
+
+```html
+<div class="ft-modal-backdrop" id="my-modal">
+  <div class="ft-modal-box">
+    <div class="ft-modal-title">How to Use This Tool</div>
+    <p>Short help text.</p>
+    <div class="ft-modal-actions">
+      <button class="ft-btn ft-btn-primary" id="my-modal-close">Got it</button>
+    </div>
+  </div>
+</div>
+```
+
+```js
+document.getElementById('help-btn').addEventListener('click', function() {
+  document.getElementById('my-modal').classList.add('open');
+});
+document.getElementById('my-modal-close').addEventListener('click', function() {
+  document.getElementById('my-modal').classList.remove('open');
+});
+document.getElementById('my-modal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') document.getElementById('my-modal').classList.remove('open');
+});
+```
+
+Existing pages use their own modal classes (`dc-modal-*`, `guide-overlay`, `guide-modal`) — do not rename those for styling reasons.
+
+---
+
+## How to Build a New Tool Page
+
+### Required link
+
+```html
+<link rel="stylesheet" href="../css/field-ui.css">
+```
+
+Place this **before** the page-local `<style>` block, after the Google Fonts link.
+
+### Basic page shell
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tool Name — NJDOT Field Tools</title>
+  <meta name="theme-color" content="#E5B33B">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/field-ui.css">
+  <style>
+    /* Tool-specific CSS only — shared tokens, topbar, buttons, modals are in field-ui.css */
+    body { min-height: 100vh; }
+    /* ... */
+  </style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div id="topbar">
+  <a class="topbar-back" href="../index.html">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Home
+  </a>
+  <div class="topbar-div"></div>
+  <span id="topbar-title">Tool Name</span>
+  <div class="topbar-spacer"></div>
+  <span class="state-badge">NJ</span>
+  <button class="topbar-help" id="tool-help-btn" type="button" aria-label="Open help">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  </button>
+</div>
+
+<!-- Help modal -->
+<div class="ft-modal-backdrop" id="tool-help-modal">
+  <div class="ft-modal-box">
+    <div class="ft-modal-title">How to Use</div>
+    <ol style="padding-left:18px;line-height:1.7;font-size:14px;color:var(--text);">
+      <li>Step one.</li>
+      <li>Step two.</li>
+      <li>Step three.</li>
+    </ol>
+    <div class="ft-modal-actions">
+      <button class="ft-btn ft-btn-primary" id="tool-help-close">Got it</button>
+    </div>
+  </div>
+</div>
+
+<!-- Main content -->
+<div class="wrap">
+
+  <!-- Local-only notice — include ONLY if this page saves user data -->
+  <!-- <div class="ft-notice-local">Saved on this device only. Export a backup for long-term storage.</div> -->
+
+  <!-- Primary action -->
+  <button class="ft-btn ft-btn-primary" id="primary-action-btn">Primary Action</button>
+
+  <!-- Result / content area -->
+  <div id="result-area"></div>
+
+</div>
+
+<script>
+// Dark mode — read global state, never write it
+if (localStorage.getItem('field_dark_mode') === '1') {
+  document.documentElement.setAttribute('data-dark', '');
+}
+
+// Set last visited tool
+try { localStorage.setItem('ft_last', 'toolname'); } catch(_) {}
+
+// Help modal
+(function() {
+  var overlay = document.getElementById('tool-help-modal');
+  var openBtn = document.getElementById('tool-help-btn');
+  var closeBtn = document.getElementById('tool-help-close');
+  if (openBtn && overlay) {
+    openBtn.addEventListener('click', function() { overlay.classList.add('open'); });
+    closeBtn.addEventListener('click', function() { overlay.classList.remove('open'); });
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.classList.remove('open'); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') overlay.classList.remove('open'); });
+  }
+})();
+
+// Smart header hide-on-scroll (copy from njfuel.html initSmartHeader if needed)
+
+// Tool-specific JS only below this line
+</script>
+</body>
+</html>
+```
+
+### Button hierarchy
+
+```html
+<button class="ft-btn ft-btn-primary">Primary Action</button>
+<!-- When ft-btn-secondary is added to field-ui.css: -->
+<!-- <button class="ft-btn ft-btn-secondary">Secondary Action</button> -->
+<!-- <button class="ft-btn ft-btn-ghost">Quiet Action</button> -->
+<!-- <button class="ft-btn ft-btn-danger">Danger Action</button> -->
+```
+
+Note: only `ft-btn` and `ft-btn-primary` are currently defined in `field-ui.css`. Add variants to that file when first needed — do not define them locally.
+
+---
+
+## Pre-flight checklist
+
+Before finishing any new or modified page, verify:
+
+- [ ] `css/field-ui.css` is linked before page-local `<style>`
+- [ ] Topbar matches Bridge/Fuel visual pattern (navy, gold border, back pill, state badge, help button)
+- [ ] Does not re-define shared tokens (`:root`), topbar shell, back pill, divider, badge, or focus ring
+- [ ] New CSS is tool-specific only — no duplicated shared patterns
+- [ ] Primary action is visually strongest on the page
+- [ ] Danger actions are visually separated from primary actions
+- [ ] Help button in topbar if the tool needs guidance (see milemarker for minimal example)
+- [ ] `.ft-notice-local` present only if page actually saves user data to localStorage or IndexedDB
+- [ ] No localStorage or IndexedDB keys renamed or cleared
+- [ ] No export logic changed without explicit approval
+- [ ] Mobile 390px and 430px layouts checked
+- [ ] Desktop 1440px layout checked
+- [ ] Dark mode checked (topbar always navy, text gold on most pages)
+- [ ] `service-worker.js` `LOCAL_ASSETS` updated if new static files were added
+- [ ] `CLAUDE.md` and `AGENTS.md` updated if new storage keys, classes, or behavior was added
+
+---
+
+## Rules
+
+- Use `ft-*` classes before writing new CSS
+- Do not create new one-off button/card/modal/topbar styles when a shared class exists
+- If a new style is genuinely necessary, document why in this file
+- Do not rename JavaScript IDs or classes for styling purposes
+- Do not touch export layouts (`html2canvas` PDF area, ExcelJS template layout) for styling cleanup
+- Link `css/field-ui.css` BEFORE page-local `<style>` so page CSS wins on equal specificity
+- Animation / anti-flicker CSS stays **inline per-page** — NOT in `field-ui.css`
+- Mobile zoom restriction (`user-scalable=no` in viewport meta) must stay in every page
+- **50-line rule:** If adding more than 50 lines of new page-specific CSS, check whether it belongs in `css/field-ui.css` instead
+
+---
+
+## One-off style exceptions (documented)
+
+| Page | Class | Reason not in field-ui.css |
+|---|---|---|
+| `njsearch.html` | `.btn-primary` | Slightly different padding/gap from ft-btn; bridge-specific hover variants |
+| `njfuel.html` | `.btn-primary` | Uses `:not(:disabled):hover` to handle disabled locate button |
+| `timesheet.html` | `.hub-back` | Uses local CSS vars `var(--gold)` for consistency with bottom-nav gold palette |
+| `dc144.html` | `.btn-export` | Green `#166534` specific to Excel export action |
+| `dc144.html` | `.dc-modal-*` | Predates ft-modal-* system; renaming would require JS changes |
+| `njsearch.html` / `njfuel.html` | `.guide-overlay` / `.guide-modal` | Predates ft-modal-* system; identical across both pages but renaming requires JS changes in both |

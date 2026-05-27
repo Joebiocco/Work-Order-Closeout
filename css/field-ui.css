@@ -1,0 +1,319 @@
+/* ============================================================
+   field-ui.css — Shared design tokens and UI shell
+   NJDOT Field Tools · loaded before each page's <style> block
+   Last updated: 2026-05-27
+
+   RULES:
+   - Link this BEFORE the page-local <style> so page CSS wins on
+     equal specificity.
+   - Animation / anti-flicker CSS stays inline per-page (not here).
+   - Do NOT bump version on every commit — only at push time.
+   ============================================================ */
+
+/* ── Section 1: Design Tokens ─────────────────────────────────────────── */
+/*
+   These values are identical across all Field Tools pages.
+   Source of truth: CLAUDE.md §4.
+*/
+:root {
+  --bg:        #eef0f4;          /* page background, light mode */
+  --surface:   #ffffff;          /* cards / panels */
+  --border:    #d1d9e0;
+  --border-lo: #e8ecf0;          /* subtle borders */
+  --accent:    #1a56db;          /* primary blue — buttons, links, focus */
+  --accent-lo: rgba(26,86,219,0.08);
+  --red:       #dc2626;
+  --text:      #111827;
+  --muted:     #6b7280;
+  --muted2:    #4b5563;
+  --radius-sm: 5px;
+  --radius:    8px;
+  --radius-lg: 10px;
+  --sans:      'Inter', system-ui, -apple-system, Arial, sans-serif;
+  --transition: 0.14s ease;
+}
+
+/* Light-mode html background flash prevention */
+html {
+  background: #eef0f4;
+  transition: background-color 380ms ease-in-out;
+}
+
+html[data-dark] {
+  background: #0f1117;
+  --bg:        #0f1117;
+  --surface:   #1c1e26;
+  --border:    #2d3748;
+  --border-lo: #1f2937;
+  --text:      #FEE9A1;
+  --muted:     #C9971A;
+  --muted2:    #E5B33B;
+  --accent-lo: rgba(26,86,219,0.15);
+}
+
+/* ── Section 2: Body Base ─────────────────────────────────────────────── */
+/*
+   Only the properties that are identical across all pages.
+   Pages that need height:100vh / overflow:hidden override locally.
+*/
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Section 3: Topbar Shell ──────────────────────────────────────────── */
+/*
+   Existing selectors kept for backward compat with current HTML.
+   ft-* aliases added for new/future code.
+*/
+
+/* Topbar container */
+#topbar, .topbar, .ft-topbar {
+  height: 58px;
+  background: #1e2939;
+  border-bottom: 2px solid #E5B33B;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+/* Topbar heading */
+#topbar h1, .topbar h1 {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Back / Home pill */
+.topbar-back, .hub-back, .ft-back-link, .ft-home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 9px;
+  background: rgba(229,179,59,0.08);
+  border: 1px solid rgba(229,179,59,0.30);
+  border-radius: 999px;
+  color: #E5B33B;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.topbar-back:hover, .hub-back:hover,
+.ft-back-link:hover, .ft-home-link:hover {
+  background: #C9971A;
+  border-color: #C9971A;
+  color: #fff;
+}
+
+/* Vertical divider */
+.topbar-div, .ft-topbar-div {
+  width: 1px;
+  height: 22px;
+  background: #374557;
+  flex-shrink: 0;
+}
+
+/* Topbar spacer (pushes right-side controls to the right) */
+.topbar-spacer, .ft-topbar-spacer {
+  flex: 1;
+}
+
+/* Gold badge pill (e.g. "NJ" state badge) */
+.state-badge, .ft-badge {
+  background: rgba(229,179,59,0.15);
+  border: 1px solid rgba(229,179,59,0.3);
+  color: #E5B33B;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 100px;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
+/* Help button (32px circle with ? icon) */
+.topbar-help, .ft-help-btn {
+  background: none;
+  border: 1.5px solid rgba(229,179,59,0.28);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #E5B33B;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition), border-color var(--transition);
+}
+.topbar-help:hover, .ft-help-btn:hover {
+  background: rgba(229,179,59,0.10);
+  border-color: #E5B33B;
+}
+.topbar-help svg, .ft-help-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Smart header hide — sticky topbar scroll-hide behavior */
+.topbar.header-hidden, #topbar.header-hidden, .ft-topbar.header-hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Position/transition props for sticky hide — page CSS must also set position:sticky
+   so this only sets the transition that is shared. */
+#topbar, .topbar, .ft-topbar {
+  transition: transform 460ms cubic-bezier(0.65, 0, 0.35, 1),
+              opacity   460ms cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: transform;
+}
+
+/* ── Section 4: Button Hierarchy ──────────────────────────────────────── */
+/*
+   .ft-btn + .ft-btn-primary — used by milemarker help modal.
+   .btn-export intentionally NOT included — colors differ per page.
+   Variants (secondary/ghost/danger) deferred until actually needed.
+*/
+
+/* Base shared button properties (ft-btn) */
+.ft-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--transition), box-shadow var(--transition),
+              border-color var(--transition), color var(--transition),
+              opacity 0.14s;
+}
+.ft-btn:active {
+  transform: scale(0.96) !important;
+  transition: transform 80ms ease-out !important;
+}
+
+/* Primary — accent blue */
+.ft-btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.ft-btn-primary:hover {
+  background: #1649c0;
+  border-color: #1649c0;
+  box-shadow: 0 2px 8px rgba(26,86,219,0.25);
+}
+
+/* Touch targets — coarse pointer (mobile/tablet) */
+@media (pointer: coarse) {
+  .ft-btn { min-height: 44px; }
+}
+
+/* ── Section 5: Local-Only Notice ─────────────────────────────────────── */
+/*
+   "Saved on this device only. Export a backup for long-term storage."
+   Amber left-border notice used on pages that store user data locally.
+*/
+.ft-notice-local {
+  border-left: 3px solid #f59e0b;
+  background: rgba(245,158,11,0.08);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--muted2);
+  line-height: 1.5;
+}
+html[data-dark] .ft-notice-local {
+  background: rgba(245,158,11,0.12);
+}
+
+/* ── Section 6: Modal Frame ───────────────────────────────────────────── */
+/*
+   dc144.html uses .dc-modal-backdrop/.dc-modal-box (its own CSS kept there).
+   njsearch / njfuel / WorkOrderCloseout use .guide-overlay / .guide-modal
+   with different sizing — not safe to consolidate across pages.
+   Only ft-modal-* new classes are defined here for future use.
+*/
+.ft-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+.ft-modal-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ft-modal-box {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  transform: translateY(12px) scale(0.98);
+  transition: transform 280ms cubic-bezier(0.22,1,0.36,1);
+}
+.ft-modal-backdrop.open .ft-modal-box {
+  transform: none;
+}
+html[data-dark] .ft-modal-box {
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+.ft-modal-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 16px;
+}
+
+.ft-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* ── Focus ring ────────────────────────────────────────────────────────── */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid rgba(229,179,59,0.95);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px rgba(26,86,219,0.18);
+}
+html[data-dark] :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline-color: #FEE9A1;
+  box-shadow: 0 0 0 5px rgba(254,233,161,0.16);
+}

@@ -9,30 +9,26 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/field-ui.css">
   <style>
+    /* Shared design tokens now in ../css/field-ui.css */
+    /* Timesheet-specific extras and overrides: */
     :root {
-      --bg:#eef0f4; --surface:#fff; --border:#d1d9e0; --border-lo:#e8ecf0;
-      --accent:#1a56db; --accent-lo:rgba(26,86,219,0.08);
-      --red:#dc2626; --red-lo:rgba(220,38,38,0.08);
+      --red-lo:rgba(220,38,38,0.08);
       --green:#059669; --green-lo:rgba(5,150,105,0.08);
       --orange:#d97706; --orange-lo:rgba(217,119,6,0.08);
-      --text:#111827; --muted:#6b7280; --muted2:#4b5563;
-      --radius-sm:5px; --radius:8px; --radius-lg:14px;
-      --sans:'Inter',system-ui,-apple-system,Arial,sans-serif;
-      --tr:0.14s ease;
+      --radius-lg:14px; /* timesheet uses 14px vs shared 10px */
+      --tr:0.14s ease;  /* alias for --transition */
       --gold:#E5B33B; --gold-lo:rgba(229,179,59,0.10); --gold-bd:rgba(229,179,59,0.28);
       --navy:#1e2939; --nav-h:62px;
     }
+    /* Timesheet dark mode: uses neutral text (#f1f5f9) instead of gold (#FEE9A1) */
     html[data-dark] {
-      --bg:#0f1117; --surface:#1c1e26; --border:#2d3748; --border-lo:#1f2937;
       --text:#f1f5f9; --muted:#94a3b8; --muted2:#cbd5e1;
-      --accent-lo:rgba(26,86,219,0.15); --red-lo:rgba(220,38,38,0.14);
+      --red-lo:rgba(220,38,38,0.14);
       --green-lo:rgba(5,150,105,0.14); --orange-lo:rgba(217,119,6,0.14);
     }
-    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-    html { background:var(--bg); }
     body {
-      font-family:var(--sans); background:var(--bg); color:var(--text);
       min-height:100vh; display:flex; flex-direction:column; padding-bottom:var(--nav-h);
     }
 
@@ -833,6 +829,8 @@
 
   <div id="main-content"></div>
 </div>
+
+<div class="ft-notice-local" id="ts-local-notice" style="margin:0 14px 8px;font-size:11px;">Saved on this device only. Export a backup for long-term storage.</div>
 
 <button class="fab" id="fab" aria-label="Log entry">
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
