@@ -810,6 +810,7 @@ function openTemplateModal() {
     input.value = (currentSession.header && currentSession.header.projectName) || '';
     input.style.borderColor = '';
   }
+  prepareModalForViewport(modal);
   modal.classList.add('open');
   if (input) requestAnimationFrame(function() { input.focus(); input.select(); });
 }
@@ -1248,6 +1249,22 @@ function renderRemarksCard(title, sectionKey, value, tab) {
    16b. INSPECTOR SIGNATURE PAD
    ============================================================ */
 
+/* Move a modal to documentElement and clear body's lingering animation
+   transform so position:fixed centers on the viewport. Without this,
+   the pageFadeIn animation leaves transform:translate3d(0,0,0) on
+   body, which creates a containing block for the modal and pushes it
+   off-screen when the user has scrolled. */
+function prepareModalForViewport(modal) {
+  if (!modal) return;
+  try {
+    document.body.style.transform = 'none';
+    document.body.style.willChange = 'auto';
+  } catch(_) {}
+  if (modal.parentNode !== document.documentElement) {
+    document.documentElement.appendChild(modal);
+  }
+}
+
 function openSignaturePad() {
   if (!currentSession) return;
   var modal = document.getElementById('signature-modal');
@@ -1260,9 +1277,11 @@ function openSignaturePad() {
     var fresh = oldCanvas.cloneNode(false);
     oldCanvas.parentNode.replaceChild(fresh, oldCanvas);
   }
-  // Move modal to document.body so position:fixed is relative to the
-  // viewport even when an ancestor has a CSS transform applied.
-  document.body.appendChild(modal);
+  // Move modal to documentElement (html) and clear body's lingering
+  // transform/will-change so position:fixed centers on the viewport.
+  // pageFadeIn leaves transform:translate3d(0,0,0) on body which would
+  // otherwise create a containing block and push the modal off-screen.
+  prepareModalForViewport(modal);
   modal.classList.add('open');
   // Two rAFs guarantee the browser has performed at least one layout pass
   // after the modal becomes visible, so getBoundingClientRect() returns
@@ -2253,9 +2272,9 @@ function showExportReview(session) {
     confirmBtn.title    = v.criticals.length > 0 ? 'Fix errors before exporting' : '';
   }
 
-  // Move modal to document.body so position:fixed is relative to the
-  // viewport even when an ancestor has a CSS transform applied.
-  document.body.appendChild(modal);
+  // Move modal to documentElement and clear body's transform so
+  // position:fixed centers on the viewport regardless of scroll.
+  prepareModalForViewport(modal);
   modal.classList.add('open');
   modal.dataset.sessionKey = session.photoKey;
 }
@@ -2678,12 +2697,11 @@ function pruneWorkbookToSelectedForm(wb, activeTab, includeAllForms) {
   try { wb.views = [{ activeTab: 0 }]; } catch(e) {}
 }
 
-// Inspector name and date sit on a printed underline — bottom-align so the
-// text rests on that underline rather than floating above it.
-var DC144_BOTTOM_ALIGN_HEADER_FIELDS = {
-  inspectorName: true,
-  date:          true
-};
+// Inspector name and date fall back to setCellValue (no opts) so they
+// inherit the template's native alignment — same as project name,
+// contract ID, and contractor. This positions the text just above the
+// printed underline instead of sitting on it.
+var DC144_BOTTOM_ALIGN_HEADER_FIELDS = {};
 
 // Header fields that often contain wide user prose. shrinkToFit prevents
 // long text from clipping or pushing into adjacent cells.
