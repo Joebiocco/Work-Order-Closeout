@@ -19,6 +19,10 @@
 > The user prefers an explicit confirmation before `git push`. After committing locally, **ask "Push?" or similar** before running `git push`. Only when the user confirms, bump the version stamp (footer + service-worker cache) and push.
 >
 > **Version bump rule:** decimal increments only (v1.0 → v1.1 → v1.2). Never whole-number jumps. Only bump immediately before a push — don't bump on every commit.
+>
+> ## 🎨 SHARED UI SYSTEM — REQUIRED
+>
+> Before creating or modifying any UI, read `docs/ui-style-guide.md`. Use `css/field-ui.css` and existing `ft-*` classes. Bridge Navigator and Fuel Finder are the visual reference. Do not create duplicate one-off UI styles unless necessary and documented.
 
 ---
 

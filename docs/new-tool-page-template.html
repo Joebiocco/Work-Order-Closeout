@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<!--
+  new-tool-page-template.html — Field Tools starter page
+  -------------------------------------------------------
+  Copy this file to pages/yourtoolname.html and follow the
+  comments. Read docs/ui-style-guide.md before editing.
+
+  Required changes before this page is usable:
+    1. Update <title> and #topbar-title
+    2. Replace "toolname" with your ft_last key
+    3. Fill in help modal steps
+    4. Uncomment ft-notice-local ONLY if this page saves user data
+    5. Remove placeholder buttons and implement real primary action
+    6. Add tool-specific CSS in the <style> block
+    7. Add tool-specific JS after the boilerplate JS section
+    8. Add this page to service-worker.js LOCAL_ASSETS
+    9. Add a tile to index.html
+   10. Update CLAUDE.md and AGENTS.md with any new storage keys or behaviors
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tool Name — NJDOT Field Tools</title>
+  <meta name="theme-color" content="#E5B33B">
+  <link rel="manifest" href="../manifest.json">
+
+  <!-- Fonts — must be before field-ui.css -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Shared design system — MUST come before page <style> -->
+  <link rel="stylesheet" href="../css/field-ui.css">
+
+  <!-- Dark mode before first paint — reads global state, never writes it -->
+  <script>
+    if (localStorage.getItem('field_dark_mode') === '1') {
+      document.documentElement.setAttribute('data-dark', '');
+    }
+  </script>
+
+  <style>
+    /* ── Tool-specific CSS only ──────────────────────────────────────────── */
+    /*
+       Shared tokens, topbar, back pill, badges, buttons, notices, and
+       modals are already in css/field-ui.css. Do not redefine them here.
+
+       If you find yourself writing more than ~50 lines of CSS that could
+       apply to other tools, consider adding it to field-ui.css instead.
+    */
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Page layout */
+    .wrap {
+      flex: 1;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    /* Entry animation — keep inline, do not move to field-ui.css */
+    @keyframes pageFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    body { animation: pageFadeIn 380ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+    /* Page transition — anti-flicker (keep inline) */
+    @keyframes slideInFromLeft {
+      0%   { opacity: 0; transform: translate3d(-18vw, 0, 0) scale(0.98); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+    }
+    @keyframes slideOutLeft {
+      0%   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+      50%  { opacity: 0; transform: translate3d(-30vw, 0, 0) scale(0.98); }
+      100% { opacity: 0; transform: translate3d(-40vw, 0, 0) scale(0.97); }
+    }
+    html.entering-from-hub body {
+      opacity: 0;
+      transform: translate3d(-18vw, 0, 0) scale(0.98);
+      animation: slideInFromLeft 380ms cubic-bezier(0.22, 1, 0.36, 1) both !important;
+      will-change: transform, opacity;
+    }
+    html.exiting-to-hub body {
+      animation: slideOutLeft 360ms cubic-bezier(0.65, 0, 0.35, 1) both !important;
+      overflow: hidden;
+      will-change: transform, opacity;
+    }
+
+    /* Topbar — shared shell from field-ui.css; override only what differs */
+    #topbar {
+      position: sticky;
+      top: 0;
+      z-index: 600;
+    }
+
+    /* Focus ring — only redefine if this page adds extra interactive elements */
+    /* Example: :where(.my-special-element):focus-visible { ... } */
+
+    /* ── Add tool-specific rules below this line ─────────────────────────── */
+
+  </style>
+</head>
+<body>
+
+<!-- ── Topbar ─────────────────────────────────────────────────────────────── -->
+<div id="topbar">
+  <a class="topbar-back" href="../index.html" id="back-link">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    Home
+  </a>
+  <div class="topbar-div"></div>
+  <span id="topbar-title">Tool Name</span>
+  <div class="topbar-spacer"></div>
+  <span class="state-badge">NJ</span>
+  <button class="topbar-help" id="tool-help-btn" type="button" aria-label="Open help">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+  </button>
+</div>
+
+<!-- ── Help modal — uses ft-modal-* from field-ui.css ────────────────────── -->
+<div class="ft-modal-backdrop" id="tool-help-modal" role="dialog"
+     aria-modal="true" aria-label="How to use Tool Name">
+  <div class="ft-modal-box">
+    <div class="ft-modal-title">How to Use</div>
+    <ol style="padding-left:18px; line-height:1.7; font-size:14px; color:var(--text);">
+      <!-- Fill in tool-specific steps -->
+      <li>Step one — what the user selects or enters first.</li>
+      <li>Step two — the main action (e.g. tap Find Near Me).</li>
+      <li>Step three — what to do with the result.</li>
+    </ol>
+    <div class="ft-modal-actions">
+      <button class="ft-btn ft-btn-primary" id="tool-help-close">Got it</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main content ───────────────────────────────────────────────────────── -->
+<div class="wrap">
+
+  <!-- Local-only notice — UNCOMMENT only if this page saves user data locally -->
+  <!--
+  <div class="ft-notice-local">Saved on this device only. Export a backup for long-term storage.</div>
+  -->
+
+  <!-- Primary action — make this the visually strongest element on the page -->
+  <button class="ft-btn ft-btn-primary" id="primary-action-btn" type="button">
+    Primary Action
+  </button>
+
+  <!-- Result area — replace with actual tool UI -->
+  <div id="result-area" style="margin-top:20px;"></div>
+
+</div><!-- /.wrap -->
+
+
+<!-- ── Scripts ────────────────────────────────────────────────────────────── -->
+<script>
+/* ── Boilerplate — do not modify ──────────────────────────────────────────── */
+
+// Page-transition flags (read sessionStorage set by index.html)
+(function() {
+  try {
+    if (sessionStorage.getItem('ft_opening_from_hub')) {
+      document.documentElement.classList.add('entering-from-hub');
+      sessionStorage.removeItem('ft_opening_from_hub');
+    }
+  } catch(_) {}
+  setTimeout(function() {
+    document.documentElement.classList.remove('entering-from-hub');
+  }, 420);
+})();
+
+// Record last visited tool (update 'toolname' to match ft_last key convention)
+try { localStorage.setItem('ft_last', 'toolname'); } catch(_) {}
+
+// Back navigation — trigger hub return animation
+document.getElementById('back-link').addEventListener('click', function(e) {
+  e.preventDefault();
+  var href = this.getAttribute('href');
+  document.documentElement.classList.add('exiting-to-hub');
+  try { sessionStorage.setItem('ft_returning_to_hub', '1'); } catch(_) {}
+  setTimeout(function() { window.location.href = href; }, 280);
+});
+
+// Help modal open/close
+(function() {
+  var overlay = document.getElementById('tool-help-modal');
+  var openBtn = document.getElementById('tool-help-btn');
+  var closeBtn = document.getElementById('tool-help-close');
+  if (!overlay || !openBtn) return;
+  openBtn.addEventListener('click', function() { overlay.classList.add('open'); });
+  closeBtn.addEventListener('click', function() { overlay.classList.remove('open'); });
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') overlay.classList.remove('open');
+  });
+})();
+
+// Service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'RELOAD') window.location.reload();
+  });
+}
+
+/* ── Tool-specific JS — add below this line ──────────────────────────────── */
+
+
+
+</script>
+</body>
+</html>
