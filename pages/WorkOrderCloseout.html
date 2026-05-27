@@ -6,35 +6,15 @@
   <title>Work Order Closeout</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/field-ui.css">
   <style>
 /* ══════════════════════════════════════════════
    WORK ORDER CLOSEOUT — styles.css
+   Design tokens + body base now in ../css/field-ui.css
+   Local extra token: --card (same as --surface)
    ══════════════════════════════════════════════ */
 
-:root {
-  --bg:        #eef0f4;
-  --surface:   #ffffff;
-  --card:      #ffffff;
-  --border:    #d1d9e0;
-  --border-lo: #e8ecf0;
-  --accent:    #1a56db;
-  --accent-lo: rgba(26,86,219,0.08);
-  --red:       #dc2626;
-  --text:      #111827;
-  --muted:     #6b7280;
-  --muted2:    #4b5563;
-  --radius-sm: 5px;
-  --radius:    8px;
-  --radius-lg: 10px;
-  --sans:      'Inter', system-ui, -apple-system, Arial, sans-serif;
-  --transition: 0.14s ease;
-}
-
-html[data-dark] {
-  --bg: #0f1117; --surface: #1c1e26; --border: #2d3748;
-  --border-lo: #1f2937; --text: #FEE9A1; --muted: #C9971A;
-  --muted2: #E5B33B; --accent-lo: rgba(26,86,219,0.15);
-}
+:root { --card: #ffffff; }
 html[data-dark] input[type="text"],
 html[data-dark] input[type="date"],
 html[data-dark] select,

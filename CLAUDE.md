@@ -26,9 +26,39 @@
 >
 > **Last updated:** 2026-05-27 · v1.19 (next push will be v1.20)
 >
+> **Branch `ui/shared-css-extraction`:** `css/field-ui.css` shared stylesheet has been created and linked into all pages. See §2 (File Structure) and §13 (Shared CSS) for details.
+>
 > **Live site:** `https://joebiocco.github.io/NJDOT-Field-Tools-Hub/`
 > **Repo:** `https://github.com/Joebiocco/NJDOT-Field-Tools-Hub` (renamed from `Work-Order-Closeout`)
 > **Local path:** `C:\Users\Joe\Desktop\Work Order Website`
+
+---
+
+## Shared UI System — Required for All Future Pages
+
+> **Before building any new page or tool, read this section and `docs/ui-style-guide.md`.**
+
+All new pages **must** follow the shared Field UI system established by Bridge Navigator (`njsearch.html`) and Fuel Finder (`njfuel.html`). Those two pages are the visual reference for the app shell, cards, buttons, help behavior, local notices, and status patterns.
+
+**Required for every new page:**
+- Link `css/field-ui.css` (root pages) or `../css/field-ui.css` (pages under `/pages/`) **before** the page-local `<style>` block.
+- Use existing `ft-*` classes before writing new CSS.
+- Do not duplicate shared design tokens, topbar styles, back/home pill styles, badge styles, notice styles, or modal frame styles inside new pages.
+- New page CSS should contain **only** page-specific layout and tool-specific components.
+
+**Prohibited without documented justification:**
+- Creating new button/card/modal/topbar styles when a shared `ft-*` class already handles the case.
+- Renaming JavaScript IDs or classes just for styling purposes.
+- Touching export layouts (Work Order PDF, DC-144 Excel) for styling cleanup unless explicitly approved.
+- If a new one-off style is genuinely necessary, document why in `docs/ui-style-guide.md`.
+
+**CSS optimization rule:** If adding more than 50 lines of new page-specific CSS, first check whether the style belongs in `css/field-ui.css`. If it is reusable across tools, add it to the shared file instead of duplicating it.
+
+**Protected areas — do not touch for styling:**
+- `pages/WorkOrderCloseout.html` — `html2canvas` PDF capture area and all layout around it.
+- `pages/dc144.html` — ExcelJS export logic, form table layout, actionbar, signature pad.
+
+See `docs/ui-style-guide.md` for the full class reference, starter template, and pre-flight checklist.
 
 ---
 
@@ -58,12 +88,19 @@ Work Order Website/
 ├── manifest.json                    # PWA manifest, theme_color
 ├── service-worker.js                # Offline cache, network-first HTML
 ├── push.bat                         # Local helper: git add/commit/push
+├── css/
+│   └── field-ui.css                 # Shared design tokens, topbar, buttons, modals, ft-* class system
+│                                    # Loaded BEFORE each page's <style> block. See §13.
 ├── data/
 │   ├── njfuel.json                  # ~74 NJDOT fuel stations
 │   ├── njstructures.json            # Bridge Navigator source archive/fallback; metadata + records[] wrapper
 │   └── bridges/
 │       ├── index.json               # Lightweight statewide Bridge Navigator index
 │       └── chunks/by-county/*.json  # Full bridge records lazy-loaded by county
+├── docs/
+│   ├── ui-style-guide.md            # ft-* class system reference and UI conventions
+│   ├── BRIDGE_DATA_EXTRACTION_PLAN.md
+│   └── BRIDGE_INDEX_CHUNK_ARCHITECTURE.md
 ├── icons/
 │   ├── icon-192.png                 # PWA app icon (192×192) — NJDOT bridge + bar chart, dark navy #001e4d bg, no pre-baked rounding
 │   └── icon-512.png                 # PWA app icon (512×512) — same design, maskable, corners filled solid navy
@@ -193,9 +230,11 @@ Work Order Website/
 }
 html[data-dark] {
   --bg: #0f1117; --surface: #1c1e26; --border: #2d3748;
-  --border-lo: #1f2937; --text: #f1f5f9; --muted: #94a3b8;
-  --muted2: #cbd5e1; --accent-lo: rgba(26,86,219,0.15);
+  --border-lo: #1f2937; --text: #FEE9A1; --muted: #C9971A;
+  --muted2: #E5B33B; --accent-lo: rgba(26,86,219,0.15);
 }
+/* Exception: timesheet.html and milemarker.html override --text/#muted
+   to #f1f5f9/#94a3b8 (neutral grey) locally. All other pages use gold. */
 ```
 
 ### Brand / Accent palette (NOT in CSS vars — hardcoded throughout)
@@ -629,3 +668,49 @@ The user has asked that the visible label "Hub" be replaced with "Home" or "Fiel
   - `shiftToggle`
   - overtime toggle UI
   - day/night toggle UI
+
+---
+
+## 13. Shared CSS (`css/field-ui.css`)
+
+Added 2026-05-27 on branch `ui/shared-css-extraction`.
+
+### What it contains
+
+- **Section 1 — Design tokens:** `:root { }` with all `--bg`, `--surface`, `--border`, `--border-lo`, `--accent`, `--accent-lo`, `--red`, `--text`, `--muted`, `--muted2`, `--radius-sm`, `--radius`, `--radius-lg` (10px default), `--sans`, `--transition`. Plus `html[data-dark]` override.
+- **Section 2 — Body base:** `box-sizing: border-box; margin:0; padding:0;` reset, body font/bg/color.
+- **Section 3 — Topbar shell:** `#topbar`, `.topbar`, `.topbar-back`, `.hub-back`, `.topbar-div`, `.topbar-spacer`, `.state-badge`, `.topbar-help`, `.header-hidden` state. Plus `ft-*` aliases for each.
+- **Section 4 — Button hierarchy:** `.ft-btn` (base), `.ft-btn-primary` (blue accent). Used by milemarker help modal. Variants (secondary/ghost/danger) deferred until actually used.
+- **Section 5 — Local-only notice:** `.ft-notice-local` — amber left-border notice for pages that save locally. Used on dc144, timesheet, njsearch, njfuel.
+- **Section 6 — Modal frame:** `.ft-modal-backdrop`, `.ft-modal-box`, `.ft-modal-title`, `.ft-modal-actions`. Used by milemarker help modal.
+- **Focus ring:** `:where(a,button,...):focus-visible` shared pattern. Pages with extended selectors (`.copyable-field`, `.drop-zone`, `.entry-act`) keep their own focus ring locally.
+- **Deferred (not in file until needed):** card base, empty state, toast, status pill, button variants.
+
+### How to link it
+
+```html
+<!-- index.html (at root) -->
+<link rel="stylesheet" href="css/field-ui.css">
+
+<!-- pages/*.html -->
+<link rel="stylesheet" href="../css/field-ui.css">
+```
+
+The link MUST come BEFORE the page-local `<style>` block so page CSS wins on equal specificity.
+
+### Rules
+
+- **Animation / anti-flicker CSS stays inline per-page** — NOT in `field-ui.css`. The entering-from-hub, exiting-to-hub, returning-from-tool keyframes and their `html.CLASS body` selectors must remain in each page.
+- **`--radius-lg` varies per page:** index.html uses `12px`, dc144.html uses `12px`, others use the default `10px`. Each page overrides `:root { --radius-lg: Xpx; }` locally as needed.
+- **Timesheet and milemarker dark mode differ:** timesheet uses `--text:#f1f5f9` (neutral) not `#FEE9A1` (gold). Both pages override `html[data-dark]` locally.
+- **`.btn-export` NOT in field-ui.css** — colors differ: dc144 uses green `#166534`, njfuel uses layout-only override.
+- **Toast CSS NOT moved** — WorkOrder, dc144, and timesheet use different toast color schemes (dark border vs. colored bg). No `ft-toast` in field-ui.css until a new page needs it.
+- **`.dc-modal-*` CSS NOT moved** — only exists in dc144.html, no consolidation needed.
+- **WorkOrderCloseout.html minimal changes** — only `:root` and `html[data-dark]` blocks removed; plus local extra token `--card` kept. No other CSS touched.
+- **`service-worker.js`** — `./css/field-ui.css` added to `LOCAL_ASSETS` array for offline pre-caching. CACHE constant NOT bumped (no push yet).
+
+### Visual reference
+Bridge Navigator (`njsearch.html`) and Fuel Finder (`njfuel.html`) are the visual reference for the standard app shell. When adding new UI to any page, match those two pages.
+
+### Larger refactors
+Use a separate git worktree or branch for CSS refactors so they can be reviewed independently before merging. Do not commit/push without explicit user approval.
