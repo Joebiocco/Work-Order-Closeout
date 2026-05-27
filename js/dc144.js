@@ -1260,6 +1260,9 @@ function openSignaturePad() {
     var fresh = oldCanvas.cloneNode(false);
     oldCanvas.parentNode.replaceChild(fresh, oldCanvas);
   }
+  // Move modal to document.body so position:fixed is relative to the
+  // viewport even when an ancestor has a CSS transform applied.
+  document.body.appendChild(modal);
   modal.classList.add('open');
   // Two rAFs guarantee the browser has performed at least one layout pass
   // after the modal becomes visible, so getBoundingClientRect() returns
@@ -2250,6 +2253,9 @@ function showExportReview(session) {
     confirmBtn.title    = v.criticals.length > 0 ? 'Fix errors before exporting' : '';
   }
 
+  // Move modal to document.body so position:fixed is relative to the
+  // viewport even when an ancestor has a CSS transform applied.
+  document.body.appendChild(modal);
   modal.classList.add('open');
   modal.dataset.sessionKey = session.photoKey;
 }
@@ -2356,13 +2362,22 @@ function buildDc144WorkbookFromTemplate(wb, session) {
     };
     var wobRef = wobMap[tab];
     if (wobRef && wobRef.r > 1) {
-      var breakAfterRow = wobRef.r - 1; // page break after the row before work observations
+      var breakAfterRow = wobRef.r - 2; // break before the section label so it starts on page 2
       if (!ws.model.rowBreaks) ws.model.rowBreaks = [];
       // Remove any existing break at this position before adding ours
       ws.model.rowBreaks = ws.model.rowBreaks.filter(function(b) { return b.id !== breakAfterRow; });
       ws.model.rowBreaks.push({ id: breakAfterRow, max: 16383, man: 1 });
     }
   }());
+
+  // Default print scaling: fit all columns onto one sheet width so
+  // nothing clips at the right edge when the inspector prints directly
+  // from Excel without adjusting page layout settings.
+  try {
+    ws.pageSetup.fitToPage  = true;
+    ws.pageSetup.fitToWidth = 1;
+    ws.pageSetup.fitToHeight = 0;
+  } catch(e) {}
 
   // Replace the template's "Attach additional sketches..." footer text
   // with a friendlier appendix pointer + center the cell.
@@ -2569,6 +2584,7 @@ function setCellValueReadable(ws, r, c, value, opts) {
   if (!r || !c) return;
   try {
     var cell = ws.getCell(r, c);
+    var savedBorder = cell.border;   // preserve template underlines/borders
     cell.value = (value !== undefined && value !== null) ? value : '';
     opts = opts || {};
     var existing = cell.alignment || {};
@@ -2586,6 +2602,7 @@ function setCellValueReadable(ws, r, c, value, opts) {
     if (opts.middle)  alignment.vertical    = 'middle';
     if (opts.bottom)  alignment.vertical    = 'bottom';
     cell.alignment = alignment;
+    if (savedBorder) cell.border = savedBorder;  // restore template borders
   } catch(e) {}
 }
 

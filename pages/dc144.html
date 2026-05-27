@@ -788,15 +788,12 @@
       /* Show the floating status pill on mobile (hidden on desktop) */
       #mobile-status-pill { display: block; }
 
-      /* Mobile actionbar — 2x2 grid so Export is always visible without
-         horizontal sliding. Hides title/divider/spacer/autosave-status. */
+      /* Mobile actionbar — single flex row, icons only.
+         Hides text labels, title, divider, spacer, and autosave status. */
       #form-actionbar {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-template-areas:
-          "back   export"
-          "save   template";
-        gap: 8px;
+        display: flex;
+        flex-direction: row;
+        gap: 6px;
         padding: 8px 10px;
         overflow: visible;
         align-items: stretch;
@@ -806,12 +803,21 @@
       #form-actionbar .actionbar-divider,
       #form-actionbar > div[style*="flex"] { display: none !important; }
 
-      #form-actionbar-back    { grid-area: back;     width: 100%; justify-content: center; min-height: 44px; padding: 8px 10px; }
-      #actionbar-export-btn   { grid-area: export;   width: 100%; justify-content: center; min-height: 44px; padding: 8px 10px; font-size: 12px; }
-      #form-actionbar .btn-secondary { grid-area: save; width: 100%; justify-content: center; min-height: 42px; padding: 8px 10px; font-size: 12px; }
-      #save-template-btn      { grid-area: template; width: 100%; justify-content: center; min-height: 42px; padding: 8px 10px; font-size: 12px; }
+      /* Hide text labels — icons only on mobile */
+      #form-actionbar .btn-label { display: none !important; }
 
-      #form-content.page-content { padding-bottom: 140px; }
+      #form-actionbar-back,
+      #actionbar-export-btn,
+      #form-actionbar .btn-secondary,
+      #save-template-btn {
+        flex: 1;
+        justify-content: center;
+        min-height: 44px;
+        padding: 8px 6px;
+        gap: 0;
+      }
+
+      #form-content.page-content { padding-bottom: 80px; }
 
       /* Mobile data table → card layout. Desktop table stays unchanged. */
       .data-table-wrap {
@@ -883,15 +889,17 @@
         font-size: 14px;
       }
 
+      /* Qty + unit as a tight side-by-side pair; custom input wraps below */
       .qty-cell-wrap {
-        display: grid;
-        grid-template-columns: minmax(90px, 1fr) minmax(86px, auto);
-        gap: 6px;
+        display: flex;
+        flex-direction: row;
         align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
       }
-      .qty-cell-wrap .grid-input  { min-width: 0; width: 100%; flex-shrink: 1; }
-      .qty-cell-wrap .grid-select { min-width: 86px; max-width: none; }
-      .qty-custom-input           { grid-column: 1 / -1; min-width: 0; width: 100%; }
+      .qty-cell-wrap .grid-input  { flex: 0 0 80px; width: 80px; min-width: 60px; }
+      .qty-cell-wrap .grid-select { flex: 1 1 auto; width: auto; min-width: 86px; max-width: none; }
+      .qty-custom-input           { flex: 0 0 100%; width: 100%; min-width: 0; }
 
       .data-table tfoot,
       .data-table tfoot tr,
@@ -916,10 +924,11 @@
       .tab-cards-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 380px) {
-      /* Save as Template label collapses to just "Template" on very narrow
-         screens so the 2x2 actionbar grid never overflows. */
-      #save-template-btn { font-size: 0; }
-      #save-template-btn::after { content: "Template"; font-size: 12px; }
+      /* Tighten actionbar button padding on very narrow screens */
+      #form-actionbar-back,
+      #actionbar-export-btn,
+      #form-actionbar .btn-secondary,
+      #save-template-btn { padding: 8px 4px; }
     }
 
     /* ── Reduced motion ──────────────────────────────────────────────────── */
@@ -1030,7 +1039,7 @@
     <div id="form-actionbar" role="toolbar" aria-label="Form actions">
       <button id="form-actionbar-back" onclick="showDashboard()" aria-label="Back to report selection">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
-        Back to Reports
+        <span class="btn-label">Back to Reports</span>
       </button>
       <div class="actionbar-divider" aria-hidden="true"></div>
       <span id="form-actionbar-title">Report</span>
@@ -1038,15 +1047,15 @@
       <span id="autosave-status" aria-live="polite" aria-label="Auto-save status"></span>
       <button class="btn-secondary" onclick="performAutosave(true)" aria-label="Save draft now">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        Save Draft
+        <span class="btn-label">Save Draft</span>
       </button>
       <button class="btn-template" id="save-template-btn" onclick="openTemplateModal()" aria-label="Save current form as a reusable template">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-        Save as Template
+        <span class="btn-label">Save as Template</span>
       </button>
       <button id="actionbar-export-btn" class="btn-export" onclick="handleExport()" aria-label="Export to Excel">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Export XLSX
+        <span class="btn-label">Export XLSX</span>
       </button>
     </div>
     <div id="form-content" class="page-content"></div>
