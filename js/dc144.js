@@ -26,8 +26,8 @@ var DC144_CELL_MAP = {
       projectName:   { r: 5,  c: 3 },
       contractId:    { r: 6,  c: 3 },
       contractor:    { r: 7,  c: 3 },
-      inspectorName: { r: 9,  c: 5 },
-      date:          { r: 9,  c: 13 },
+      inspectorName: { r: 9,  c: 6 },
+      date:          { r: 9,  c: 14 },
       weatherAMCond: { r: 11, c: 3 },
       weatherAMHigh: { r: 11, c: 4 },
       weatherAMLow:  { r: 11, c: 6 },
@@ -87,8 +87,8 @@ var DC144_CELL_MAP = {
       itemNumber:      { r: 8,  c: 3 },
       itemDescription: { r: 8,  c: 7 },
       itemCode:        { r: 8,  c: 15 },
-      inspectorName:   { r: 10, c: 5 },
-      date:            { r: 10, c: 15 }
+      inspectorName:   { r: 10, c: 6 },
+      date:            { r: 10, c: 16 }
     },
     hmaPavingRows: {
       baseRow: 15,
@@ -122,8 +122,8 @@ var DC144_CELL_MAP = {
       itemNumber:      { r: 8,  c: 3 },
       itemDescription: { r: 8,  c: 7 },
       itemCode:        { r: 8,  c: 16 },
-      inspectorName:   { r: 11, c: 5 },
-      date:            { r: 11, c: 16 }
+      inspectorName:   { r: 11, c: 6 },
+      date:            { r: 11, c: 17 }
     },
     materialInfo: {
       gradeOfMaterial:  { r: 16, c: 1 },
@@ -161,8 +161,8 @@ var DC144_CELL_MAP = {
       itemNumber:      { r: 8,  c: 3 },
       itemDescription: { r: 8,  c: 7 },
       itemCode:        { r: 8,  c: 16 },
-      inspectorName:   { r: 10, c: 5 },
-      date:            { r: 10, c: 14 }
+      inspectorName:   { r: 10, c: 7 },
+      date:            { r: 10, c: 15 }
     },
     pileDescriptor: {
       structure:  { r: 15, c: 1 },
