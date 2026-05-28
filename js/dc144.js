@@ -2489,12 +2489,12 @@ function embedInspectorSignature(wb, ws, session) {
     // Place at row of inspector name, offset 2 columns right of name cell.
     var anchorCol = (nameMap.c - 1) + 2; // 0-based
     var anchorRow = (nameMap.r - 1);     // 0-based
-    // Cap the embed height to 22px (~16pt) so the signature stays within the
-    // inspector-name row and does not bleed into the weather rows below.
+    // Signature height in px — intentionally allowed to overflow into the blank
+    // spacer row below the inspector line (signatures descend below the baseline).
     // Width is derived from the stored canvas aspect ratio to avoid distortion.
     var sigW = session.inspectorSignatureWidth  || 400;
     var sigH = session.inspectorSignatureHeight || 100;
-    var embedH = 22;
+    var embedH = 40;
     var embedW = Math.max(60, Math.round(embedH * sigW / sigH));
     ws.addImage(imageId, {
       tl:     { col: anchorCol, row: anchorRow },
