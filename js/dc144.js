@@ -197,15 +197,15 @@ var TAB_META = {
   a: {
     label: 'DC-144 (a)',
     name:  'Daily Work Report',
-    desc:  'Core daily log: pay items, weather conditions, work hours matrix, and field observations.',
+    desc:  'General daily work, labor, equipment, and quantities',
     color: '#4338ca',
     colorBg: 'rgba(67,56,202,0.10)',
     sheetName: 'DC-144 (a) Daily Work Report'
   },
   b: {
     label: 'DC-144 (b)',
-    name:  'HMA Supplement',
-    desc:  'Hot Mix Asphalt paving log: station data, lift/thickness, tonnage, and core temperatures.',
+    name:  'HMA Paving',
+    desc:  'Asphalt paving, lifts, lots, tonnage, and temperatures',
     color: '#92400e',
     colorBg: 'rgba(146,64,14,0.10)',
     sheetName: 'DC-144 (b) HMA Supplement'
@@ -213,15 +213,15 @@ var TAB_META = {
   c: {
     label: 'DC-144 (c)',
     name:  'Bituminous Materials',
-    desc:  'Tack/prime coat application: gauge readings, gallons applied, area covered, and conversion.',
+    desc:  'Tack, prime, and surface treatment application',
     color: '#0e7490',
     colorBg: 'rgba(14,116,144,0.10)',
     sheetName: 'DC-144 (c) Bituminous Materials'
   },
   d: {
     label: 'DC-144 (d)',
-    name:  'Pile Driving Supplement',
-    desc:  'Structural piling log: blow counts per foot and inch, splice data, penetration, and notes.',
+    name:  'Pile Driving',
+    desc:  'Pile logs, blow counts, and driving records',
     color: '#9f1239',
     colorBg: 'rgba(159,18,57,0.10)',
     sheetName: 'DC-144 (d) Pile Driving Suppl.'
@@ -795,6 +795,7 @@ function addTemplate(name, session) {
 }
 
 function deleteTemplate(id) {
+  if (!confirm('Delete this template? This cannot be undone.')) return;
   var arr = loadTemplates().filter(function(t) { return t.id !== id; });
   saveTemplatesArr(arr);
   renderTemplateChips();
@@ -851,7 +852,7 @@ function renderTemplateChips() {
     var tabBadge = '';
     if (tpl.tab && TAB_META[tpl.tab]) {
       var tm = TAB_META[tpl.tab];
-      tabBadge = '<span class="tpl-tab-badge" style="background:' + tm.colorBg + ';color:' + tm.color + ';border:1px solid ' + tm.color + ';">' + tm.label + '</span>';
+      tabBadge = '<span class="tpl-tab-badge" style="background:' + tm.colorBg + ';color:' + tm.color + ';border:1px solid ' + tm.color + ';">' + tpl.tab.toUpperCase() + ' — ' + tm.name + '</span>';
     }
     chip.innerHTML =
       '<div class="template-chip-icon" aria-hidden="true">' +
@@ -883,35 +884,43 @@ function showTemplateTabPicker(tpl) {
     return;
   }
   var overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:8500;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.className = 'dc-modal-backdrop';
+  overlay.style.zIndex = '8500';
   var box = document.createElement('div');
-  box.style.cssText = 'background:var(--surface);border-radius:12px;padding:24px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);border:1.5px solid var(--border);font-family:var(--sans);';
+  box.className = 'dc-modal-box';
+  box.style.maxWidth = '360px';
   box.innerHTML =
-    '<div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">Load Template</div>' +
+    '<div class="dc-modal-title">Load Template</div>' +
     '<div style="font-size:13px;color:var(--muted);margin-bottom:16px;">' + esc(tpl.name) + ' — Select a form type:</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
       ['a','b','c','d'].map(function(tab) {
         var m = TAB_META[tab];
-        return '<button style="padding:12px 8px;background:' + m.colorBg + ';border:1.5px solid ' + m.color + ';border-radius:8px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:700;color:' + m.color + ';line-height:1.3;" data-tab-pick="' + tab + '">' + m.label + '<br><span style="font-weight:500;font-size:11px;">' + m.name + '</span></button>';
+        return '<button class="tpl-pick-btn" style="background:' + m.colorBg + ';border:1.5px solid ' + m.color + ';color:' + m.color + ';" data-tab-pick="' + tab + '">' +
+          '<span style="font-size:12px;font-weight:700;">' + m.label + '</span><br>' +
+          '<span style="font-size:11px;font-weight:500;">' + m.name + '</span>' +
+          '</button>';
       }).join('') +
     '</div>' +
-    '<div style="margin-top:14px;text-align:right;">' +
-      '<button data-cancel style="padding:7px 14px;background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-family:var(--sans);font-size:13px;color:var(--muted);">Cancel</button>' +
+    '<div class="dc-modal-actions">' +
+      '<button class="btn-secondary" data-cancel>Cancel</button>' +
     '</div>';
   overlay.appendChild(box);
-  document.body.appendChild(overlay);
+  prepareModalForViewport(overlay);
+  overlay.classList.add('open');
+  function dismiss() {
+    overlay.classList.remove('open');
+    setTimeout(function() {
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    }, 160);
+  }
   box.querySelectorAll('[data-tab-pick]').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      document.body.removeChild(overlay);
+      dismiss();
       startNewSession(btn.dataset.tabPick, tpl);
     });
   });
-  box.querySelector('[data-cancel]').addEventListener('click', function() {
-    document.body.removeChild(overlay);
-  });
-  overlay.addEventListener('click', function(e) {
-    if (e.target === overlay) document.body.removeChild(overlay);
-  });
+  box.querySelector('[data-cancel]').addEventListener('click', dismiss);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) dismiss(); });
 }
 
 /* ============================================================
