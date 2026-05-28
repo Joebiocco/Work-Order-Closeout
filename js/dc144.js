@@ -929,6 +929,10 @@ function showTemplateTabPicker(tpl) {
   });
   box.querySelector('[data-cancel]').addEventListener('click', dismiss);
   overlay.addEventListener('click', function(e) { if (e.target === overlay) dismiss(); });
+  function onPickerEsc(e) {
+    if (e.key === 'Escape') { document.removeEventListener('keydown', onPickerEsc); dismiss(); }
+  }
+  document.addEventListener('keydown', onPickerEsc);
 }
 
 /* ============================================================
@@ -3425,8 +3429,9 @@ function renderTemplatesPanel() {
       body.appendChild(buildTemplatePanelRow(tpl));
     });
   } else {
-    /* Grouped list — A → B → C → D, first 3 per group + show-more */
-    ['a','b','c','d'].forEach(function(tab) {
+    /* Grouped list — A → B → C → D → Other, first 3 per group + show-more */
+    var GROUPS = ['a', 'b', 'c', 'd'];
+    GROUPS.forEach(function(tab) {
       var group = filtered.filter(function(t) { return t.tab === tab; });
       if (!group.length) return;
       var meta = TAB_META[tab];
@@ -3458,6 +3463,32 @@ function renderTemplatesPanel() {
         body.appendChild(moreBtn);
       }
     });
+    /* Legacy templates (no tab / unrecognized tab) — shown in an "Other" group */
+    var otherGroup = filtered.filter(function(t) { return !t.tab || !TAB_META[t.tab]; });
+    if (otherGroup.length) {
+      var otherHdr = document.createElement('div');
+      otherHdr.className = 'dc144-group-header';
+      otherHdr.innerHTML = '<span class="dc144-group-dot" style="background:#6b7280;"></span>Other (legacy)';
+      body.appendChild(otherHdr);
+      var otherShowAll = !!(templatesPanel.showMore && templatesPanel.showMore['other']);
+      var otherVisible = otherShowAll ? otherGroup : otherGroup.slice(0, 3);
+      otherVisible.forEach(function(tpl) {
+        body.appendChild(buildTemplatePanelRow(tpl));
+      });
+      if (otherGroup.length > 3) {
+        var otherMoreBtn = document.createElement('button');
+        otherMoreBtn.className = 'dc144-show-more-btn';
+        otherMoreBtn.textContent = otherShowAll
+          ? 'Show fewer Other templates'
+          : 'Show ' + (otherGroup.length - 3) + ' more Other template' + (otherGroup.length - 3 !== 1 ? 's' : '');
+        otherMoreBtn.addEventListener('click', function() {
+          templatesPanel.showMore = templatesPanel.showMore || {};
+          templatesPanel.showMore['other'] = !otherShowAll;
+          renderTemplatesPanel();
+        });
+        body.appendChild(otherMoreBtn);
+      }
+    }
   }
 }
 
