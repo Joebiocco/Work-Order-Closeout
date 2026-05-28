@@ -260,6 +260,15 @@
     }
     .template-chip-del:hover { color: var(--red); background: rgba(220,38,38,0.08); }
 
+    /* ── Legacy template tab-picker buttons ─────────────────────────────── */
+    .tpl-pick-btn {
+      padding: 12px 8px; border-radius: 8px; cursor: pointer;
+      font-family: var(--sans); line-height: 1.3; text-align: center;
+      transition: opacity 0.12s;
+    }
+    .tpl-pick-btn:hover { opacity: 0.82; }
+    .tpl-pick-btn:active { transform: scale(0.97); transition: transform 80ms ease-out; }
+
     /* ── Template name modal overlay (uses .dc-modal-* base classes) ─────── */
     #template-modal { z-index: 8500; }
     .template-modal-input {
@@ -826,6 +835,10 @@
       .guide-footer-note { font-size: 10px; }
     }
 
+    /* ── Actionbar label structure (desktop: inline text; mobile: two-line) */
+    .btn-main   { /* text shown on desktop */ }
+    .btn-helper { display: none; } /* hidden on desktop, shown on mobile via media query */
+
     /* ── Coarse-pointer touch targets ────────────────────────────────────── */
     @media (pointer: coarse) {
       .btn-primary, .btn-secondary, .btn-export, .btn-template { min-height: 44px; }
@@ -840,6 +853,190 @@
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(100,116,139,0.35); border-radius: 3px; }
+
+    /* ── Topbar panel buttons (Drafts / Templates) ───────────────────────── */
+    .dc144-topbar-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 10px;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius-sm);
+      color: rgba(255,255,255,0.82); font-family: var(--sans);
+      font-size: 12px; font-weight: 500; cursor: pointer;
+      white-space: nowrap; flex-shrink: 0;
+      transition: background 0.14s, border-color 0.14s, color 0.14s;
+    }
+    .dc144-topbar-btn:hover {
+      background: rgba(255,255,255,0.13); border-color: rgba(255,255,255,0.28); color: #fff;
+    }
+    .dc144-topbar-btn:active { transform: scale(0.96); transition: transform 80ms ease-out; }
+    .dc144-topbar-btn.panel-active {
+      background: rgba(229,179,59,0.18); border-color: rgba(229,179,59,0.45); color: #E5B33B;
+    }
+    .dc144-topbar-btn.panel-active:hover {
+      background: rgba(229,179,59,0.25); border-color: #E5B33B;
+    }
+
+    /* ── Dropdown panel overlay (Drafts + Templates) ─────────────────────── */
+    @keyframes dc144PanelSlide {
+      from { transform: translateY(-8px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .dc144-panel-overlay {
+      position: fixed; top: var(--topbar-h); left: 0; right: 0; bottom: 0; z-index: 550;
+      display: none;
+      background: rgba(0,0,0,0.38);
+      backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+    }
+    .dc144-panel-overlay.open {
+      display: flex; align-items: flex-start; justify-content: flex-end; padding-right: 16px;
+    }
+    .dc144-panel {
+      width: 320px; max-width: calc(100vw - 24px);
+      max-height: calc(100vh - var(--topbar-h) - 14px);
+      max-height: calc(100dvh - var(--topbar-h) - 8px);
+      background: var(--surface); border: 1px solid var(--border);
+      border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      overflow-y: auto; overflow-x: hidden;
+      box-shadow: -4px 8px 24px rgba(0,0,0,0.22);
+      animation: dc144PanelSlide 0.16s ease;
+      display: flex; flex-direction: column;
+    }
+    .dc144-panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      font-size: 10px; font-weight: 700; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--muted);
+      position: sticky; top: 0; background: var(--surface); z-index: 1;
+      flex-shrink: 0;
+    }
+    html[data-dark] .dc144-panel-header { background: var(--surface); }
+    .dc144-panel-header-left { display: flex; align-items: center; gap: 7px; }
+    .dc144-panel-count {
+      font-size: 10px; font-weight: 700; color: #fff;
+      background: #374151; border-radius: 10px; padding: 1px 7px;
+      letter-spacing: 0.03em; text-transform: none;
+    }
+    .dc144-panel-close {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 18px; line-height: 1; padding: 0 2px;
+      font-family: var(--sans); transition: color var(--transition);
+    }
+    .dc144-panel-close:hover { color: var(--text); }
+    .dc144-panel-body {
+      padding: 10px 12px; display: flex; flex-direction: column; gap: 6px;
+      flex: 1; min-height: 0;
+    }
+    .dc144-panel-empty {
+      font-size: 12px; color: var(--muted); font-style: italic; text-align: center; padding: 20px 0;
+    }
+
+    /* Draft rows — entire card is the tap target; only the × delete button is separate */
+    .dc144-draft-row {
+      display: flex; align-items: center; gap: 9px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 8px 10px;
+      transition: border-color var(--transition), background var(--transition);
+      cursor: pointer;
+    }
+    html[data-dark] .dc144-draft-row { background: #15181f; border-color: #2d3748; }
+    .dc144-draft-row:hover { border-color: #93b4f5; background: rgba(147,180,245,0.05); }
+    .dc144-draft-row:active { background: rgba(147,180,245,0.12); }
+    .dc144-draft-tab-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; border-radius: 6px;
+      font-size: 11px; font-weight: 800; flex-shrink: 0;
+    }
+    .dc144-draft-info { flex: 1; min-width: 0; }
+    .dc144-draft-project { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dc144-draft-meta { font-size: 11px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dc144-draft-badges { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+    .dc144-draft-badge {
+      background: var(--accent-lo); color: var(--accent);
+      border: 1px solid rgba(26,86,219,0.15); border-radius: 100px;
+      font-size: 9px; font-weight: 600; padding: 1px 6px;
+    }
+    .dc144-row-del-btn {
+      background: none; border: none; cursor: pointer; color: var(--muted);
+      padding: 6px; border-radius: 4px; line-height: 1; font-family: var(--sans);
+      flex-shrink: 0;
+      transition: color 0.12s, background 0.12s;
+    }
+    .dc144-row-del-btn:hover { color: var(--red); background: rgba(220,38,38,0.08); }
+
+    /* Template panel: search + filter chips + groups */
+    .dc144-panel-search-wrap {
+      padding: 10px 12px 0; flex-shrink: 0;
+    }
+    .dc144-panel-search-inner {
+      position: relative;
+    }
+    .dc144-search-icon {
+      position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+      color: var(--muted); pointer-events: none;
+    }
+    .dc144-panel-search {
+      width: 100%; padding: 7px 10px 7px 28px;
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--surface); color: var(--text);
+      font-family: var(--sans); font-size: 12px; outline: none;
+      transition: border-color 0.12s;
+      -webkit-appearance: none;
+    }
+    .dc144-panel-search:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(26,86,219,0.11); }
+    .dc144-panel-search::placeholder { color: var(--muted); }
+    .dc144-filter-chips {
+      display: flex; flex-wrap: wrap; gap: 5px; padding: 8px 12px 0; flex-shrink: 0;
+    }
+    .dc144-filter-chip {
+      padding: 3px 10px; border-radius: 100px;
+      font-family: var(--sans); font-size: 11px; font-weight: 600; cursor: pointer;
+      border: 1.5px solid var(--border); background: var(--bg); color: var(--muted);
+      transition: border-color 0.12s, background 0.12s, color 0.12s; white-space: nowrap;
+    }
+    .dc144-filter-chip:hover { color: var(--text); border-color: var(--border); }
+    .dc144-filter-chip.dc144-chip-active {
+      background: var(--accent-lo); color: var(--accent); border-color: rgba(26,86,219,0.35);
+    }
+    .dc144-filter-chip.dc144-chip-a.dc144-chip-active { background: rgba(67,56,202,0.10); color: #4338ca; border-color: rgba(67,56,202,0.4); }
+    .dc144-filter-chip.dc144-chip-b.dc144-chip-active { background: rgba(146,64,14,0.10); color: #92400e; border-color: rgba(146,64,14,0.4); }
+    .dc144-filter-chip.dc144-chip-c.dc144-chip-active { background: rgba(14,116,144,0.10); color: #0e7490; border-color: rgba(14,116,144,0.4); }
+    .dc144-filter-chip.dc144-chip-d.dc144-chip-active { background: rgba(159,18,57,0.10); color: #9f1239; border-color: rgba(159,18,57,0.4); }
+    .dc144-group-header {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--muted); padding: 10px 0 4px;
+      border-top: 1px solid var(--border-lo); margin-top: 4px;
+    }
+    .dc144-group-header:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+    .dc144-group-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .dc144-show-more-btn {
+      padding: 5px 0; color: var(--accent); font-family: var(--sans);
+      font-size: 11px; font-weight: 600; cursor: pointer;
+      background: none; border: none; text-align: left; transition: color 0.12s;
+    }
+    .dc144-show-more-btn:hover { color: var(--text); }
+
+    /* Template rows — entire card is the tap target; only the × delete button is separate */
+    .dc144-tpl-row {
+      display: flex; align-items: center; gap: 9px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 8px 10px;
+      transition: border-color var(--transition), background var(--transition);
+      cursor: pointer;
+    }
+    html[data-dark] .dc144-tpl-row { background: #15181f; border-color: #2d3748; }
+    .dc144-tpl-row:hover { border-color: #93b4f5; background: rgba(147,180,245,0.05); }
+    .dc144-tpl-row:active { background: rgba(147,180,245,0.12); }
+    .dc144-tpl-tab-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; border-radius: 6px;
+      font-size: 11px; font-weight: 800; flex-shrink: 0;
+    }
+    .dc144-tpl-info { flex: 1; min-width: 0; }
+    .dc144-tpl-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dc144-tpl-meta { font-size: 11px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     /* ── Responsive ──────────────────────────────────────────────────────── */
     @media (max-width: 720px) {
@@ -870,13 +1067,12 @@
       /* Show the floating status pill on mobile (hidden on desktop) */
       #mobile-status-pill { display: block; }
 
-      /* Mobile actionbar — single flex row, icons only.
-         Hides text labels, title, divider, spacer, and autosave status. */
+      /* Mobile actionbar — icon + two-line label per button. */
       #form-actionbar {
         display: flex;
         flex-direction: row;
-        gap: 8px;
-        padding: 8px 12px;
+        gap: 6px;
+        padding: 6px 10px;
         overflow: visible;
         align-items: stretch;
       }
@@ -885,27 +1081,42 @@
       #form-actionbar .actionbar-divider,
       #form-actionbar > div[style*="flex"] { display: none !important; }
 
-      /* Hide text labels — icons only on mobile */
-      #form-actionbar .btn-label { display: none !important; }
+      /* Show two-line label stack on mobile */
+      #form-actionbar .btn-label {
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        gap: 1px;
+        line-height: 1.15;
+      }
+      #form-actionbar .btn-main  { font-size: 11px; font-weight: 700; }
+      #form-actionbar .btn-helper { font-size: 9px; font-weight: 500; opacity: 0.72; }
 
       #form-actionbar-back,
       #actionbar-export-btn,
       #form-actionbar .btn-secondary,
       #save-template-btn {
         flex: 1;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
-        min-height: 46px;
-        padding: 10px 8px;
-        gap: 0;
+        min-height: 52px;
+        padding: 8px 4px;
+        gap: 3px;
         border-radius: 10px;
-        font-size: 13px;
+        font-size: 11px;
       }
-      /* Larger, easier-to-tap SVG icons */
+      /* SVG icon on top */
       #form-actionbar button svg {
-        width: 20px !important;
-        height: 20px !important;
+        width: 18px !important;
+        height: 18px !important;
         stroke-width: 2.2 !important;
+        flex-shrink: 0;
+      }
+      /* Export is visually strongest — slightly heavier border + shadow */
+      #actionbar-export-btn {
+        box-shadow: 0 1px 4px rgba(22,101,52,0.25);
+        border-width: 1.5px !important;
       }
 
       #form-content.page-content { padding-bottom: 80px; }
@@ -1013,13 +1224,17 @@
       #topbar-title { display: none; }
       .state-badge { display: none; }
       .tab-cards-grid { grid-template-columns: 1fr; }
+      /* Topbar panel buttons: icon-only pill at narrow widths */
+      .dc144-topbar-btn { padding: 0; width: 32px; height: 32px; border-radius: 50%; justify-content: center; }
+      .dc144-topbar-btn .dc144-btn-text { display: none; }
     }
     @media (max-width: 380px) {
-      /* Tighten actionbar button padding on very narrow screens */
+      #form-actionbar { gap: 4px; padding: 6px 8px; }
       #form-actionbar-back,
       #actionbar-export-btn,
       #form-actionbar .btn-secondary,
-      #save-template-btn { padding: 8px 4px; }
+      #save-template-btn { padding: 6px 2px; }
+      #form-actionbar .btn-helper { display: none; }
     }
 
     /* ── Reduced motion ──────────────────────────────────────────────────── */
@@ -1045,6 +1260,14 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Export XLSX
     </button>
+    <button id="topbar-drafts-btn" class="dc144-topbar-btn" onclick="toggleDraftsPanel()" aria-label="Recent Drafts" aria-haspopup="true" aria-expanded="false">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="dc144-btn-text">Drafts</span>
+    </button>
+    <button id="topbar-templates-btn" class="dc144-topbar-btn" onclick="toggleTemplatesPanel()" aria-label="Templates" aria-haspopup="true" aria-expanded="false">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      <span class="dc144-btn-text">Templates</span>
+    </button>
     <button class="topbar-help" id="open-guide" type="button" aria-label="Help & Guide">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     </button>
@@ -1052,6 +1275,45 @@
 
   <!-- ── Toast container ─────────────────────────────────────────────────── -->
   <div id="toast-ct" role="status" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- ── Drafts panel overlay ──────────────────────────────────────────────── -->
+  <div id="drafts-panel-overlay" class="dc144-panel-overlay" role="dialog" aria-modal="true" aria-label="Recent Drafts">
+    <div class="dc144-panel" id="drafts-panel">
+      <div class="dc144-panel-header">
+        <div class="dc144-panel-header-left">
+          <span>Recent Drafts</span>
+          <span id="drafts-panel-count" class="dc144-panel-count">0</span>
+        </div>
+        <button class="dc144-panel-close" onclick="closeDraftsPanel()" aria-label="Close">&times;</button>
+      </div>
+      <div class="dc144-panel-body" id="drafts-panel-body">
+        <span class="dc144-panel-empty">No recent drafts yet.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Templates panel overlay ───────────────────────────────────────────── -->
+  <div id="templates-panel-overlay" class="dc144-panel-overlay" role="dialog" aria-modal="true" aria-label="Your Templates">
+    <div class="dc144-panel" id="templates-panel">
+      <div class="dc144-panel-header">
+        <div class="dc144-panel-header-left">
+          <span>Your Templates</span>
+          <span id="templates-panel-count" class="dc144-panel-count">0</span>
+        </div>
+        <button class="dc144-panel-close" onclick="closeTemplatesPanel()" aria-label="Close">&times;</button>
+      </div>
+      <div class="dc144-panel-search-wrap">
+        <div class="dc144-panel-search-inner">
+          <svg class="dc144-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="templates-panel-search" class="dc144-panel-search" type="search" placeholder="Search templates…" autocomplete="off" aria-label="Search templates">
+        </div>
+      </div>
+      <div class="dc144-filter-chips" id="templates-filter-chips"></div>
+      <div class="dc144-panel-body" id="templates-panel-body">
+        <span class="dc144-panel-empty">No templates yet.</span>
+      </div>
+    </div>
+  </div>
 
   <!-- ── Template name modal ─────────────────────────────────────────────── -->
   <div id="template-modal" class="dc-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="tpl-modal-title">
@@ -1122,6 +1384,7 @@
 
       <div id="templates-section" style="margin-top:28px;">
         <p class="sec-label">Your Templates</p>
+        <p style="font-size:12px;color:var(--muted);margin:-4px 0 12px;">Templates reuse common header and item setup. Photos and signatures are not saved in templates.</p>
         <div id="templates-chips-container"></div>
       </div>
     </div>
@@ -1133,7 +1396,7 @@
     <div id="form-actionbar" role="toolbar" aria-label="Form actions">
       <button id="form-actionbar-back" onclick="showDashboard()" aria-label="Back to report selection">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
-        <span class="btn-label">Back to Reports</span>
+        <span class="btn-label"><span class="btn-main">Back</span><span class="btn-helper">Reports</span></span>
       </button>
       <div class="actionbar-divider" aria-hidden="true"></div>
       <span id="form-actionbar-title">Report</span>
@@ -1141,15 +1404,15 @@
       <span id="autosave-status" aria-live="polite" aria-label="Auto-save status"></span>
       <button class="btn-secondary" onclick="performAutosave(true)" aria-label="Save draft now">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        <span class="btn-label">Save Draft</span>
+        <span class="btn-label"><span class="btn-main">Save</span><span class="btn-helper">Save now</span></span>
       </button>
       <button class="btn-template" id="save-template-btn" onclick="openTemplateModal()" aria-label="Save current form as a reusable template">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-        <span class="btn-label">Save as Template</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        <span class="btn-label"><span class="btn-main">Template</span><span class="btn-helper">Reuse header</span></span>
       </button>
       <button id="actionbar-export-btn" class="btn-export" onclick="handleExport()" aria-label="Export to Excel">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span class="btn-label">Export XLSX</span>
+        <span class="btn-label"><span class="btn-main">Export</span><span class="btn-helper">XLSX</span></span>
       </button>
     </div>
     <div id="form-content" class="page-content"></div>

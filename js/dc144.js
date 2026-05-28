@@ -11,7 +11,7 @@
 var DC144_RECENT_KEY    = 'ft_dc144_recent';
 var DC144_MAX_RECENT    = 25;
 var DC144_TEMPLATES_KEY = 'ft_dc144_templates';
-var DC144_MAX_TEMPLATES = 10;
+var DC144_MAX_TEMPLATES = 100;
 var IDB_DB_NAME         = 'ft_photos';
 var IDB_DB_VERSION      = 2;
 var IDB_WO_STORE        = 'session_photos';
@@ -197,15 +197,15 @@ var TAB_META = {
   a: {
     label: 'DC-144 (a)',
     name:  'Daily Work Report',
-    desc:  'Core daily log: pay items, weather conditions, work hours matrix, and field observations.',
+    desc:  'General daily work, labor, equipment, and quantities',
     color: '#4338ca',
     colorBg: 'rgba(67,56,202,0.10)',
     sheetName: 'DC-144 (a) Daily Work Report'
   },
   b: {
     label: 'DC-144 (b)',
-    name:  'HMA Supplement',
-    desc:  'Hot Mix Asphalt paving log: station data, lift/thickness, tonnage, and core temperatures.',
+    name:  'HMA Paving',
+    desc:  'Asphalt paving, lifts, lots, tonnage, and temperatures',
     color: '#92400e',
     colorBg: 'rgba(146,64,14,0.10)',
     sheetName: 'DC-144 (b) HMA Supplement'
@@ -213,15 +213,15 @@ var TAB_META = {
   c: {
     label: 'DC-144 (c)',
     name:  'Bituminous Materials',
-    desc:  'Tack/prime coat application: gauge readings, gallons applied, area covered, and conversion.',
+    desc:  'Tack, prime, and surface treatment application',
     color: '#0e7490',
     colorBg: 'rgba(14,116,144,0.10)',
     sheetName: 'DC-144 (c) Bituminous Materials'
   },
   d: {
     label: 'DC-144 (d)',
-    name:  'Pile Driving Supplement',
-    desc:  'Structural piling log: blow counts per foot and inch, splice data, penetration, and notes.',
+    name:  'Pile Driving',
+    desc:  'Pile logs, blow counts, and driving records',
     color: '#9f1239',
     colorBg: 'rgba(159,18,57,0.10)',
     sheetName: 'DC-144 (d) Pile Driving Suppl.'
@@ -767,6 +767,10 @@ function saveTemplatesArr(arr) {
 
 function addTemplate(name, session) {
   var arr = loadTemplates();
+  if (arr.length >= DC144_MAX_TEMPLATES) {
+    showToast('Template limit reached (' + DC144_MAX_TEMPLATES + '). Delete a template to save a new one.', 'err', 5000);
+    return null;
+  }
   var entry = {
     id:        'tpl_' + Date.now(),
     name:      name,
@@ -789,12 +793,12 @@ function addTemplate(name, session) {
     };
   }
   arr.unshift(entry);
-  if (arr.length > DC144_MAX_TEMPLATES) arr = arr.slice(0, DC144_MAX_TEMPLATES);
   saveTemplatesArr(arr);
   return entry;
 }
 
 function deleteTemplate(id) {
+  if (!confirm('Delete this template? This cannot be undone.')) return;
   var arr = loadTemplates().filter(function(t) { return t.id !== id; });
   saveTemplatesArr(arr);
   renderTemplateChips();
@@ -828,7 +832,12 @@ function confirmSaveTemplate() {
     return;
   }
   if (input) input.style.borderColor = '';
-  addTemplate(name, currentSession);
+  var result = addTemplate(name, currentSession);
+  if (result === null) {
+    // addTemplate showed a toast explaining the cap; close modal so user can delete
+    closeTemplateModal();
+    return;
+  }
   closeTemplateModal();
   showToast('Template saved: ' + name, 'ok', 2400);
 }
@@ -851,7 +860,7 @@ function renderTemplateChips() {
     var tabBadge = '';
     if (tpl.tab && TAB_META[tpl.tab]) {
       var tm = TAB_META[tpl.tab];
-      tabBadge = '<span class="tpl-tab-badge" style="background:' + tm.colorBg + ';color:' + tm.color + ';border:1px solid ' + tm.color + ';">' + tm.label + '</span>';
+      tabBadge = '<span class="tpl-tab-badge" style="background:' + tm.colorBg + ';color:' + tm.color + ';border:1px solid ' + tm.color + ';">' + tpl.tab.toUpperCase() + ' — ' + tm.name + '</span>';
     }
     chip.innerHTML =
       '<div class="template-chip-icon" aria-hidden="true">' +
@@ -883,35 +892,47 @@ function showTemplateTabPicker(tpl) {
     return;
   }
   var overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:8500;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.className = 'dc-modal-backdrop';
+  overlay.style.zIndex = '8500';
   var box = document.createElement('div');
-  box.style.cssText = 'background:var(--surface);border-radius:12px;padding:24px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);border:1.5px solid var(--border);font-family:var(--sans);';
+  box.className = 'dc-modal-box';
+  box.style.maxWidth = '360px';
   box.innerHTML =
-    '<div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">Load Template</div>' +
+    '<div class="dc-modal-title">Load Template</div>' +
     '<div style="font-size:13px;color:var(--muted);margin-bottom:16px;">' + esc(tpl.name) + ' — Select a form type:</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
       ['a','b','c','d'].map(function(tab) {
         var m = TAB_META[tab];
-        return '<button style="padding:12px 8px;background:' + m.colorBg + ';border:1.5px solid ' + m.color + ';border-radius:8px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:700;color:' + m.color + ';line-height:1.3;" data-tab-pick="' + tab + '">' + m.label + '<br><span style="font-weight:500;font-size:11px;">' + m.name + '</span></button>';
+        return '<button class="tpl-pick-btn" style="background:' + m.colorBg + ';border:1.5px solid ' + m.color + ';color:' + m.color + ';" data-tab-pick="' + tab + '">' +
+          '<span style="font-size:12px;font-weight:700;">' + m.label + '</span><br>' +
+          '<span style="font-size:11px;font-weight:500;">' + m.name + '</span>' +
+          '</button>';
       }).join('') +
     '</div>' +
-    '<div style="margin-top:14px;text-align:right;">' +
-      '<button data-cancel style="padding:7px 14px;background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-family:var(--sans);font-size:13px;color:var(--muted);">Cancel</button>' +
+    '<div class="dc-modal-actions">' +
+      '<button class="btn-secondary" data-cancel>Cancel</button>' +
     '</div>';
   overlay.appendChild(box);
-  document.body.appendChild(overlay);
+  prepareModalForViewport(overlay);
+  overlay.classList.add('open');
+  function dismiss() {
+    overlay.classList.remove('open');
+    setTimeout(function() {
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    }, 160);
+  }
   box.querySelectorAll('[data-tab-pick]').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      document.body.removeChild(overlay);
+      dismiss();
       startNewSession(btn.dataset.tabPick, tpl);
     });
   });
-  box.querySelector('[data-cancel]').addEventListener('click', function() {
-    document.body.removeChild(overlay);
-  });
-  overlay.addEventListener('click', function(e) {
-    if (e.target === overlay) document.body.removeChild(overlay);
-  });
+  box.querySelector('[data-cancel]').addEventListener('click', dismiss);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) dismiss(); });
+  function onPickerEsc(e) {
+    if (e.key === 'Escape') { document.removeEventListener('keydown', onPickerEsc); dismiss(); }
+  }
+  document.addEventListener('keydown', onPickerEsc);
 }
 
 /* ============================================================
@@ -3194,15 +3215,396 @@ function initSmartHeader() {
 }
 
 /* ============================================================
-   25. INITIALISATION
+   25. TOPBAR DROPDOWN PANELS — DRAFTS & TEMPLATES
+   ============================================================ */
+
+/* Transient panel state — not persisted, reset on close */
+var draftsPanel = { open: false };
+var templatesPanel = { open: false, chip: 'all', query: '', showMore: {} };
+
+/* ── Drafts panel ─────────────────────────────────────────── */
+
+function openDraftsPanel() {
+  closeTemplatesPanel();
+  renderDraftsPanel();
+  var overlay = document.getElementById('drafts-panel-overlay');
+  var btn     = document.getElementById('topbar-drafts-btn');
+  if (overlay) overlay.classList.add('open');
+  if (btn)     { btn.classList.add('panel-active'); btn.setAttribute('aria-expanded', 'true'); }
+  draftsPanel.open = true;
+}
+
+function closeDraftsPanel() {
+  var overlay = document.getElementById('drafts-panel-overlay');
+  var btn     = document.getElementById('topbar-drafts-btn');
+  if (overlay) overlay.classList.remove('open');
+  if (btn)     { btn.classList.remove('panel-active'); btn.setAttribute('aria-expanded', 'false'); }
+  draftsPanel.open = false;
+}
+
+function toggleDraftsPanel() {
+  if (draftsPanel.open) { closeDraftsPanel(); } else { openDraftsPanel(); }
+}
+
+function renderDraftsPanel() {
+  var body      = document.getElementById('drafts-panel-body');
+  var countBadge = document.getElementById('drafts-panel-count');
+  if (!body) return;
+  var arr = loadRecent();
+  if (countBadge) countBadge.textContent = arr.length;
+  if (!arr.length) {
+    body.innerHTML = '<span class="dc144-panel-empty">No recent drafts yet.<br>Start a new report from the dashboard.</span>';
+    return;
+  }
+  body.innerHTML = '';
+  arr.forEach(function(rec) {
+    var meta = TAB_META[rec.tab] || TAB_META['a'];
+    var rowEl = document.createElement('div');
+    rowEl.className = 'dc144-draft-row';
+    rowEl.setAttribute('role', 'button');
+    rowEl.setAttribute('tabindex', '0');
+    rowEl.setAttribute('aria-label', 'Open draft: ' + (rec.projectName || 'Untitled Project'));
+    var dateStr = rec.date || (rec.savedAt ? rec.savedAt.slice(0,10) : '');
+    var metaParts = [dateStr, rec.contractId].filter(Boolean).join(' · ');
+    var rowLabel   = rec.rowCount  === 1 ? '1 row'   : (rec.rowCount  ? rec.rowCount + ' rows'   : '');
+    var photoLabel = rec.photoCount === 1 ? '1 photo' : (rec.photoCount ? rec.photoCount + ' photos' : '');
+    var badges = [meta.label, rowLabel, photoLabel].filter(Boolean).map(function(b) {
+      return '<span class="dc144-draft-badge">' + esc(b) + '</span>';
+    }).join('');
+    rowEl.innerHTML =
+      '<div class="dc144-draft-tab-badge" style="background:' + meta.colorBg + ';color:' + meta.color + ';">' + esc(rec.tab.toUpperCase()) + '</div>' +
+      '<div class="dc144-draft-info">' +
+        '<div class="dc144-draft-project">' + esc(rec.projectName || 'Untitled Project') + '</div>' +
+        (metaParts ? '<div class="dc144-draft-meta">' + esc(metaParts) + '</div>' : '') +
+        (badges ? '<div class="dc144-draft-badges">' + badges + '</div>' : '') +
+      '</div>' +
+      '<button class="dc144-row-del-btn" aria-label="Delete ' + esc(rec.projectName || 'draft') + '">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+      '</button>';
+    rowEl.addEventListener('click', function() {
+      openDraftFromPanel(rec);
+    });
+    rowEl.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDraftFromPanel(rec); }
+    });
+    rowEl.querySelector('.dc144-row-del-btn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      deleteDraftFromPanel(rec.photoKey);
+    });
+    body.appendChild(rowEl);
+  });
+}
+
+function openDraftFromPanel(rec) {
+  if (!currentSession) {
+    closeDraftsPanel();
+    restoreSession(rec.photoKey, rec.tab);
+    return;
+  }
+  // Active form session — save silently first, then open
+  saveCurrentSessionNow({ silent: true }).then(function() {
+    closeDraftsPanel();
+    restoreSession(rec.photoKey, rec.tab);
+  }).catch(function() {
+    showToast('Could not save current draft — open cancelled', 'err');
+  });
+}
+
+function deleteDraftFromPanel(photoKey) {
+  if (!confirm('Delete this draft permanently? This cannot be undone.')) return;
+  dbDeleteDC144(photoKey);
+  var arr = loadRecent().filter(function(r) { return r.photoKey !== photoKey; });
+  saveRecent(arr);
+  renderDraftsPanel();
+  renderRecentChips();
+  showToast('Draft deleted', 'info', 1800);
+}
+
+/* ── Templates panel ──────────────────────────────────────── */
+
+function openTemplatesPanel() {
+  closeDraftsPanel();
+  templatesPanel.chip     = 'all';
+  templatesPanel.query    = '';
+  templatesPanel.showMore = {};
+  var searchEl = document.getElementById('templates-panel-search');
+  if (searchEl) searchEl.value = '';
+  renderTemplatesPanel();
+  var overlay = document.getElementById('templates-panel-overlay');
+  var btn     = document.getElementById('topbar-templates-btn');
+  if (overlay) overlay.classList.add('open');
+  if (btn)     { btn.classList.add('panel-active'); btn.setAttribute('aria-expanded', 'true'); }
+  templatesPanel.open = true;
+  // Focus search after panel opens
+  requestAnimationFrame(function() {
+    var search = document.getElementById('templates-panel-search');
+    if (search) search.focus();
+  });
+}
+
+function closeTemplatesPanel() {
+  var overlay = document.getElementById('templates-panel-overlay');
+  var btn     = document.getElementById('topbar-templates-btn');
+  if (overlay) overlay.classList.remove('open');
+  if (btn)     { btn.classList.remove('panel-active'); btn.setAttribute('aria-expanded', 'false'); }
+  templatesPanel.open = false;
+}
+
+function toggleTemplatesPanel() {
+  if (templatesPanel.open) { closeTemplatesPanel(); } else { openTemplatesPanel(); }
+}
+
+/* Filter helper — applies chip + search query to the full template list */
+function getFilteredTemplates(chip, query) {
+  var arr = loadTemplates();
+  if (chip && chip !== 'all') {
+    arr = arr.filter(function(t) { return t.tab === chip; });
+  }
+  if (query && query.trim()) {
+    var q = query.trim().toLowerCase();
+    arr = arr.filter(function(t) {
+      var tabName = (TAB_META[t.tab] && TAB_META[t.tab].name) || '';
+      return (t.name                                    || '').toLowerCase().indexOf(q) >= 0 ||
+             ((t.header && t.header.projectName)        || '').toLowerCase().indexOf(q) >= 0 ||
+             ((t.header && t.header.contractId)         || '').toLowerCase().indexOf(q) >= 0 ||
+             ((t.header && t.header.inspectorName)      || '').toLowerCase().indexOf(q) >= 0 ||
+             tabName.toLowerCase().indexOf(q) >= 0 ||
+             (t.tab                                     || '').toLowerCase().indexOf(q) >= 0;
+    });
+  }
+  return arr;
+}
+
+function renderTemplatesPanel() {
+  var body       = document.getElementById('templates-panel-body');
+  var countBadge = document.getElementById('templates-panel-count');
+  var chipsEl    = document.getElementById('templates-filter-chips');
+  if (!body) return;
+
+  var allTemplates    = loadTemplates();
+  var activeChip      = templatesPanel.chip || 'all';
+  var activeQuery     = templatesPanel.query || '';
+  var isFiltered      = activeChip !== 'all' || activeQuery.trim().length > 0;
+  var filtered        = getFilteredTemplates(activeChip, activeQuery);
+
+  if (countBadge) countBadge.textContent = allTemplates.length;
+
+  /* Build filter chips — show only tabs that exist in the full unfiltered list */
+  if (chipsEl) {
+    var presentTabs = [];
+    ['a','b','c','d'].forEach(function(tab) {
+      if (allTemplates.some(function(t) { return t.tab === tab; })) presentTabs.push(tab);
+    });
+    chipsEl.innerHTML = '';
+    var chips = ['all'].concat(presentTabs.length > 1 ? presentTabs : []);
+    chips.forEach(function(chipId) {
+      var btn = document.createElement('button');
+      var isAll = chipId === 'all';
+      var label = isAll ? 'All' : chipId.toUpperCase();
+      btn.className = 'dc144-filter-chip' +
+        (isAll ? '' : ' dc144-chip-' + chipId) +
+        (activeChip === chipId ? ' dc144-chip-active' : '');
+      btn.textContent = label;
+      btn.addEventListener('click', function() {
+        templatesPanel.chip = chipId;
+        templatesPanel.showMore = {};
+        renderTemplatesPanel();
+        var searchInput = document.getElementById('templates-panel-search');
+        if (searchInput) searchInput.focus();
+      });
+      chipsEl.appendChild(btn);
+    });
+  }
+
+  body.innerHTML = '';
+
+  if (!allTemplates.length) {
+    body.innerHTML = '<span class="dc144-panel-empty">No templates yet.<br>Fill in a header inside a form, then tap "Template" to save one.</span>';
+    return;
+  }
+  if (!filtered.length) {
+    body.innerHTML = '<span class="dc144-panel-empty">No templates match your search.</span>';
+    return;
+  }
+
+  if (isFiltered) {
+    /* Flat list — show all matches when search or chip is active */
+    filtered.forEach(function(tpl) {
+      body.appendChild(buildTemplatePanelRow(tpl));
+    });
+  } else {
+    /* Grouped list — A → B → C → D → Other, first 3 per group + show-more */
+    var GROUPS = ['a', 'b', 'c', 'd'];
+    GROUPS.forEach(function(tab) {
+      var group = filtered.filter(function(t) { return t.tab === tab; });
+      if (!group.length) return;
+      var meta = TAB_META[tab];
+      /* Group header */
+      var hdr = document.createElement('div');
+      hdr.className = 'dc144-group-header';
+      hdr.innerHTML =
+        '<span class="dc144-group-dot" style="background:' + meta.color + ';"></span>' +
+        esc(tab.toUpperCase() + ' — ' + meta.name);
+      body.appendChild(hdr);
+      /* Rows — first 3 visible, rest hidden unless showMore[tab] is true */
+      var showAll = !!(templatesPanel.showMore && templatesPanel.showMore[tab]);
+      var visible = showAll ? group : group.slice(0, 3);
+      visible.forEach(function(tpl) {
+        body.appendChild(buildTemplatePanelRow(tpl));
+      });
+      /* Show more / show fewer button */
+      if (group.length > 3) {
+        var moreBtn = document.createElement('button');
+        moreBtn.className = 'dc144-show-more-btn';
+        moreBtn.textContent = showAll
+          ? 'Show fewer ' + tab.toUpperCase() + ' templates'
+          : 'Show ' + (group.length - 3) + ' more ' + tab.toUpperCase() + ' template' + (group.length - 3 !== 1 ? 's' : '');
+        moreBtn.addEventListener('click', function() {
+          templatesPanel.showMore = templatesPanel.showMore || {};
+          templatesPanel.showMore[tab] = !showAll;
+          renderTemplatesPanel();
+        });
+        body.appendChild(moreBtn);
+      }
+    });
+    /* Legacy templates (no tab / unrecognized tab) — shown in an "Other" group */
+    var otherGroup = filtered.filter(function(t) { return !t.tab || !TAB_META[t.tab]; });
+    if (otherGroup.length) {
+      var otherHdr = document.createElement('div');
+      otherHdr.className = 'dc144-group-header';
+      otherHdr.innerHTML = '<span class="dc144-group-dot" style="background:#6b7280;"></span>Other (legacy)';
+      body.appendChild(otherHdr);
+      var otherShowAll = !!(templatesPanel.showMore && templatesPanel.showMore['other']);
+      var otherVisible = otherShowAll ? otherGroup : otherGroup.slice(0, 3);
+      otherVisible.forEach(function(tpl) {
+        body.appendChild(buildTemplatePanelRow(tpl));
+      });
+      if (otherGroup.length > 3) {
+        var otherMoreBtn = document.createElement('button');
+        otherMoreBtn.className = 'dc144-show-more-btn';
+        otherMoreBtn.textContent = otherShowAll
+          ? 'Show fewer Other templates'
+          : 'Show ' + (otherGroup.length - 3) + ' more Other template' + (otherGroup.length - 3 !== 1 ? 's' : '');
+        otherMoreBtn.addEventListener('click', function() {
+          templatesPanel.showMore = templatesPanel.showMore || {};
+          templatesPanel.showMore['other'] = !otherShowAll;
+          renderTemplatesPanel();
+        });
+        body.appendChild(otherMoreBtn);
+      }
+    }
+  }
+}
+
+function buildTemplatePanelRow(tpl) {
+  var meta = TAB_META[tpl.tab] || TAB_META['a'];
+  var rowEl = document.createElement('div');
+  rowEl.className = 'dc144-tpl-row';
+  rowEl.setAttribute('role', 'button');
+  rowEl.setAttribute('tabindex', '0');
+  rowEl.setAttribute('aria-label', 'Load template: ' + (tpl.name || 'Untitled'));
+  var dateStr  = tpl.createdAt ? tpl.createdAt.slice(0, 10) : '';
+  var metaParts = [tpl.header && tpl.header.projectName, tpl.header && tpl.header.contractId, dateStr].filter(Boolean).join(' · ');
+  rowEl.innerHTML =
+    '<div class="dc144-tpl-tab-badge" style="background:' + meta.colorBg + ';color:' + meta.color + ';">' + esc((tpl.tab || '?').toUpperCase()) + '</div>' +
+    '<div class="dc144-tpl-info">' +
+      '<div class="dc144-tpl-name">' + esc(tpl.name) + '</div>' +
+      (metaParts ? '<div class="dc144-tpl-meta">' + esc(metaParts) + '</div>' : '') +
+    '</div>' +
+    '<button class="dc144-row-del-btn" aria-label="Delete template ' + esc(tpl.name) + '">' +
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+    '</button>';
+  rowEl.addEventListener('click', function() {
+    applyTemplateFromPanel(tpl);
+  });
+  rowEl.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); applyTemplateFromPanel(tpl); }
+  });
+  rowEl.querySelector('.dc144-row-del-btn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    deleteTemplateFromPanel(tpl.id);
+  });
+  return rowEl;
+}
+
+function applyTemplateFromPanel(tpl) {
+  function loadTemplate() {
+    // Templates with a known tab go directly to startNewSession — no picker needed.
+    // Legacy templates without a tab field fall back to the tab-picker overlay.
+    if (tpl.tab && TAB_META[tpl.tab]) {
+      startNewSession(tpl.tab, tpl);
+    } else {
+      showTemplateTabPicker(tpl);
+    }
+  }
+
+  if (currentSession) {
+    if (!confirm('Start a new form from this template? Your current report will be saved first.')) return;
+    saveCurrentSessionNow({ silent: true }).then(function() {
+      closeTemplatesPanel();
+      loadTemplate();
+    }).catch(function() {
+      showToast('Could not save current draft — template load cancelled', 'err');
+    });
+  } else {
+    closeTemplatesPanel();
+    loadTemplate();
+  }
+}
+
+function deleteTemplateFromPanel(id) {
+  if (!confirm('Delete this template? This cannot be undone.')) return;
+  var arr = loadTemplates().filter(function(t) { return t.id !== id; });
+  saveTemplatesArr(arr);
+  renderTemplatesPanel();
+  renderTemplateChips();
+  showToast('Template deleted', 'info', 1800);
+}
+
+/* Wire search input — live filter as user types */
+function initPanelSearch() {
+  var searchEl = document.getElementById('templates-panel-search');
+  if (!searchEl) return;
+  searchEl.addEventListener('input', function() {
+    templatesPanel.query = searchEl.value;
+    templatesPanel.showMore = {};
+    renderTemplatesPanel();
+    // Re-focus input since renderTemplatesPanel rebuilds the chips container
+    // but the search input is outside that container, so focus is preserved.
+  });
+  searchEl.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { e.stopPropagation(); closeTemplatesPanel(); }
+  });
+}
+
+/* Backdrop click closes the respective panel */
+function initPanelBackdrops() {
+  var draftsOverlay    = document.getElementById('drafts-panel-overlay');
+  var templatesOverlay = document.getElementById('templates-panel-overlay');
+  if (draftsOverlay) {
+    draftsOverlay.addEventListener('click', function(e) {
+      if (e.target === draftsOverlay) closeDraftsPanel();
+    });
+  }
+  if (templatesOverlay) {
+    templatesOverlay.addEventListener('click', function(e) {
+      if (e.target === templatesOverlay) closeTemplatesPanel();
+    });
+  }
+}
+
+/* ============================================================
+   26. INITIALISATION
    ============================================================ */
 
 function init() {
   try { localStorage.setItem('ft_last', 'dc144'); } catch(e) {}
 
-  // Wire modal keyboard shortcut (Escape closes whichever is open)
+  // Wire modal keyboard shortcut (Escape closes whichever is open, panels first)
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
+      if (draftsPanel.open)    { closeDraftsPanel();    return; }
+      if (templatesPanel.open) { closeTemplatesPanel(); return; }
       var sigOpen = document.getElementById('signature-modal');
       if (sigOpen && sigOpen.classList.contains('open')) { closeSignaturePad(); return; }
       closeTemplateModal();
@@ -3222,6 +3624,10 @@ function init() {
   if (photoInput) {
     photoInput.addEventListener('change', handlePhotoCaptureEvent);
   }
+
+  // Wire panel search and backdrops
+  initPanelSearch();
+  initPanelBackdrops();
 
   initSmartHeader();
 
