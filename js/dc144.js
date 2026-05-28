@@ -3261,6 +3261,9 @@ function renderDraftsPanel() {
     var meta = TAB_META[rec.tab] || TAB_META['a'];
     var rowEl = document.createElement('div');
     rowEl.className = 'dc144-draft-row';
+    rowEl.setAttribute('role', 'button');
+    rowEl.setAttribute('tabindex', '0');
+    rowEl.setAttribute('aria-label', 'Open draft: ' + (rec.projectName || 'Untitled Project'));
     var dateStr = rec.date || (rec.savedAt ? rec.savedAt.slice(0,10) : '');
     var metaParts = [dateStr, rec.contractId].filter(Boolean).join(' · ');
     var rowLabel   = rec.rowCount  === 1 ? '1 row'   : (rec.rowCount  ? rec.rowCount + ' rows'   : '');
@@ -3275,16 +3278,17 @@ function renderDraftsPanel() {
         (metaParts ? '<div class="dc144-draft-meta">' + esc(metaParts) + '</div>' : '') +
         (badges ? '<div class="dc144-draft-badges">' + badges + '</div>' : '') +
       '</div>' +
-      '<div class="dc144-draft-actions">' +
-        '<button class="dc144-row-open-btn" aria-label="Open ' + esc(rec.projectName || 'draft') + '">Open</button>' +
-        '<button class="dc144-row-del-btn" aria-label="Delete ' + esc(rec.projectName || 'draft') + '">' +
-          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
-        '</button>' +
-      '</div>';
-    rowEl.querySelector('.dc144-row-open-btn').addEventListener('click', function() {
+      '<button class="dc144-row-del-btn" aria-label="Delete ' + esc(rec.projectName || 'draft') + '">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+      '</button>';
+    rowEl.addEventListener('click', function() {
       openDraftFromPanel(rec);
     });
-    rowEl.querySelector('.dc144-row-del-btn').addEventListener('click', function() {
+    rowEl.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDraftFromPanel(rec); }
+    });
+    rowEl.querySelector('.dc144-row-del-btn').addEventListener('click', function(e) {
+      e.stopPropagation();
       deleteDraftFromPanel(rec.photoKey);
     });
     body.appendChild(rowEl);
@@ -3496,6 +3500,9 @@ function buildTemplatePanelRow(tpl) {
   var meta = TAB_META[tpl.tab] || TAB_META['a'];
   var rowEl = document.createElement('div');
   rowEl.className = 'dc144-tpl-row';
+  rowEl.setAttribute('role', 'button');
+  rowEl.setAttribute('tabindex', '0');
+  rowEl.setAttribute('aria-label', 'Load template: ' + (tpl.name || 'Untitled'));
   var dateStr  = tpl.createdAt ? tpl.createdAt.slice(0, 10) : '';
   var metaParts = [tpl.header && tpl.header.projectName, tpl.header && tpl.header.contractId, dateStr].filter(Boolean).join(' · ');
   rowEl.innerHTML =
@@ -3504,16 +3511,17 @@ function buildTemplatePanelRow(tpl) {
       '<div class="dc144-tpl-name">' + esc(tpl.name) + '</div>' +
       (metaParts ? '<div class="dc144-tpl-meta">' + esc(metaParts) + '</div>' : '') +
     '</div>' +
-    '<div class="dc144-tpl-actions">' +
-      '<button class="dc144-row-use-btn" aria-label="Use template ' + esc(tpl.name) + '">Use</button>' +
-      '<button class="dc144-row-del-btn" aria-label="Delete template ' + esc(tpl.name) + '">' +
-        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
-      '</button>' +
-    '</div>';
-  rowEl.querySelector('.dc144-row-use-btn').addEventListener('click', function() {
+    '<button class="dc144-row-del-btn" aria-label="Delete template ' + esc(tpl.name) + '">' +
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+    '</button>';
+  rowEl.addEventListener('click', function() {
     applyTemplateFromPanel(tpl);
   });
-  rowEl.querySelector('.dc144-row-del-btn').addEventListener('click', function() {
+  rowEl.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); applyTemplateFromPanel(tpl); }
+  });
+  rowEl.querySelector('.dc144-row-del-btn').addEventListener('click', function(e) {
+    e.stopPropagation();
     deleteTemplateFromPanel(tpl.id);
   });
   return rowEl;

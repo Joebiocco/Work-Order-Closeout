@@ -879,7 +879,7 @@
       to   { transform: translateY(0);    opacity: 1; }
     }
     .dc144-panel-overlay {
-      position: fixed; inset: 0; z-index: 500;
+      position: fixed; top: var(--topbar-h); left: 0; right: 0; bottom: 0; z-index: 550;
       display: none;
       background: rgba(0,0,0,0.38);
       backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
@@ -890,7 +890,7 @@
     .dc144-panel {
       width: 320px; max-width: calc(100vw - 24px);
       max-height: calc(100vh - var(--topbar-h) - 14px);
-      margin-top: var(--topbar-h);
+      max-height: calc(100dvh - var(--topbar-h) - 8px);
       background: var(--surface); border: 1px solid var(--border);
       border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg);
       overflow-y: auto; overflow-x: hidden;
@@ -927,19 +927,21 @@
       font-size: 12px; color: var(--muted); font-style: italic; text-align: center; padding: 20px 0;
     }
 
-    /* Draft rows */
+    /* Draft rows — entire card is the tap target; only the × delete button is separate */
     .dc144-draft-row {
-      display: flex; align-items: flex-start; gap: 9px;
+      display: flex; align-items: center; gap: 9px;
       background: var(--bg); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 8px 10px;
-      transition: border-color var(--transition);
+      transition: border-color var(--transition), background var(--transition);
+      cursor: pointer;
     }
     html[data-dark] .dc144-draft-row { background: #15181f; border-color: #2d3748; }
-    .dc144-draft-row:hover { border-color: #93b4f5; }
+    .dc144-draft-row:hover { border-color: #93b4f5; background: rgba(147,180,245,0.05); }
+    .dc144-draft-row:active { background: rgba(147,180,245,0.12); }
     .dc144-draft-tab-badge {
       display: inline-flex; align-items: center; justify-content: center;
       width: 26px; height: 26px; border-radius: 6px;
-      font-size: 11px; font-weight: 800; flex-shrink: 0; margin-top: 2px;
+      font-size: 11px; font-weight: 800; flex-shrink: 0;
     }
     .dc144-draft-info { flex: 1; min-width: 0; }
     .dc144-draft-project { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -950,17 +952,10 @@
       border: 1px solid rgba(26,86,219,0.15); border-radius: 100px;
       font-size: 9px; font-weight: 600; padding: 1px 6px;
     }
-    .dc144-draft-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; margin-top: 2px; }
-    .dc144-row-open-btn {
-      padding: 4px 9px; background: var(--accent-lo); color: var(--accent);
-      border: 1px solid rgba(26,86,219,0.22); border-radius: var(--radius-sm);
-      font-family: var(--sans); font-size: 11px; font-weight: 600; cursor: pointer;
-      white-space: nowrap; transition: background 0.12s;
-    }
-    .dc144-row-open-btn:hover { background: rgba(26,86,219,0.14); border-color: var(--accent); }
     .dc144-row-del-btn {
       background: none; border: none; cursor: pointer; color: var(--muted);
-      padding: 4px; border-radius: 4px; line-height: 1; font-family: var(--sans);
+      padding: 6px; border-radius: 4px; line-height: 1; font-family: var(--sans);
+      flex-shrink: 0;
       transition: color 0.12s, background 0.12s;
     }
     .dc144-row-del-btn:hover { color: var(--red); background: rgba(220,38,38,0.08); }
@@ -1020,31 +1015,25 @@
     }
     .dc144-show-more-btn:hover { color: var(--text); }
 
-    /* Template rows */
+    /* Template rows — entire card is the tap target; only the × delete button is separate */
     .dc144-tpl-row {
-      display: flex; align-items: flex-start; gap: 9px;
+      display: flex; align-items: center; gap: 9px;
       background: var(--bg); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 8px 10px;
-      transition: border-color var(--transition);
+      transition: border-color var(--transition), background var(--transition);
+      cursor: pointer;
     }
     html[data-dark] .dc144-tpl-row { background: #15181f; border-color: #2d3748; }
-    .dc144-tpl-row:hover { border-color: #93b4f5; }
+    .dc144-tpl-row:hover { border-color: #93b4f5; background: rgba(147,180,245,0.05); }
+    .dc144-tpl-row:active { background: rgba(147,180,245,0.12); }
     .dc144-tpl-tab-badge {
       display: inline-flex; align-items: center; justify-content: center;
       width: 26px; height: 26px; border-radius: 6px;
-      font-size: 11px; font-weight: 800; flex-shrink: 0; margin-top: 2px;
+      font-size: 11px; font-weight: 800; flex-shrink: 0;
     }
     .dc144-tpl-info { flex: 1; min-width: 0; }
     .dc144-tpl-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .dc144-tpl-meta { font-size: 11px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .dc144-tpl-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; margin-top: 2px; }
-    .dc144-row-use-btn {
-      padding: 4px 9px; background: var(--accent-lo); color: var(--accent);
-      border: 1px solid rgba(26,86,219,0.22); border-radius: var(--radius-sm);
-      font-family: var(--sans); font-size: 11px; font-weight: 600; cursor: pointer;
-      white-space: nowrap; transition: background 0.12s;
-    }
-    .dc144-row-use-btn:hover { background: rgba(26,86,219,0.14); border-color: var(--accent); }
 
     /* ── Responsive ──────────────────────────────────────────────────────── */
     @media (max-width: 720px) {
