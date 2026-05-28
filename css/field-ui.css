@@ -31,6 +31,9 @@
   --radius-lg: 10px;
   --sans:      'Inter', system-ui, -apple-system, Arial, sans-serif;
   --transition: 0.14s ease;
+  /* Toast positioning — page CSS may override --ft-toast-bottom (e.g. timesheet adds nav-h) */
+  --ft-toast-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  --ft-toast-z:      9000;
 }
 
 /* Light-mode html background flash prevention */
@@ -266,7 +269,10 @@ html[data-dark] .ft-notice-local {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  /* Safe-area padding so content clears notch + home indicator */
+  padding: calc(16px + env(safe-area-inset-top, 0px))
+           16px
+           calc(16px + env(safe-area-inset-bottom, 0px));
   opacity: 0;
   pointer-events: none;
   transition: opacity 220ms ease;
@@ -282,6 +288,11 @@ html[data-dark] .ft-notice-local {
   padding: 24px;
   max-width: 520px;
   width: 100%;
+  /* Prevent modal from overflowing viewport height on small screens */
+  max-height: calc(100dvh - 48px
+              - env(safe-area-inset-top, 0px)
+              - env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
   transform: translateY(12px) scale(0.98);
   transition: transform 280ms cubic-bezier(0.22,1,0.36,1);
@@ -305,6 +316,44 @@ html[data-dark] .ft-modal-box {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 20px;
+}
+
+/* ── Section 7: Toast Container ──────────────────────────────────────────── */
+/*
+   Shared toast positioning. All pages use #toast-ct; this rule covers it plus
+   the .toast-ct and .ft-toast-container aliases for future tools.
+
+   IMPORTANT: position:fixed resolves to the viewport ONLY when no ancestor
+   creates a CSS containing block (transform/filter/contain:layout). The
+   animation stacking-context fix (transform:none final keyframe, no
+   contain:layout) is what makes this work correctly on all pages.
+
+   Page CSS may override --ft-toast-bottom. Example: timesheet.html sets it
+   to calc(var(--nav-h) + 14px) so toasts sit above the bottom nav.
+
+   Do NOT set right: on the container — always use left:50% + translateX(-50%)
+   so toasts are centred at any viewport width.
+*/
+#toast-ct,
+.toast-ct,
+.ft-toast-container {
+  position: fixed;
+  left: 50%;
+  bottom: var(--ft-toast-bottom);
+  transform: translateX(-50%);
+  z-index: var(--ft-toast-z);
+  width: min(420px, calc(100vw - 24px));
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  pointer-events: none;
+}
+/* Individual toasts inside the container may need to be interactive */
+#toast-ct .toast,
+.toast-ct .toast,
+.ft-toast-container .toast {
+  pointer-events: auto;
 }
 
 /* ── Focus ring ────────────────────────────────────────────────────────── */

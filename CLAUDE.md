@@ -298,7 +298,7 @@ Every transition animation class has the FROM state set explicitly via direct CS
 ```css
 @keyframes slideInFromLeft {
   0%   { opacity: 0; transform: translate3d(-18vw, 0, 0) scale(0.98); }
-  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  100% { opacity: 1; transform: none; }  /* MUST be `none`, not identity translate3d — see §11 */
 }
 html.entering-from-hub body {
   opacity: 0;                                       /* lock start state */
@@ -307,6 +307,7 @@ html.entering-from-hub body {
   will-change: transform, opacity;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  contain: paint style;  /* MUST NOT include `layout` — creates containing block for position:fixed */
 }
 ```
 
@@ -580,6 +581,20 @@ The user has asked that the visible label "Hub" be replaced with "Home" or "Fiel
 3. Add `will-change: transform, opacity` for elements that animate
 4. Always include `animation-fill-mode: both` AND set the from-state via direct CSS properties
 5. Respect `@media (prefers-reduced-motion: reduce)` — already handled globally
+6. **Final keyframes MUST use `transform: none`** — never `translate3d(0,0,0) scale(1)`. The identity transform value retains a CSS containing block for `position: fixed` children even after the animation finishes. `transform: none` is visually identical but does not create a stacking context.
+7. **Do NOT use `contain: layout` on `body`** — use `contain: paint style`. The `layout` value creates a containing block for `position: fixed` descendants.
+8. **JS exit-animation from-state: use `body.style.transform = ''`** not `'translate3d(0,0,0) scale(1)'`. The empty string removes the inline transform without creating a stacking context.
+
+### When adding overlays, toasts, or modals
+
+1. **Always use `position: fixed`** for overlays, toasts, and modal backdrops — never `position: absolute`.
+2. **Test after hub navigation** — the entrance animation (entering-from-hub) temporarily creates a stacking context. Fixed elements must resolve to the viewport both during and after the animation. The animation stacking-context fix (rules above) is what makes this work.
+3. **Toast containers:** Use `#toast-ct` (or `.ft-toast-container`). Shared positioning is in `css/field-ui.css` Section 7 — do not redeclare `position`, `left`, `bottom`, `transform`, `z-index`, or `width` locally. Use `var(--ft-toast-bottom)` for safe-area-aware bottom offset. Override that variable if the page has a bottom nav.
+4. **Modal max-height:** Always set `max-height: calc(100dvh - Npx)` + `overflow-y: auto` on modal boxes. Never let a modal taller than the viewport clip silently.
+5. **Prefer `100dvh` over `100vh`** — `dvh` accounts for collapsing mobile browser chrome.
+6. **Safe-area insets:** Modals and toasts near screen edges need `env(safe-area-inset-bottom, 0px)` in their `bottom`/`padding-bottom`. The shared vars `--ft-toast-bottom` and the `ft-modal-backdrop` padding already include this.
+
+Full rules with pre-flight checklist: see `docs/ui-style-guide.md` §Overlay & Toast Rules.
 
 ### When committing
 

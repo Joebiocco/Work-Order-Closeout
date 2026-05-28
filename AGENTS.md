@@ -260,7 +260,7 @@ Every transition animation class has the FROM state set explicitly via direct CS
 ```css
 @keyframes slideInFromLeft {
   0%   { opacity: 0; transform: translate3d(-18vw, 0, 0) scale(0.98); }
-  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  100% { opacity: 1; transform: none; }  /* MUST be `none`, not identity — see animation rules */
 }
 html.entering-from-hub body {
   opacity: 0;                                       /* lock start state */
@@ -269,6 +269,7 @@ html.entering-from-hub body {
   will-change: transform, opacity;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  contain: paint style;  /* MUST NOT include `layout` — creates containing block for position:fixed */
 }
 ```
 
@@ -534,6 +535,20 @@ The user has asked that the visible label "Hub" be replaced with "Home" or "Fiel
 3. Add `will-change: transform, opacity` for elements that animate
 4. Always include `animation-fill-mode: both` AND set the from-state via direct CSS properties
 5. Respect `@media (prefers-reduced-motion: reduce)` — already handled globally
+6. **Final keyframes MUST use `transform: none`** — never `translate3d(0,0,0) scale(1)`. The identity transform value retains a CSS containing block for `position: fixed` children even after the animation finishes.
+7. **Do NOT use `contain: layout` on `body`** — use `contain: paint style`. The `layout` value creates a containing block for `position: fixed` descendants.
+8. **JS exit-animation from-state: use `body.style.transform = ''`** not `'translate3d(0,0,0) scale(1)'`.
+
+### When adding overlays, toasts, or modals
+
+1. **Always use `position: fixed`** for overlays, toasts, and modal backdrops.
+2. **Test after hub navigation** — the entrance animation temporarily creates a stacking context. Fixed elements must resolve to the viewport both during and after the animation.
+3. **Toast containers:** Use shared `#toast-ct` positioning from `css/field-ui.css` Section 7. Do not redeclare `position`, `left`, `bottom`, `transform`, `z-index`, or `width` locally. Use `var(--ft-toast-bottom)` for safe-area-aware bottom offset.
+4. **Modal max-height:** Always set `max-height: calc(100dvh - Npx)` + `overflow-y: auto` on modal boxes.
+5. **Prefer `100dvh` over `100vh`** for any height that must fit the visible viewport on mobile.
+6. **Safe-area insets:** Use `env(safe-area-inset-bottom, 0px)` for toasts/modals near bottom edge.
+
+Full rules and pre-flight checklist: see `docs/ui-style-guide.md` §Overlay & Toast Rules.
 
 ### When committing
 

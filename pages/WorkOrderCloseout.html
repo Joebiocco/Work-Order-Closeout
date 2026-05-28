@@ -620,7 +620,7 @@ textarea.notes-field {
 .recent-overlay.open { display: flex; align-items: flex-start; justify-content: flex-end; padding-right: 16px; }
 .recent-panel {
   width: 300px; max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 78px);
+  max-height: calc(100dvh - 78px);
   margin-top: 60px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -779,7 +779,7 @@ html[data-dark] .recent-chip:hover { border-color: #93b4f5; }
   background: var(--surface);
   border-radius: 18px;
   width: min(520px, calc(100vw - 24px));
-  max-height: min(680px, calc(100vh - 40px));
+  max-height: min(680px, calc(100dvh - 40px));
   display: flex;
   flex-direction: column;
   box-shadow: 0 24px 64px rgba(0,0,0,0.3);
@@ -900,7 +900,7 @@ html[data-dark] .gi-navy { background: rgba(255,255,255,0.06); }
   }
   .guide-modal {
     width: calc(100vw - 18px);
-    max-height: calc(100vh - 26px);
+    max-height: calc(100dvh - 26px);
     border-radius: 14px;
   }
   .guide-header {
@@ -954,7 +954,7 @@ html[data-dark] .gi-navy { background: rgba(255,255,255,0.06); }
   }
   .guide-modal {
     width: calc(100vw - 12px);
-    max-height: calc(100vh - 18px);
+    max-height: calc(100dvh - 18px);
   }
   .guide-slide {
     padding: 14px;
@@ -1067,7 +1067,7 @@ html[data-dark] .gi-navy { background: rgba(255,255,255,0.06); }
       will-change: transform, opacity;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
-      contain: layout paint style;
+      contain: paint style;
     }
     html.exiting-to-hub { background: var(--bg); }
 
@@ -1127,7 +1127,7 @@ html[data-dark] .gi-navy { background: rgba(255,255,255,0.06); }
     @keyframes slideInFromLeft {
       0%   { opacity: 0; transform: translate3d(-18vw, 0, 0) scale(0.98); }
       45%  { opacity: 1; transform: translate3d(-7vw, 0, 0) scale(0.995); }
-      100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+      100% { opacity: 1; transform: none; }
     }
     /* Lock the start state via direct CSS so there's no flicker before animation runs */
     html.entering-from-hub body {
@@ -1137,7 +1137,7 @@ html[data-dark] .gi-navy { background: rgba(255,255,255,0.06); }
       will-change: transform, opacity;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
-      contain: layout paint style;
+      contain: paint style;
     }
     html.entering-from-hub { background: var(--bg); }
 
@@ -3125,7 +3125,7 @@ renderRecent(); // prime the counter badge on page load
       var body = document.body;
       body.style.transition = 'none';
       body.style.opacity = '1';
-      body.style.transform = 'translate3d(0, 0, 0) scale(1)';
+      body.style.transform = '';
       body.style.willChange = 'transform, opacity';
       body.style.backfaceVisibility = 'hidden';
       void body.offsetWidth;
@@ -3255,7 +3255,7 @@ renderRecent(); // prime the counter badge on page load
       var body = document.body;
       body.style.transition = 'none';
       body.style.opacity = '1';
-      body.style.transform = 'translate3d(0, 0, 0) scale(1)';
+      body.style.transform = '';
       body.style.willChange = 'transform, opacity';
       body.style.backfaceVisibility = 'hidden';
       void body.offsetWidth;

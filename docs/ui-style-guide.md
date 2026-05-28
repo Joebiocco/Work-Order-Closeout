@@ -300,6 +300,49 @@ Before finishing any new or modified page, verify:
 
 ---
 
+## Overlay & Toast Rules (permanent — do not violate)
+
+These rules prevent `position: fixed` overlays and toasts from breaking when the page is navigated to from the hub.
+
+### Root cause
+
+CSS animations with `animation-fill-mode: both` lock the final keyframe value at a higher cascade layer than inline styles. If the final keyframe is `transform: translate3d(0,0,0) scale(1)` (the identity), the browser still creates a **CSS containing block** for `position: fixed` descendants. All fixed children resolve relative to the body instead of the viewport during and after the animation. `transform: none` (the identity value written as the keyword) does **not** create a containing block.
+
+`contain: layout` has the same effect — it creates a containing block for fixed children. `contain: paint style` does not.
+
+### Rules
+
+1. **Final animation keyframes must use `transform: none`** — not `translate3d(0,0,0) scale(1)` or `scale(1)`. This applies to every entrance animation on every page (`slideInFromLeft`, `slideInFromRight`, `slideInLeft`, etc.).
+
+2. **Do not use `contain: layout` on `body`** — use `contain: paint style` instead. The `layout` value creates a containing block for `position: fixed` children.
+
+3. **JS back-navigation handlers: clear with `''` not identity** — when initializing the body position for a JS-driven exit animation, set `body.style.transform = ''` (empty string) not `'translate3d(0,0,0) scale(1)'`. The empty string removes any inline transform without creating a stacking context.
+
+4. **New overlays must be viewport-safe** — use `position: fixed` with explicit `top`/`bottom`/`left`/`right` (not `inset`) when safe-area-inset adjustments are needed. Prefer `inset: 0` only when no safe-area offset is required.
+
+5. **Prefer `100dvh` over `100vh`** — dynamic viewport height accounts for mobile browser chrome (address bar collapsing). Use `100dvh` for any modal max-height, overlay height, or full-screen container. Use `100vh` only for desktop-only rules where the distinction doesn't matter.
+
+6. **Toast containers: use `left: 50%` + `translateX(-50%)`** — never `right: Xpx`. This keeps toasts horizontally centered at any viewport width, including narrow phones and wide desktops.
+
+7. **Safe-area insets for toasts and modals** — bottom toasts must account for the home indicator on notched devices. Use `var(--ft-toast-bottom)` (defined in `field-ui.css`) instead of a raw `bottom: Npx` value. Override the variable locally if the page has a bottom nav (e.g. timesheet adds `--ft-toast-bottom: calc(var(--nav-h) + 14px)`).
+
+### Toast container shared CSS
+
+`css/field-ui.css` Section 7 provides shared `#toast-ct` / `.toast-ct` / `.ft-toast-container` positioning. Individual pages do not need to redeclare `position`, `left`, `bottom`, `transform`, `z-index`, or `width` for their toast container. Pages may override `align-items`, `gap`, or `--ft-toast-bottom` locally.
+
+### Pre-flight checklist for new pages
+
+Before shipping any new tool page, test at viewport widths **390px**, **430px**, and **1440px**:
+
+- [ ] Navigate from hub → page → back to hub. Do fixed-position toasts/overlays stay centered at the viewport during and after navigation?
+- [ ] Open a modal/overlay while scrolled halfway down the page. Does it center on the visible viewport (not the document)?
+- [ ] Show a toast while scrolled to the bottom of the page. Does it appear above the home indicator (or bottom nav)?
+- [ ] Trigger the back-navigation exit animation. Do any fixed elements jump or shift during the 320–360ms exit?
+- [ ] Test in both light and dark mode.
+- [ ] Test with the mobile browser address bar both expanded and collapsed (`100dvh` correctness).
+
+---
+
 ## One-off style exceptions (documented)
 
 | Page | Class | Reason not in field-ui.css |
