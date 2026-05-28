@@ -767,6 +767,10 @@ function saveTemplatesArr(arr) {
 
 function addTemplate(name, session) {
   var arr = loadTemplates();
+  if (arr.length >= DC144_MAX_TEMPLATES) {
+    showToast('Template limit reached (' + DC144_MAX_TEMPLATES + '). Delete a template to save a new one.', 'err', 5000);
+    return null;
+  }
   var entry = {
     id:        'tpl_' + Date.now(),
     name:      name,
@@ -789,7 +793,6 @@ function addTemplate(name, session) {
     };
   }
   arr.unshift(entry);
-  if (arr.length > DC144_MAX_TEMPLATES) arr = arr.slice(0, DC144_MAX_TEMPLATES);
   saveTemplatesArr(arr);
   return entry;
 }
@@ -829,7 +832,12 @@ function confirmSaveTemplate() {
     return;
   }
   if (input) input.style.borderColor = '';
-  addTemplate(name, currentSession);
+  var result = addTemplate(name, currentSession);
+  if (result === null) {
+    // addTemplate showed a toast explaining the cap; close modal so user can delete
+    closeTemplateModal();
+    return;
+  }
   closeTemplateModal();
   showToast('Template saved: ' + name, 'ok', 2400);
 }
@@ -3481,17 +3489,27 @@ function buildTemplatePanelRow(tpl) {
 }
 
 function applyTemplateFromPanel(tpl) {
+  function loadTemplate() {
+    // Templates with a known tab go directly to startNewSession — no picker needed.
+    // Legacy templates without a tab field fall back to the tab-picker overlay.
+    if (tpl.tab && TAB_META[tpl.tab]) {
+      startNewSession(tpl.tab, tpl);
+    } else {
+      showTemplateTabPicker(tpl);
+    }
+  }
+
   if (currentSession) {
     if (!confirm('Start a new form from this template? Your current report will be saved first.')) return;
     saveCurrentSessionNow({ silent: true }).then(function() {
       closeTemplatesPanel();
-      showTemplateTabPicker(tpl);
+      loadTemplate();
     }).catch(function() {
       showToast('Could not save current draft — template load cancelled', 'err');
     });
   } else {
     closeTemplatesPanel();
-    showTemplateTabPicker(tpl);
+    loadTemplate();
   }
 }
 
