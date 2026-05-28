@@ -2358,9 +2358,12 @@ function buildDc144WorkbookFromTemplate(wb, session) {
     throw new Error('Official DC-144 worksheet "' + sheetName + '" missing from template.');
   }
 
-  // Write values ONLY. Do not touch merges, borders, fonts, fills,
-  // alignments, column widths, row heights, images, or page setup.
+  // Write values and apply targeted alignment/width fixes.
   patchHeaderFields(ws, session);
+  patchColumnHeaders(ws, tab);
+  // Widen column 1 so label text ("Project Name:", "Contract ID/ DP#:", etc.)
+  // fits without overflowing into the value cells to its right.
+  try { ws.getColumn(1).width = (tab === 'b') ? 18 : 14; } catch(e) {}
   patchItemHeader(ws, session);
   patchDataRows(ws, session);
   patchRemarksFields(ws, session);
@@ -2489,15 +2492,16 @@ function embedInspectorSignature(wb, ws, session) {
     // Place at row of inspector name, offset 2 columns right of name cell.
     var anchorCol = (nameMap.c - 1) + 2; // 0-based
     var anchorRow = (nameMap.r - 1);     // 0-based
-    // Signature height in px — intentionally allowed to overflow into the blank
-    // spacer row below the inspector line (signatures descend below the baseline).
+    // Signature height in px. Starts one row above the inspector line so the
+    // bulk of the signature sits above the underline and descenders cross below,
+    // matching how handwritten signatures look on a printed baseline.
     // Width is derived from the stored canvas aspect ratio to avoid distortion.
     var sigW = session.inspectorSignatureWidth  || 400;
     var sigH = session.inspectorSignatureHeight || 100;
-    var embedH = 40;
+    var embedH = 48;
     var embedW = Math.max(60, Math.round(embedH * sigW / sigH));
     ws.addImage(imageId, {
-      tl:     { col: anchorCol, row: anchorRow },
+      tl:     { col: anchorCol, row: anchorRow - 1 },
       ext:    { width: embedW, height: embedH },
       editAs: 'oneCell'
     });
@@ -2703,6 +2707,13 @@ function pruneWorkbookToSelectedForm(wb, activeTab, includeAllForms) {
 // printed underline instead of sitting on it.
 var DC144_BOTTOM_ALIGN_HEADER_FIELDS = {};
 
+// contractId and contractor use narrow merged cells on all tabs so long
+// values would overflow into adjacent form content without wrapText.
+var DC144_WRAP_HEADER_FIELDS = {
+  contractId: true,
+  contractor: true
+};
+
 // Header fields that often contain wide user prose. shrinkToFit prevents
 // long text from clipping or pushing into adjacent cells.
 // Weather condition/temp fields are included so longer entries like
@@ -2735,6 +2746,14 @@ var DC144_CENTER_HEADER_FIELDS = {
   weatherPMLow:  true
 };
 
+// Convert a stored YYYY-MM-DD date string to MM/DD/YYYY for the Excel cell.
+// Used only at export time — the session always stores ISO format internally.
+function formatDateForExport(val) {
+  if (!val || !/^\d{4}-\d{2}-\d{2}$/.test(String(val))) return val;
+  var p = String(val).split('-');
+  return p[1] + '/' + p[2] + '/' + p[0];
+}
+
 function patchHeaderFields(ws, session) {
   var map = DC144_CELL_MAP[session.tab].header;
   var h   = session.header;
@@ -2742,19 +2761,43 @@ function patchHeaderFields(ws, session) {
     // Skip undefined or blank values — an empty write would erase the
     // template's printed label/underline text for that field.
     if (h[f] === undefined || h[f] === null || h[f] === '') return;
+    var rawVal       = (f === 'date') ? formatDateForExport(h[f]) : h[f];
     var needsShrink  = !!DC144_SHRINK_HEADER_FIELDS[f];
     var needsCenter  = !!DC144_CENTER_HEADER_FIELDS[f];
     var needsBottom  = !!DC144_BOTTOM_ALIGN_HEADER_FIELDS[f];
-    if (needsShrink || needsCenter || needsBottom) {
-      setCellValueReadable(ws, map[f].r, map[f].c, h[f], {
+    var needsWrap    = !!DC144_WRAP_HEADER_FIELDS[f];
+    if (needsShrink || needsCenter || needsBottom || needsWrap) {
+      setCellValueReadable(ws, map[f].r, map[f].c, rawVal, {
         shrink: needsShrink,
         center: needsCenter,
         middle: needsCenter,
-        bottom: needsBottom
+        bottom: needsBottom,
+        wrap:   needsWrap
       });
     } else {
-      setCellValue(ws, map[f].r, map[f].c, h[f]);
+      setCellValue(ws, map[f].r, map[f].c, rawVal);
     }
+  });
+}
+
+// Data-table column header rows per tab. Tabs C and D have two-row headers.
+var DC144_COLUMN_HEADER_ROWS = { a: [15], b: [14], c: [18, 19], d: [17, 18] };
+
+// Force vertical-middle on the column header row(s) so labels don't sit
+// pinned to the bottom of a tall header cell.
+function patchColumnHeaders(ws, tab) {
+  var rows = DC144_COLUMN_HEADER_ROWS[tab] || [];
+  rows.forEach(function(r) {
+    ws.getRow(r).eachCell({ includeEmpty: false }, function(cell) {
+      var ex = cell.alignment || {};
+      cell.alignment = {
+        horizontal:  ex.horizontal,
+        vertical:    'middle',
+        wrapText:    ex.wrapText,
+        shrinkToFit: ex.shrinkToFit,
+        indent:      ex.indent
+      };
+    });
   });
 }
 
