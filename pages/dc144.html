@@ -26,17 +26,13 @@
       }
     } catch (_) {}
   </script>
-  <!-- After page-load animation the body retains transform:translate3d(0,0,0)
-       from animation-fill-mode:both. That creates a stacking context which
-       makes position:fixed children (modals) size relative to the full
-       document height instead of the viewport — causing them to appear off-
-       screen when the user has scrolled. Clearing the transform after each
-       body animation ends restores correct fixed positioning. -->
+  <!-- Animation keyframes end with transform:none so fill-mode:both does not
+       lock in a transform stacking context on body. The willChange cleanup
+       below removes the GPU compositing hint once animations finish. -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       document.body.addEventListener('animationend', function(e) {
         if (e.target === document.body) {
-          document.body.style.transform = 'none';
           document.body.style.willChange = 'auto';
         }
       });
@@ -58,11 +54,11 @@
     /* ── Hub entry / exit animations ─────────────────────────────────────── */
     @keyframes pageFadeIn {
       from { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.99); }
-      to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+      to   { opacity: 1; transform: none; }
     }
     @keyframes slideInFromLeft {
       0%   { opacity: 0; transform: translate3d(-18vw, 0, 0) scale(0.98); }
-      100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+      100% { opacity: 1; transform: none; }
     }
     @keyframes slideOutLeft {
       0%   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
