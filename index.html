@@ -12,9 +12,9 @@
   <link rel="stylesheet" href="css/field-ui.css">
   <style>
     /* ===========================================================
-       HOMEPAGE — COMMAND CENTER DASHBOARD (mockup-faithful rebuild)
-       All command-center visuals are homepage-only and inline here.
-       LIGHT = white/navy command center · DARK = deep-navy mockup.
+       HOMEPAGE — FIELD TOOLS HUB DASHBOARD (mockup-faithful rebuild)
+       All hero/dashboard visuals are homepage-only and inline here.
+       LIGHT = white/navy theme · DARK = deep-navy mockup.
        Driven by html[data-dark] / field_dark_mode (do not break).
        =========================================================== */
     :root {
@@ -87,7 +87,7 @@
     }
     #topbar.header-hidden{transform:translateY(-100%);opacity:0;pointer-events:none;}
     .brand{display:flex;align-items:center;gap:11px;text-decoration:none;flex-shrink:0;}
-    .brand-seal{width:36px;height:36px;flex-shrink:0;display:block;}
+    .brand-seal{width:36px;height:36px;flex-shrink:0;display:block;border-radius:8px;border:1px solid rgba(229,179,59,0.45);}
     .brand-text{color:#f2f6fc;font-size:15.5px;font-weight:600;letter-spacing:.01em;white-space:nowrap;}
     .brand-text strong{font-weight:800;color:#fff;}
     .topnav{display:flex;align-items:center;gap:2px;margin-left:6px;}
@@ -96,9 +96,7 @@
     .topnav a.is-active{color:#fff;}
     .topnav a.is-active::after{content:"";display:block;height:2px;border-radius:2px;background:#E5B33B;margin-top:5px;}
     .topbar-spacer{flex:1;}
-    .status-pill{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;color:#cfe6d4;padding:6px 11px;border-radius:999px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.30);white-space:nowrap;flex-shrink:0;}
     .status-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,0.8);}
-    .ver-pill{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;font-weight:700;color:#9fb2cb;padding:5px 9px;border-radius:7px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.10);white-space:nowrap;flex-shrink:0;}
     .dark-toggle{display:inline-flex;align-items:center;gap:7px;background:rgba(229,179,59,0.12);border:1px solid rgba(229,179,59,0.34);border-radius:8px;height:34px;padding:0 11px;cursor:pointer;color:#E5B33B;font:inherit;font-size:12.5px;font-weight:700;flex-shrink:0;transition:background .2s,color .2s,border-color .2s;}
     .dark-toggle:hover{background:rgba(229,179,59,0.22);border-color:#E5B33B;color:#FEE9A1;}
     .dark-toggle svg{transition:opacity .18s,transform .24s;}
@@ -161,7 +159,6 @@
     .hero-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin-top:18px;}
     .chip{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--muted2);padding:6px 13px;border-radius:999px;background:var(--surface);border:1px solid var(--border);}
     .chip .status-dot{box-shadow:0 0 8px rgba(34,197,94,0.7);}
-    .chip-ver{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--muted);}
 
     /* ── Glass panel base ── */
     .panel{background:var(--panel);border:1px solid var(--glass-border);border-radius:var(--radius-lg);box-shadow:var(--shadow);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
@@ -262,18 +259,17 @@
     .page-footer{text-align:center;font-size:12px;color:var(--muted);padding:20px;}
     .version-stamp{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--muted);opacity:.7;}
 
-    /* ── Animations ── */
+    /* ── Animations ──
+       Whole page is present immediately; one quick page fade + a single short
+       hero rise. No staggered per-section/per-card delays (avoids the
+       "hero first, dashboard later" piecemeal feel). */
     @keyframes pageFadeIn{from{opacity:0;}to{opacity:1;}}
-    body{animation:pageFadeIn 460ms cubic-bezier(0.16,1,0.3,1);}
-    @keyframes heroRise{from{opacity:0;transform:translateY(15px);}to{opacity:1;transform:none;}}
-    .hero-inner>*{animation:heroRise 560ms cubic-bezier(0.16,1,0.3,1) backwards;}
-    .hero-inner>*:nth-child(1){animation-delay:40ms;} .hero-inner>*:nth-child(2){animation-delay:110ms;}
-    .hero-inner>*:nth-child(3){animation-delay:170ms;} .hero-inner>*:nth-child(4){animation-delay:230ms;}
-    .hero-inner>*:nth-child(5){animation-delay:300ms;} .hero-inner>*:nth-child(6){animation-delay:360ms;}
-    @keyframes cardRise{from{opacity:0;transform:translateY(12px) scale(.985);}to{opacity:1;transform:none;}}
-    .tool-card,.continue-card{animation:cardRise 480ms cubic-bezier(0.16,1,0.3,1) backwards;}
-    .module-tiles .tool-card:nth-child(2){animation-delay:70ms;} .module-tiles .tool-card:nth-child(3){animation-delay:140ms;}
-    html.theme-transitioning,html.theme-transitioning *,html.theme-transitioning *::before,html.theme-transitioning *::after{transition:background-color 420ms cubic-bezier(0.65,0,0.35,1),color 420ms cubic-bezier(0.65,0,0.35,1),border-color 420ms cubic-bezier(0.65,0,0.35,1),fill 420ms,stroke 420ms,box-shadow 420ms !important;}
+    body{animation:pageFadeIn 220ms ease-out;}
+    @keyframes heroRise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+    .hero-inner{animation:heroRise 360ms cubic-bezier(0.16,1,0.3,1) both;}
+    html.theme-transitioning,html.theme-transitioning *,html.theme-transitioning *::before,html.theme-transitioning *::after{transition:background-color 300ms ease,color 300ms ease,border-color 300ms ease,fill 300ms ease,stroke 300ms ease,box-shadow 300ms ease !important;}
+    /* Large hero images swap instantly on theme toggle — never transition filter/opacity (avoids jank) */
+    html.theme-transitioning .hero-bridge,html.theme-transitioning .hero-nj{transition:none !important;}
     button:active,.tool-card:active,.continue-card:active,.install-btn:active,.install-trigger:active,.dark-toggle:active{transform:scale(.97)!important;transition:transform 80ms ease-out!important;}
     @keyframes pageOutRight{0%{opacity:1;transform:translate3d(0,0,0) scale(1);}50%{opacity:0;transform:translate3d(15vw,0,0) scale(.98);}100%{opacity:0;transform:translate3d(20vw,0,0) scale(.97);}}
     html.exiting-to-tool body{animation:pageOutRight 260ms cubic-bezier(0.4,0,0.2,1) both!important;overflow:hidden;will-change:transform,opacity;transform-origin:center center;backface-visibility:hidden;}
@@ -317,7 +313,7 @@
     @media (max-width:760px){
       .content{padding:0 14px 44px;}
       #topbar{height:56px;padding:0 14px;gap:10px;}
-      .ver-pill,.dark-toggle .dt-label{display:none;}
+      .dark-toggle .dt-label{display:none;}
       .dark-toggle{padding:0;width:34px;justify-content:center;}
       .install-trigger .it-label{display:none;} .install-trigger{padding:0;width:36px;justify-content:center;}
       .hero{min-height:400px;padding:46px 16px;margin:12px 0 16px;border-radius:16px;}
@@ -338,7 +334,6 @@
       .util-strip{grid-template-columns:1fr;}
     }
     @media (max-width:430px){
-      .status-pill{display:none;}
       .hero-title{font-size:26px;}
       .hero{min-height:370px;}
       .hero-bridge{opacity:.45;}
@@ -361,16 +356,9 @@
 <div class="header-hover-zone"></div>
 
 <div id="topbar">
-  <a class="brand" href="#top" aria-label="NJDOT Field Tools Hub — Home">
-    <svg class="brand-seal" viewBox="0 0 40 40" aria-hidden="true">
-      <circle cx="20" cy="20" r="18.5" fill="#0c1d35" stroke="#E5B33B" stroke-width="2"/>
-      <circle cx="20" cy="20" r="13.5" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="1"/>
-      <path d="M9 25 H31" stroke="#8fd0ff" stroke-width="1.4" stroke-linecap="round"/>
-      <path d="M11 25 V20 L20 14 L29 20 V25" fill="none" stroke="#8fd0ff" stroke-width="1.4" stroke-linejoin="round"/>
-      <path d="M15 25 V20 M25 25 V20" stroke="#8fd0ff" stroke-width="1.1"/>
-      <circle cx="20" cy="11.2" r="1.5" fill="#E5B33B"/>
-    </svg>
-    <span class="brand-text"><strong>NJDOT</strong> Field Tools Hub</span>
+  <a class="brand" href="#top" aria-label="Field Tools Hub — Home">
+    <img class="brand-seal" src="icons/icon.svg" width="36" height="36" alt="Field Tools" decoding="async">
+    <span class="brand-text">Field Tools <strong>Hub</strong></span>
   </a>
   <nav class="topnav" aria-label="Primary">
     <a href="#top" class="is-active">Home</a>
@@ -380,8 +368,6 @@
     <a href="#resources">Resources</a>
   </nav>
   <div class="topbar-spacer"></div>
-  <span class="status-pill" title="All tools work offline once loaded"><span class="status-dot"></span>All Systems Operational</span>
-  <span class="ver-pill">v1.27</span>
   <button id="dark-toggle" class="dark-toggle" title="Toggle dark mode" aria-label="Toggle dark mode">
     <svg id="dark-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     <span class="dt-label">Dark</span>
@@ -415,9 +401,9 @@
       </div>
     </div>
     <div class="hero-inner">
-      <span class="hero-eyebrow">NJDOT · Field Operations Command Center</span>
+      <span class="hero-eyebrow">Field Operations Tools</span>
       <h1 class="hero-title">Field Tools Hub</h1>
-      <p class="hero-subtitle">Bridge. Roadway. Documentation. Reporting.</p>
+      <p class="hero-subtitle">Bridge lookup, roadway tools, documentation, and reporting</p>
       <p class="hero-lead">Everything you need in the field—connected, current, and ready.</p>
       <form class="command-bar" role="search" onsubmit="return false;">
         <label class="sr-only" for="tool-filter">Search tools</label>
@@ -428,8 +414,6 @@
       <div class="hero-chips">
         <span class="chip"><span class="status-dot"></span>Offline Ready</span>
         <span class="chip">Local Saves</span>
-        <span class="chip">Mobile Optimized</span>
-        <span class="chip chip-ver">v1.27</span>
       </div>
     </div>
   </header>
@@ -465,7 +449,7 @@
         <a href="pages/njfuel.html" class="tool-card" data-tags="fuel station finder gas diesel nearest distance gps bookmarks">
           <div class="card-top"><div class="card-icon card-icon-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="11" height="17" rx="2"/><path d="M3 10h11"/><path d="M14 7h1.5a2 2 0 0 1 2 2v4.5a1.5 1.5 0 0 0 3 0V9l-2-2.5"/></svg></div></div>
           <div class="card-title">Fuel Finder</div>
-          <div class="card-desc">Nearest NJDOT fuel stations sorted by distance from your location.</div>
+          <div class="card-desc">Nearest fleet fuel stations sorted by distance from your location.</div>
           <div class="card-foot"><span class="card-tag tag-fuel">GPS</span><svg class="card-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div>
         </a>
         <a href="pages/milemarker.html" class="tool-card" data-tags="milepost milemarker road interstate us state county route gps">
@@ -722,6 +706,17 @@
   })();
 
   if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js').catch(function(){});}
+
+  // Preload the opposite theme's hero assets (during idle) so the light/dark
+  // toggle swaps instantly and never waits on image loading.
+  (function(){
+    function preload(){
+      ['assets/hero/bridge-dark.webp','assets/hero/bridge-light.webp','assets/hero/nj-dark.webp','assets/hero/nj-light.webp']
+        .forEach(function(src){ var i=new Image(); i.decoding='async'; i.src=src; });
+    }
+    if('requestIdleCallback' in window){ requestIdleCallback(preload,{timeout:2500}); }
+    else { window.addEventListener('load', function(){ setTimeout(preload, 500); }); }
+  })();
 
   // Hub→tool transition
   document.querySelectorAll('.tool-card, .continue-card').forEach(function(card){

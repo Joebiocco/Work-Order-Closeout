@@ -552,7 +552,7 @@ Custom events tracked:
 
 ## 9.5 Naming convention — IMPORTANT
 
-**Homepage / product branding (approved 2026-05-29) uses "Hub".** The homepage (`index.html`) intentionally brands as **"NJDOT Field Tools Hub"** (topbar wordmark) and **"Field Tools Hub"** (hero title). This is the approved product identity for the command-center homepage — do not strip "Hub" from the homepage wording.
+**Homepage / product branding (approved 2026-05-29) uses "Hub", NOT official agency wording.** The homepage (`index.html`) brands as **"Field Tools Hub"** (topbar wordmark + hero title). Per the 2026-05-29 wording cleanup, the homepage must **NOT** display **"NJDOT"**, **"New Jersey Department of Transportation"**, **"Department of Transportation"**, "official", or "state agency" — it is a polished field-tools product, not an official agency site. The hero eyebrow is **"Field Operations Tools"**. Functional geographic context is fine (e.g. "Search NJ bridges", "NJ State" route class) — the goal is removing *agency branding*, not useful field context. The brand mark (`icons/icon.svg`) is a generic field/bridge mark, never labeled as the NJDOT logo.
 
 **Tool pages still avoid "Hub" in visible text** — the original concern was that bare "Hub" felt off-brand inside the tools. On tool pages (`pages/*.html`), **DO NOT use the word "Hub" in:**
 - Page titles
@@ -569,9 +569,9 @@ Custom events tracked:
 - CSS comment headers like `/* Hub-to-tool transition */` — fine to keep
 
 **Visible text to use:**
-- Homepage site name / branding: **"NJDOT Field Tools Hub"** / **"Field Tools Hub"** (approved)
+- Homepage site name / branding: **"Field Tools Hub"** (no "NJDOT" / agency wording — updated 2026-05-29)
 - Back button on tools: **"Home"**
-- App / manifest name: **"NJDOT Field Tools"** (manifest unchanged)
+- App / manifest name: **"NJDOT Field Tools"** (manifest unchanged — internal, not visible homepage text)
 
 ## 10. Convention Cheatsheet
 
