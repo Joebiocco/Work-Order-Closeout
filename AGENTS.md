@@ -28,7 +28,7 @@
 
 > **Purpose:** This file is the authoritative quick-reference for the NJDOT Field Tools project. Read this FIRST before reading any HTML file. It contains every architectural decision, storage key, design token, and critical constraint so we can make changes without re-reading 6,800+ lines of HTML.
 >
-> **Last updated:** 2026-05-26 · v1.18
+> **Last updated:** 2026-05-29 · v1.27 (homepage command-center redesign — version NOT bumped pending push)
 >
 > **Live site:** `https://joebiocco.github.io/NJDOT-Field-Tools-Hub/`
 > **Repo:** `https://github.com/Joebiocco/NJDOT-Field-Tools-Hub` (renamed from `Work-Order-Closeout`)
@@ -58,7 +58,7 @@ A static internal PWA for NJ DOT field workers, hosted on GitHub Pages. **No bac
 
 ```
 Work Order Website/
-├── index.html                       # Hub (1,042 lines) — tool grid, dark toggle, install/bookmark popup
+├── index.html                       # Homepage — command-center dashboard (hero + grouped tool sections, Continue, utility strip), dark toggle, install/bookmark popup. All command-center visuals are inline. See §7 "Homepage (command center)".
 ├── manifest.json                    # PWA manifest, theme_color
 ├── service-worker.js                # Offline cache, network-first HTML
 ├── push.bat                         # Local helper: git add/commit/push
@@ -341,6 +341,32 @@ Existing users get the new SW on their next visit; old cache is auto-deleted on 
 
 ## 7. Critical UI Patterns
 
+### Homepage (command center) — `index.html`
+
+The homepage is a **command-center dashboard**. Light and dark are the **same visual identity**, not two unrelated designs:
+
+- **Light mode** = white / light navy-gray command center. Subtle blueprint grid, softer navy/blue Pulaski Skyway wireframe, lighter NJ outline/network with a soft blue/cyan node glow, white/glass cards with navy text, soft blue-gray shadows + thin borders. Premium, **not** a plain white website.
+- **Dark mode** = deep navy command center (the approved mockup). Cyan blueprint grid + radar rings, brighter cyan-glowing NJ nodes, translucent dark glass cards, blue/cyan/gold/purple accents.
+
+Themes are driven by the existing `html[data-dark]` / `field_dark_mode` toggle. **All homepage tokens are overridden locally in `index.html`** (`:root` for light, `html[data-dark]` for dark) — the homepage does NOT use field-ui's gold-on-near-black dark tokens. Tool pages are unchanged.
+
+**Structure (top → bottom):** product topbar (SVG bridge mark + "NJDOT Field Tools Hub", nav anchors Home/Tools/Resources, "Offline Ready" status pill, version pill, dark toggle, install/bookmark) → hero (blueprint grid + radial glow + 3 radar rings + Pulaski Skyway wireframe left + NJ network right + centered title/subtitle/lead + command search bar + status chips) → Continue → grouped tool sections (Field Operations / Documentation / Time & Admin / Coming Soon) → bottom utility strip (Quick Links / Resources / Status) → footer.
+
+**Decorative visuals (homepage-only, kept inline — do NOT move to field-ui.css unless reused):**
+- **Pulaski Skyway wireframe:** hand-authored inline `<svg>` (cantilever-truss: deck + two-hump top chord + verticals + bay diagonals + 3 piers + waterline), thin `currentColor` strokes at low-alpha token (`--wire`/`--wire-strong`), `aria-hidden`. Labels: **"PULASKI SKYWAY" / "STRUCTURE NO. 0901-150" / "CANTILEVER TRUSS BRIDGE"**.
+- **NJ outline/network:** inline `<svg>` — approximate NJ outline `<path class="nj-outline-path">`, connecting `<line class="nj-link">`, and `<circle class="nj-node">` (+ `.is-major`). Micro-labels: compass **N ↑**, **LAT 40.2206 / LON -74.7699**.
+- **Node glow:** SVG `filter: drop-shadow()` using `--node-glow` (subtle blue in light, stronger cyan in dark) + `@keyframes njPulse` (opacity only) on `.nj-node` with staggered `nth-of-type` delays. Restrained; `prefers-reduced-motion` makes nodes static.
+- **Blueprint grid / hero glow / radar rings:** pure CSS (repeating linear-gradients for grid, radial-gradients for glow, bordered circles for rings).
+- **No heavy image assets.** The old 440 KB base64 PNG wordmark was removed (2026-05-29) and replaced by a themed inline SVG bridge mark; it was referenced only on the homepage.
+
+**Continue section — real local data only (read-only; NO new storage keys, NO fabricated activity):** sources are `ft_last` (last opened → also stamps a "RECENT" chip on that tool card), newest `ft_dc144_recent`, newest `wo_recent`, and `ft_ts_entries` (count + last date). Up to 4 cards. Empty fallback shows "Your recent tools will appear here" + clearly labeled **"Open"** shortcuts (never shown as recent activity).
+
+**Search:** the hero command bar is the existing `#tool-filter` input — filters `.tool-card` by text + `data-tags`, shows `#tools-empty` only after a non-empty query yields 0. Empty tool-groups hide while filtering; `body.is-searching` hides Continue/utility/footer to focus results; `/` key focuses search.
+
+**Real links only:** Quick Links point to real tool pages. Resources (Field Manual / Standards / Training) have no destinations yet → rendered as disabled non-clickable `.util-soon` placeholders, never fake `<a>`. Drainage Finder + Emergency Assistance stay disabled `.is-soon` "Coming Soon" cards (no `href`).
+
+**Animation safety (must hold):** final keyframes end with `transform: none` (never the identity `translate3d(0,0,0) scale(1)`). Do NOT put `transform`/`contain: layout`/`will-change`/`filter`/`perspective` on `body`/`html`/the main shell — only the documented transient `returning-from-tool`/`exiting-to-tool` body classes and `contain: paint style`. Fixed overlays/banners (install banner, update banner, install dropdown) must resolve to the viewport. See §11 and `docs/ui-style-guide.md` Overlay & Toast Rules.
+
 ### Standard map frame
 
 - Leaflet maps should use the Bridge Navigator framed-map treatment unless a task explicitly says otherwise.
@@ -479,9 +505,11 @@ Custom events tracked:
 
 ## 9.5 Naming convention — IMPORTANT
 
-The user has asked that the visible label "Hub" be replaced with "Home" or "Field Tools" throughout the UI. Reason: the original "Hub" wording felt off-brand. **DO NOT use the word "Hub" in:**
+**Homepage / product branding (approved 2026-05-29) uses "Hub".** The homepage (`index.html`) intentionally brands as **"NJDOT Field Tools Hub"** (topbar wordmark) and **"Field Tools Hub"** (hero title). This is the approved product identity for the command-center homepage — do not strip "Hub" from the homepage wording.
+
+**Tool pages still avoid "Hub" in visible text** — the original concern was that bare "Hub" felt off-brand inside the tools. On tool pages (`pages/*.html`), **DO NOT use the word "Hub" in:**
 - Page titles
-- Button labels
+- Button labels (back button stays "Home")
 - Heading text
 - Banner / dropdown text
 - Commit messages or release notes
@@ -494,9 +522,9 @@ The user has asked that the visible label "Hub" be replaced with "Home" or "Fiel
 - CSS comment headers like `/* Hub-to-tool transition */` — fine to keep
 
 **Visible text to use:**
-- Site name: **"Field Tools"** (no "Hub")
+- Homepage site name / branding: **"NJDOT Field Tools Hub"** / **"Field Tools Hub"** (approved)
 - Back button on tools: **"Home"**
-- App / manifest name: **"NJDOT Field Tools"**
+- App / manifest name: **"NJDOT Field Tools"** (manifest unchanged)
 
 ## 10. Convention Cheatsheet
 
