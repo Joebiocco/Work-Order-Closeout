@@ -359,6 +359,8 @@ Driven by the existing `html[data-dark]` / `field_dark_mode` toggle. The homepag
 - **Blueprint grid / hero glow / radar rings** — pure CSS gradients + bordered circles.
 - **No heavy image assets.** The old 440 KB base64 PNG wordmark was removed and replaced by a themed inline SVG bridge mark.
 
+**Grouped color system (homepage-only, 2026-05-29):** each dashboard group uses one accent family — **Field Operations** teal/green-blue (`card-icon-teal`/`tag-teal`, green, `card-icon-cyan`/`tag-cyan`), **Documentation** purple/indigo (`card-icon-purple`/`tag-violet`, indigo), **Time & Admin** gold (`card-icon-gold`/`tag-gold`), **Coming Soon** muted (`.grp-soon .card-icon` forces neutral). The Continue panel's `ICLASS` map mirrors these so recent-tool cards match their group. This intentionally diverges from per-tool brand colors (see CLAUDE.md §4) until Phase 2 — do not revert it as a "fix".
+
 **Content rules:**
 - **Continue** uses real existing local data only (`ft_last`, `ft_dc144_recent`, `wo_recent`, `ft_ts_entries`), read-only, **no new storage keys, no fabricated recent activity**. Empty → graceful message + clearly labeled "Open" shortcuts.
 - **No fake links.** Resources with no destination render as disabled `.util-soon` placeholders; Coming Soon tools stay disabled `.is-soon` cards with no `href`.

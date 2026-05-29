@@ -242,6 +242,8 @@ html[data-dark] {
 
 ### Brand / Accent palette (NOT in CSS vars — hardcoded throughout)
 
+> **Homepage uses a GROUPED color system (2026-05-29), which intentionally DIVERGES from the per-tool brand colors below.** On `index.html` each dashboard group shares one accent family: **Field Operations = teal/green-blue** (Bridge `card-icon-teal`/`tag-teal`, Fuel green, Milepost `card-icon-cyan`/`tag-cyan`), **Documentation = purple/indigo** (Work Order `card-icon-purple`/`tag-violet`, DC-144 indigo), **Time & Admin = gold** (Payroll `card-icon-gold`/`tag-gold`), **Coming Soon = muted** (`.grp-soon .card-icon` forces neutral, overriding cyan/rose). This grouped identity is **homepage-only** and is NOT a bug — the per-tool brand colors below still apply to the tool pages themselves until Phase 2 styling aligns them. Do not "fix" the divergence by reverting the homepage to per-tool colors.
+
 | Role | Light mode hex | Dark mode hex | Notes |
 |---|---|---|---|
 | **Header accent** | `#E5B33B` (saffron gold) | same | Topbar bottom border, hub-back pill, dark toggle, install trigger |
@@ -395,7 +397,8 @@ Themes are driven by the existing `html[data-dark]` / `field_dark_mode` toggle. 
 - **NJ outline/network:** inline `<svg>` — approximate NJ outline `<path class="nj-outline-path">`, connecting `<line class="nj-link">`, and `<circle class="nj-node">` (+ `.is-major`). Micro-labels: compass **N ↑**, **LAT 40.2206 / LON -74.7699**.
 - **Node glow:** SVG `filter: drop-shadow()` using `--node-glow` (subtle blue in light, stronger cyan in dark) + `@keyframes njPulse` (opacity only) on `.nj-node` with staggered `nth-of-type` delays. Restrained; `prefers-reduced-motion` makes nodes static.
 - **Blueprint grid / hero glow / radar rings:** pure CSS (repeating linear-gradients for grid, radial-gradients for glow, bordered circles for rings).
-- **No heavy image assets.** The old 440 KB base64 PNG wordmark was removed (2026-05-29) and replaced by a themed inline SVG bridge mark; it was referenced only on the homepage.
+- **No heavy image assets.** The old 440 KB base64 PNG wordmark was removed (2026-05-29) and replaced by a themed inline SVG bridge mark; it was referenced only on the homepage. The homepage brand mark is the generic `icons/icon.svg` (never labeled the NJDOT logo).
+- **Agency-logo removal across tool headers (2026-05-29):** the base64 agency-style bridge logo `<img>` was removed from the headers of `njsearch.html` (`#page-logo`), `njfuel.html` (`#page-logo`), and `WorkOrderCloseout.html` (`#topbar-logo`), along with their `.src` injector JS (so no null-ref errors). Milepost/Timesheet/DC-144 never had a header logo. **`WorkOrderCloseout.html` keeps `LOGO_SRC_VAR`** because the **PDF export** (`.pdf-logo`) still uses it — only the header `<img>` + header injector were removed. Tool headers now show back-pill + title only (option A).
 
 **Continue section — real local data only (read-only; NO new storage keys, NO fabricated activity):** sources are `ft_last` (last opened → also stamps a "RECENT" chip on that tool card), newest `ft_dc144_recent`, newest `wo_recent`, and `ft_ts_entries` (count + last date). Up to 4 cards. Empty fallback shows "Your recent tools will appear here" + clearly labeled **"Open"** shortcuts (never shown as recent activity).
 

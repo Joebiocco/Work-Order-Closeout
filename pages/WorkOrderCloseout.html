@@ -940,7 +940,6 @@ html[data-dark] .gi-navy { background: rgba(255,255,255,0.06); }
     padding: 5px 9px 5px 7px;
     font-size: 11px;
   }
-  #topbar-logo { height: 32px !important; }
   .brand-title { font-size: 14px; }
   .topbar-actions {
     gap: 4px;
@@ -1174,7 +1173,6 @@ html[data-dark] .gi-navy { background: rgba(255,255,255,0.06); }
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         Home
       </a>
-      <img id="topbar-logo" alt="" style="height:38px;width:auto;object-fit:contain;flex-shrink:0;" />
       <div>
         <div class="brand-title">Work Order Closeout</div>
         <div class="brand-sub">Field Documentation System</div>
@@ -3099,7 +3097,6 @@ if ('serviceWorker' in navigator && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(l
   var input = document.getElementById('direction');
   if (sel && input) input.value = sel.value;
 })();
-document.getElementById('topbar-logo').src = LOGO_SRC_VAR;
 // Last used tracking
 try { localStorage.setItem('ft_last', 'closeout'); } catch(e) {}
 if (pagesContainer.querySelectorAll('.page-block').length) {
