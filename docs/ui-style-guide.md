@@ -343,10 +343,38 @@ Before shipping any new tool page, test at viewport widths **390px**, **430px**,
 
 ---
 
+## Homepage command-center pattern (`index.html`)
+
+The homepage is the one **command-center dashboard** in the app. It is the visual exception to "match Bridge/Fuel" — tool pages still follow the standard shell, but the homepage has its own richer identity. Both themes are the **same command-center concept**, just light vs. navy:
+
+- **Light mode** = white / light navy-gray command center: subtle blueprint grid, softer navy/blue Pulaski Skyway wireframe, lighter NJ outline/network with a soft blue/cyan node glow, white/glass cards with navy text, soft blue-gray shadows + thin borders. Premium — **not** a plain white site.
+- **Dark mode** = deep navy command center (approved mockup): cyan blueprint grid + radar rings, brighter cyan-glowing NJ nodes, translucent dark glass cards, blue/cyan/gold/purple accents.
+
+Driven by the existing `html[data-dark]` / `field_dark_mode` toggle. The homepage **overrides all its tokens locally** in `index.html` (`:root` light, `html[data-dark]` dark) — it does not inherit field-ui's gold-on-near-black dark tokens. Do not let the toggle feel broken: both modes must look finished.
+
+**Homepage-specific visuals stay inline in `index.html`** (not in `field-ui.css`) unless they become reusable across pages:
+- **Pulaski Skyway wireframe** — inline `<svg>` (cantilever-truss linework), thin `currentColor` strokes at low-alpha tokens, `aria-hidden`. Labels must read **"PULASKI SKYWAY" / "STRUCTURE NO. 0901-150" / "CANTILEVER TRUSS BRIDGE"**.
+- **NJ outline/network** — inline `<svg>`: `.nj-outline-path`, `.nj-link` connectors, `.nj-node` circles (+ `.is-major`). Micro-labels: compass N, LAT/LON.
+- **Glowing nodes** — SVG `drop-shadow()` (`--node-glow`: subtle blue in light, stronger cyan in dark) + `@keyframes njPulse` (opacity only) on `.nj-node`, staggered, restrained; static under `prefers-reduced-motion`.
+- **Blueprint grid / hero glow / radar rings** — pure CSS gradients + bordered circles.
+- **No heavy image assets.** The old 440 KB base64 PNG wordmark was removed and replaced by a themed inline SVG bridge mark.
+
+**Grouped color system (homepage-only, 2026-05-29):** each dashboard group uses one accent family — **Field Operations** teal/green-blue (`card-icon-teal`/`tag-teal`, green, `card-icon-cyan`/`tag-cyan`), **Documentation** purple/indigo (`card-icon-purple`/`tag-violet`, indigo), **Time & Admin** gold (`card-icon-gold`/`tag-gold`), **Coming Soon** muted (`.grp-soon .card-icon` forces neutral). The Continue panel's `ICLASS` map mirrors these so recent-tool cards match their group. This intentionally diverges from per-tool brand colors (see CLAUDE.md §4) until Phase 2 — do not revert it as a "fix".
+
+**Content rules:**
+- **Continue** uses real existing local data only (`ft_last`, `ft_dc144_recent`, `wo_recent`, `ft_ts_entries`), read-only, **no new storage keys, no fabricated recent activity**. Empty → graceful message + clearly labeled "Open" shortcuts.
+- **No fake links.** Resources with no destination render as disabled `.util-soon` placeholders; Coming Soon tools stay disabled `.is-soon` cards with no `href`.
+- **Search** reuses `#tool-filter` / `.tool-card` / `#tools-empty` — no "no results" before typing.
+
+**Animation safety** (same as Overlay & Toast Rules): final keyframes end `transform: none`; never put `transform`/`contain: layout`/`will-change`/`filter`/`perspective` on `body`/`html`/main shell; fixed overlays must resolve to the viewport.
+
+---
+
 ## One-off style exceptions (documented)
 
 | Page | Class | Reason not in field-ui.css |
 |---|---|---|
+| `index.html` | command-center visuals (`.hero-*`, `.nj-*`, `.hero-bridge`, `.tool-card` glass, `.continue-*`, `.util-*`) | Homepage-only command-center identity + local light/dark token overrides; not reused by tool pages |
 | `njsearch.html` | `.btn-primary` | Slightly different padding/gap from ft-btn; bridge-specific hover variants |
 | `njfuel.html` | `.btn-primary` | Uses `:not(:disabled):hover` to handle disabled locate button |
 | `timesheet.html` | `.hub-back` | Uses local CSS vars `var(--gold)` for consistency with bottom-nav gold palette |

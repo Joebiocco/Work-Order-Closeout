@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>DC-144 Field Form — NJDOT Field Tools</title>
+  <title>DC-144 Field Form — Field Tools</title>
   <meta name="theme-color" content="#E5B33B">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,6 +16,7 @@
       document.documentElement.setAttribute('data-dark', '');
     }
   </script>
+  <style>html{background:#eef0f4}html[data-dark]{background:#0f1117}</style>
   <!-- Hub entry animation — checks sessionStorage flag set by hub card click -->
   <script>
     try {
@@ -67,13 +68,13 @@
     }
     html.entering-from-hub body {
       opacity: 0; transform: translate3d(-18vw, 0, 0) scale(0.98);
-      animation: slideInFromLeft 380ms cubic-bezier(0.22, 1, 0.36, 1) both !important;
+      animation: slideInFromLeft 360ms cubic-bezier(0.22, 1, 0.36, 1) both !important;
       will-change: transform, opacity; backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
     }
     html.entering-from-hub { background: var(--bg); }
     html.exiting-to-hub body {
-      animation: slideOutLeft 360ms cubic-bezier(0.65, 0, 0.35, 1) both !important;
+      animation: slideOutLeft 300ms cubic-bezier(0.65, 0, 0.35, 1) both !important;
       overflow: hidden; will-change: transform, opacity;
       backface-visibility: hidden; -webkit-backface-visibility: hidden;
       contain: paint style;
@@ -1254,7 +1255,7 @@
     </button>
     <div class="topbar-div" aria-hidden="true"></div>
     <span id="topbar-title">DC-144 Field Form</span>
-    <span class="state-badge">NJ DOT</span>
+    <span class="state-badge">NJ</span>
     <div class="topbar-spacer"></div>
     <button id="topbar-export-btn" class="btn-export" style="display:none;" onclick="handleExport()" aria-label="Export to Excel">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1487,7 +1488,7 @@
           </div>
           <div class="guide-slide-body">
             <div class="guide-slide-title">Export to Excel</div>
-            <div class="guide-slide-text">Tap <strong>Export XLSX</strong> when you're ready. A review modal shows any missing fields. Confirm to download the official NJDOT DC-144 workbook with your data, signature, and a Photo Appendix tab.</div>
+            <div class="guide-slide-text">Tap <strong>Export XLSX</strong> when you're ready. A review modal shows any missing fields. Confirm to download the DC-144 workbook with your data, signature, and a Photo Appendix tab.</div>
           </div>
         </div>
 

@@ -14,12 +14,13 @@
     /* Design tokens + body base + topbar shell now in ../css/field-ui.css */
     /* milemarker overrides: --text in dark mode is f1f5f9 (not FEE9A1) — kept here */
     html[data-dark] { --text:#f1f5f9; --muted:#94a3b8; }
-    body { min-height:100vh; animation:pageFadeIn 460ms cubic-bezier(0.16,1,0.3,1); }
+    body { min-height:100vh; }
+    html:not(.entering-from-hub):not(.exiting-to-hub) body { animation:pageFadeIn 360ms cubic-bezier(0.16,1,0.3,1); }
     @keyframes pageFadeIn { from { opacity:0; } to { opacity:1; } }
     @keyframes slideInLeft { 0% { opacity:0; transform:translate3d(-18vw,0,0) scale(0.98); } 100% { opacity:1; transform:none; } }
     @keyframes slideOutLeft { 0% { opacity:1; transform:translate3d(0,0,0) scale(1); } 50% { opacity:0; transform:translate3d(-30vw,0,0) scale(0.98); } 100% { opacity:0; transform:translate3d(-40vw,0,0) scale(0.97); } }
-    html.entering-from-hub body { opacity:0; transform:translate3d(-18vw,0,0) scale(0.98); animation:slideInLeft 380ms cubic-bezier(0.22,1,0.36,1) both !important; will-change:transform,opacity; }
-    html.exiting-to-hub body { animation:slideOutLeft 360ms cubic-bezier(0.65,0,0.35,1) both !important; overflow:hidden; will-change:transform,opacity; }
+    html.entering-from-hub body { opacity:0; transform:translate3d(-18vw,0,0) scale(0.98); animation:slideInLeft 360ms cubic-bezier(0.22,1,0.36,1) both !important; will-change:transform,opacity; }
+    html.exiting-to-hub body { animation:slideOutLeft 300ms cubic-bezier(0.65,0,0.35,1) both !important; overflow:hidden; will-change:transform,opacity; }
 
     /* Topbar shell from field-ui.css; local overrides: 54px height, 16px padding, 12px gap */
     #topbar { position:sticky; top:0; z-index:600; height:54px; padding:0 16px; gap:12px; }
@@ -147,6 +148,7 @@
   <script>
     try {
       if (localStorage.getItem('field_dark_mode') === '1') document.documentElement.setAttribute('data-dark', '');
+      var ftpp=document.createElement('style');ftpp.textContent='html{background:#eef0f4}html[data-dark]{background:#0f1117}';document.head.appendChild(ftpp);
       if (sessionStorage.getItem('ft_opening_from_hub') === '1') {
         document.documentElement.classList.add('entering-from-hub');
         sessionStorage.removeItem('ft_opening_from_hub');
@@ -281,10 +283,10 @@
       body.style.willChange = 'transform, opacity';
       body.style.backfaceVisibility = 'hidden';
       void body.offsetWidth;
-      body.style.transition = 'opacity 320ms cubic-bezier(0.65, 0, 0.35, 1), transform 320ms cubic-bezier(0.65, 0, 0.35, 1)';
+      body.style.transition = 'opacity 300ms cubic-bezier(0.65, 0, 0.35, 1), transform 300ms cubic-bezier(0.65, 0, 0.35, 1)';
       body.style.opacity = '0';
       body.style.transform = 'translate3d(-30vw, 0, 0) scale(0.97)';
-      setTimeout(function() { window.location.href = link.href; }, 340);
+      setTimeout(function() { window.location.href = link.href; }, 300);
     });
   }
 
@@ -600,12 +602,15 @@
       body.style.willChange = 'transform, opacity';
       body.style.backfaceVisibility = 'hidden';
       void body.offsetWidth;
-      body.style.transition = 'opacity 320ms cubic-bezier(0.65, 0, 0.35, 1), transform 320ms cubic-bezier(0.65, 0, 0.35, 1)';
+      body.style.transition = 'opacity 300ms cubic-bezier(0.65, 0, 0.35, 1), transform 300ms cubic-bezier(0.65, 0, 0.35, 1)';
       body.style.opacity = '0';
       body.style.transform = 'translate3d(-30vw, 0, 0) scale(0.97)';
-      setTimeout(function() { window.location.href = '../index.html'; }, 340);
+      setTimeout(function() { window.location.href = '../index.html'; }, 300);
     });
     window.addEventListener('pageshow', function(e) {
+      // Clear any exit-transition inline styles left on body (bfcache restore)
+      var b = document.body;
+      if (b) { b.style.transition=''; b.style.opacity=''; b.style.transform=''; b.style.willChange=''; b.style.backfaceVisibility=''; }
       if (e.persisted && (!history.state || !history.state.ftDummy)) {
         history.pushState({ ftDummy: true }, '');
         backNavigating = false;

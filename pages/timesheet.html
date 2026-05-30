@@ -34,11 +34,11 @@
 
     /* ── Animations ── */
     @keyframes pageFadeIn { from{opacity:0} to{opacity:1} }
-    body { animation:pageFadeIn 460ms cubic-bezier(0.16,1,0.3,1); }
+    html:not(.entering-from-hub):not(.exiting-to-hub) body { animation:pageFadeIn 360ms cubic-bezier(0.16,1,0.3,1); }
     @keyframes slideInLeft { from{opacity:0;transform:translate3d(-18vw,0,0) scale(0.98)} to{opacity:1;transform:none} }
-    html.entering-from-hub body { opacity:0; transform:translate3d(-18vw,0,0) scale(0.98); animation:slideInLeft 380ms cubic-bezier(0.22,1,0.36,1) both !important; will-change:transform,opacity; }
+    html.entering-from-hub body { opacity:0; transform:translate3d(-18vw,0,0) scale(0.98); animation:slideInLeft 360ms cubic-bezier(0.22,1,0.36,1) both !important; will-change:transform,opacity; }
     @keyframes slideOutLeft { 0%{opacity:1;transform:translate3d(0,0,0) scale(1)} 50%{opacity:0;transform:translate3d(-30vw,0,0) scale(0.98)} 100%{opacity:0;transform:translate3d(-40vw,0,0) scale(0.97)} }
-    html.exiting-to-hub body { animation:slideOutLeft 360ms cubic-bezier(0.65,0,0.35,1) both !important; overflow:hidden; will-change:transform,opacity; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+    html.exiting-to-hub body { animation:slideOutLeft 300ms cubic-bezier(0.65,0,0.35,1) both !important; overflow:hidden; will-change:transform,opacity; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
     html.exiting-to-hub { background:var(--bg); }
     @keyframes cardIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:0.01ms !important; transition-duration:0.01ms !important; } }
@@ -775,6 +775,7 @@
   <script>
     /* Inherit dark mode from Hub — read only, never write */
     if (localStorage.getItem('field_dark_mode') === '1') document.documentElement.setAttribute('data-dark', '');
+    (function(){var s=document.createElement('style');s.textContent='html{background:#eef0f4}html[data-dark]{background:#0f1117}';document.head.appendChild(s);})();
     try {
       if (sessionStorage.getItem('ft_opening_from_hub') === '1') {
         document.documentElement.classList.add('entering-from-hub');
@@ -2176,7 +2177,7 @@ document.addEventListener('DOMContentLoaded', function() {
       e.preventDefault();
       try { sessionStorage.setItem('ft_returning_to_hub', '1'); } catch(_) {}
       document.documentElement.classList.add('exiting-to-hub');
-      setTimeout(function() { window.location.href = link.href; }, 360);
+      setTimeout(function() { window.location.href = link.href; }, 300);
     });
   })();
 
