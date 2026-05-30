@@ -24,7 +24,7 @@
 
     /* Topbar shell from field-ui.css; local overrides: 54px height, 16px padding, 12px gap */
     #topbar { position:sticky; top:0; z-index:600; height:54px; padding:0 16px; gap:12px; }
-    #topbar-title { color:#fff; font-size:15px; font-weight:700; flex:1; }
+    #topbar-title { color:#fff; font-size:15px; font-weight:700; }
 
     .wrap { max-width:1180px; margin:0 auto; padding:18px 16px 36px; }
 
@@ -35,18 +35,10 @@
     .hero h1 { font-size:20px; font-weight:700; line-height:1.25; margin-bottom:4px; }
     .hero p { color:var(--muted); font-size:13px; line-height:1.5; max-width:640px; }
     .actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end; }
-    .btn {
-      font-family:var(--sans); border:1.5px solid var(--border); background:var(--surface);
-      color:var(--text); border-radius:10px; padding:11px 20px; font-size:14px; font-weight:600;
-      cursor:pointer; transition:transform 120ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
-      white-space:nowrap;
-    }
-    .btn:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(0,0,0,0.1); border-color:#b8c4d3; }
-    .btn:active { transform:scale(0.97); }
-    .btn-primary { background:#1a56db; border-color:#1a56db; color:#fff; }
-    .btn-primary:hover { background:#1647b8; border-color:#1647b8; box-shadow:0 4px 14px rgba(26,86,219,0.3); }
     #retry-btn { display:none; }
     #retry-btn.visible { display:inline-flex; }
+    @media (max-width:720px) { .actions .ft-btn { flex:1; } }
+    @media (max-width:600px) { .actions .ft-btn { width:100%; } }
 
     /* Mode toggle — segmented control */
     .mode-toggle { display:inline-flex; gap:0; background:var(--border-lo); border-radius:10px; padding:3px; margin-top:14px; }
@@ -115,14 +107,12 @@
       .map-card { border-radius:12px; }
       .hero-top { grid-template-columns:1fr; gap:12px; }
       .actions { justify-content:stretch; }
-      .actions .btn { flex:1; }
     }
 
     @media (max-width:600px) {
       .hero { padding:14px 16px; }
       .hero h1 { font-size:18px; }
       .actions { flex-direction:column; gap:8px; }
-      .btn { width:100%; padding:13px 16px; text-align:center; }
       .card { padding:14px 16px; }
       .map-card { padding:0; border-radius:12px; }
       #map { height:280px; }
@@ -159,11 +149,13 @@
 <body>
 <div id="topbar">
   <a href="../index.html" class="topbar-back" id="hub-back">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     Home
   </a>
   <div class="topbar-div"></div>
-  <span id="topbar-title">Road Milepost Finder</span>
+  <span id="topbar-title">Milepost Finder</span>
+  <div class="topbar-spacer"></div>
+  <span class="state-badge">NJ</span>
   <button class="topbar-help" id="mm-help-btn" aria-label="Help">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
   </button>
@@ -197,11 +189,11 @@
         </div>
       </div>
       <div class="actions">
-        <button class="btn btn-primary" id="find-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-3px;margin-right:6px"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        <button class="ft-btn ft-btn-primary" id="find-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
           <span id="find-btn-label">Find Near Me</span>
         </button>
-        <button class="btn" id="retry-btn" aria-label="Refresh location">Refresh Location</button>
+        <button class="ft-btn" id="retry-btn" aria-label="Refresh location">Refresh Location</button>
       </div>
     </div>
     <div class="status-wrap">

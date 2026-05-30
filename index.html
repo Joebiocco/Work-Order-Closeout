@@ -439,7 +439,6 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
       </span>
       <div class="panel-htext"><h2>Continue</h2><p>Pick up where you left off</p></div>
-      <span class="panel-viewall" id="continue-viewall">View all activity</span>
     </div>
     <div class="continue-track" id="continue-track"></div>
   </section>
@@ -683,11 +682,9 @@
         var dates=ts.map(function(e){return e&&e.date;}).filter(Boolean).sort();var latest=dates.length?dates[dates.length-1]:'';
         cards.push({href:'pages/timesheet.html',icon:'clock',kicker:'Payroll',title:'Time entries',detail:(ts.length+' entr'+(ts.length===1?'y':'ies'))+(latest?(' · last '+ago(latest)):'')});seen['pages/timesheet.html']=true;}
     }catch(_){}
-    var va=document.getElementById('continue-viewall');
     if(cards.length){
       cards.slice(0,4).forEach(function(c){track.appendChild(card(c));});
     }else{
-      if(va) va.style.display='none';
       var e=document.createElement('div');e.className='continue-empty';e.textContent='Your recent tools will appear here. Quick start:';track.appendChild(e);
       [{k:'njsearch'},{k:'dc144'},{k:'closeout'},{k:'timesheet'}].forEach(function(s){var i=toolMap[s.k];track.appendChild(card({href:i.href,icon:i.icon,kicker:'Quick start',title:i.title}));});
     }
