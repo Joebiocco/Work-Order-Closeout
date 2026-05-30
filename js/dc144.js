@@ -572,7 +572,7 @@ function handleTopbarBack() {
     // On dashboard — exit back to hub with slide-out animation
     try { sessionStorage.setItem('ft_returning_to_hub', '1'); } catch(_) {}
     document.documentElement.classList.add('exiting-to-hub');
-    setTimeout(function() { window.location.href = '../index.html'; }, 280);
+    setTimeout(function() { window.location.href = '../index.html'; }, 300);
   }
 }
 

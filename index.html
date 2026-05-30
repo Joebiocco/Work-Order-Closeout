@@ -281,7 +281,7 @@
     html.theme-transitioning .hero-bridge,html.theme-transitioning .hero-nj{transition:none !important;}
     button:active,.tool-card:active,.continue-card:active,.install-btn:active,.install-trigger:active,.dark-toggle:active{transform:scale(.97)!important;transition:transform 80ms ease-out!important;}
     @keyframes pageOutRight{0%{opacity:1;transform:translate3d(0,0,0) scale(1);}50%{opacity:0;transform:translate3d(15vw,0,0) scale(.98);}100%{opacity:0;transform:translate3d(20vw,0,0) scale(.97);}}
-    html.exiting-to-tool body{animation:pageOutRight 260ms cubic-bezier(0.4,0,0.2,1) both!important;overflow:hidden;will-change:transform,opacity;transform-origin:center center;backface-visibility:hidden;}
+    html.exiting-to-tool body{animation:pageOutRight 300ms cubic-bezier(0.4,0,0.2,1) both!important;overflow:hidden;will-change:transform,opacity;transform-origin:center center;backface-visibility:hidden;}
     html.exiting-to-tool{overflow:hidden;}
     @keyframes slideInFromRight{0%{opacity:0;transform:translate3d(20vw,0,0) scale(.98);}100%{opacity:1;transform:none;}}
     html.returning-from-tool body{opacity:0;transform:translate3d(20vw,0,0) scale(.98);animation:slideInFromRight 460ms cubic-bezier(0.22,1,0.36,1) both!important;will-change:transform,opacity;backface-visibility:hidden;contain:paint style;}
@@ -356,6 +356,7 @@
     }
   </style>
   <script>if(localStorage.getItem('field_dark_mode')==='1')document.documentElement.setAttribute('data-dark','');</script>
+  <style>html{background:#eaf0f8}html[data-dark]{background:#040c1a}</style>
   <script>try{if(sessionStorage.getItem("ft_returning_to_hub")==="1"){document.documentElement.classList.add("returning-from-tool");}}catch(_){}</script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-XZJ7XL4S34"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XZJ7XL4S34');</script>
@@ -736,7 +737,7 @@
       try{sessionStorage.setItem('ft_opening_from_hub','1');}catch(_){}
       document.documentElement.classList.add('exiting-to-tool');
       var href=card.getAttribute('href');
-      setTimeout(function(){window.location.href=href;},180);
+      setTimeout(function(){window.location.href=href;},300);
     });
   });
 
