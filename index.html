@@ -36,8 +36,8 @@
       --chip-bg:rgba(14,127,184,0.10); --chip-bd:rgba(14,127,184,0.28); --focus-ring:rgba(14,127,184,0.2);
       --bridge-img:url('assets/hero/bridge-light.webp'); --nj-img:url('assets/hero/nj-light.webp');
       /* theme-only (appearance, NOT geometry) */
-      --bridge-opacity:.62; --bridge-filter:saturate(.9);
-      --nj-opacity:.9; --nj-filter:drop-shadow(0 2px 10px rgba(40,90,160,0.20));
+      --bridge-opacity:.72; --bridge-filter:saturate(.95);
+      --nj-opacity:.95; --nj-filter:drop-shadow(0 2px 12px rgba(40,90,160,0.28));
     }
     html[data-dark] {
       --bg:#040c1a; --surface:rgba(20,40,72,0.66); --surface-2:rgba(14,30,56,0.66);
@@ -134,7 +134,7 @@
     .hero-rings span:nth-child(2){width:520px;height:520px;}
     .hero-rings span:nth-child(3){width:760px;height:760px;}
     /* Bridge — left, large, fades right */
-    .hero-bridge{position:absolute;left:0;bottom:0;width:62%;height:74%;background:var(--bridge-img) left bottom/contain no-repeat;opacity:var(--bridge-opacity);filter:var(--bridge-filter);-webkit-mask-image:linear-gradient(90deg,#000 40%,rgba(0,0,0,0.35) 72%,transparent 90%);mask-image:linear-gradient(90deg,#000 40%,rgba(0,0,0,0.35) 72%,transparent 90%);}
+    .hero-bridge{position:absolute;left:0;bottom:0;width:62%;height:74%;background:var(--bridge-img) left bottom/contain no-repeat;opacity:var(--bridge-opacity);filter:var(--bridge-filter);-webkit-mask-image:linear-gradient(90deg,#000 34%,rgba(0,0,0,0.3) 64%,transparent 84%);mask-image:linear-gradient(90deg,#000 34%,rgba(0,0,0,0.3) 64%,transparent 84%);}
     .wire-labels{position:absolute;left:30px;top:18px;line-height:1.5;}
     .wire-labels b{display:block;font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--wire-label);}
     .wire-labels span{display:block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:9.5px;letter-spacing:.08em;color:var(--wire-label);opacity:.85;}
@@ -173,7 +173,7 @@
 
     /* ── CONTINUE panel ── */
     .continue-panel{margin-bottom:18px;}
-    .continue-track{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px 18px;}
+    .continue-track{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;padding:16px 18px;}
     .continue-card{display:flex;align-items:center;gap:12px;text-decoration:none;padding:13px 14px;border-radius:var(--radius);background:var(--surface-2);border:1px solid var(--border-lo);transition:border-color .14s,transform .14s,box-shadow .14s;}
     .continue-card:hover{transform:translateY(-2px);border-color:var(--accent-2);box-shadow:var(--shadow-hi);}
     .continue-ic{width:38px;height:38px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
@@ -319,6 +319,10 @@
       .util-strip{grid-template-columns:1fr 1fr;}
       .hero-title{font-size:44px;}
     }
+    /* Mid-width: keep hero text dominant over the bridge (768–1024 band) */
+    @media (max-width:1024px){
+      .hero-bridge{width:54%;-webkit-mask-image:linear-gradient(90deg,#000 28%,rgba(0,0,0,0.28) 58%,transparent 80%);mask-image:linear-gradient(90deg,#000 28%,rgba(0,0,0,0.28) 58%,transparent 80%);}
+    }
     @media (max-width:760px){
       .content{padding:0 14px 44px;}
       #topbar{height:56px;padding:0 14px;gap:10px;}
@@ -374,7 +378,6 @@
     <a href="#top" class="is-active">Home</a>
     <a href="#tools">Tools</a>
     <a href="#documentation">Documentation</a>
-    <a href="#documentation">Reports</a>
     <a href="#resources">Resources</a>
   </nav>
   <div class="topbar-spacer"></div>
@@ -420,6 +423,7 @@
         <svg class="command-icon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         <input id="tool-filter" class="command-input" type="search" placeholder="Search tools, forms, bridge lookup, payroll…" autocomplete="off" aria-describedby="tools-empty">
         <span class="command-hint" id="command-hint" aria-hidden="true">⌘K</span>
+        <script>(function(){var h=document.getElementById('command-hint');if(h&&!/mac/i.test(navigator.platform))h.textContent='Ctrl K';})();</script>
       </form>
       <div class="hero-chips">
         <span class="chip"><span class="status-dot"></span>Offline Ready</span>
@@ -685,7 +689,7 @@
     }else{
       if(va) va.style.display='none';
       var e=document.createElement('div');e.className='continue-empty';e.textContent='Your recent tools will appear here. Quick start:';track.appendChild(e);
-      [{k:'njsearch'},{k:'dc144'},{k:'closeout'},{k:'timesheet'}].forEach(function(s){var i=toolMap[s.k];track.appendChild(card({href:i.href,icon:i.icon,kicker:'Open',title:i.title}));});
+      [{k:'njsearch'},{k:'dc144'},{k:'closeout'},{k:'timesheet'}].forEach(function(s){var i=toolMap[s.k];track.appendChild(card({href:i.href,icon:i.icon,kicker:'Quick start',title:i.title}));});
     }
     section.hidden=false;
   })();
