@@ -9,7 +9,7 @@ Read this **before** touching anything below. Make a specific plan; do not renam
 
 ## Work Order (`pages/WorkOrderCloseout.html`)
 - PDF generation via `html2canvas` + `jsPDF`. **Do not touch the capture/export markup or `.pdf-*` IDs/classes.**
-- `LOGO_SRC_VAR` now points to external `../assets/wo-pdf-logo.png` (was inline base64) — still the PDF `.pdf-logo` source; keep the existing pre-capture image-load wait. **`assets/wo-pdf-logo.png` must be added to SW `LOCAL_ASSETS` at the next version bump for offline PDF logo.** File is now ~126 KB.
+- `LOGO_SRC_VAR` now points to external `../assets/wo-pdf-logo.png` (was inline base64) — still the PDF `.pdf-logo` source; keep the existing pre-capture image-load wait. `assets/wo-pdf-logo.png` is in SW `LOCAL_ASSETS` (cached offline as of `ft-v1.28`). File is now ~126 KB.
 - IndexedDB store `session_photos`; keys `wo_recent`, `workorder_draft`, `photoKey` flow.
 
 ## Bridge / Fuel (`pages/njsearch.html`, `pages/njfuel.html`)

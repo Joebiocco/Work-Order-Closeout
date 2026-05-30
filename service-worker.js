@@ -11,7 +11,7 @@
    - IndexedDB: work-order photos + per-session data (ft_photos DB)
    ============================================================ */
 
-const CACHE = 'ft-v1.27-2026-05-28';
+const CACHE = 'ft-v1.28-2026-05-30';
 
 // Local assets to pre-cache on install
 const LOCAL_ASSETS = [
@@ -32,6 +32,11 @@ const LOCAL_ASSETS = [
   './pages/dc144.html',
   './js/dc144.js',
   './data/dc144-template.xlsx',
+  './assets/hero/bridge-dark.webp',
+  './assets/hero/bridge-light.webp',
+  './assets/hero/nj-dark.webp',
+  './assets/hero/nj-light.webp',
+  './assets/wo-pdf-logo.png',
 ];
 
 self.addEventListener('install', function(e) {
