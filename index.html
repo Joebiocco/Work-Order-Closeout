@@ -187,6 +187,11 @@
     .continue-card .card-arrow{color:var(--muted);flex-shrink:0;transition:color .14s,transform .14s;}
     .continue-card:hover .card-arrow{color:var(--accent-2);transform:translateX(3px);}
     .continue-empty{grid-column:1/-1;font-size:12.5px;color:var(--muted);padding:0 0 2px;}
+    button.panel-viewall{background:none;border:none;padding:0;font-family:inherit;cursor:pointer;}
+    .continue-slide{display:grid;grid-template-rows:0fr;transition:grid-template-rows .32s cubic-bezier(.4,0,.2,1);}
+    .continue-slide.is-open{grid-template-rows:1fr;}
+    .continue-extra-wrap{overflow:hidden;}
+    .continue-extra{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;padding:0 18px 16px;}
 
     /* ── DASHBOARD MODULES (side-by-side) ── */
     .dashboard-grid{display:grid;grid-template-columns:1.5fr 1.1fr 0.85fr;gap:16px;align-items:start;}
@@ -343,6 +348,7 @@
       .command-input{font-size:14px;padding:13px 14px 13px 42px;}
       .command-hint{display:none;}
       .continue-track{grid-template-columns:1fr;}
+      .continue-extra{grid-template-columns:1fr;}
       .module-tiles{grid-template-columns:1fr 1fr;}
       .util-strip{grid-template-columns:1fr;}
     }
@@ -439,8 +445,14 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
       </span>
       <div class="panel-htext"><h2>Continue</h2><p>Pick up where you left off</p></div>
+      <button class="panel-viewall is-link" id="continue-viewall" type="button" aria-expanded="false" hidden>View all activity</button>
     </div>
     <div class="continue-track" id="continue-track"></div>
+    <div class="continue-slide" id="continue-slide">
+      <div class="continue-extra-wrap">
+        <div class="continue-extra" id="continue-extra"></div>
+      </div>
+    </div>
   </section>
 
   <!-- DASHBOARD MODULES -->
@@ -682,8 +694,23 @@
         var dates=ts.map(function(e){return e&&e.date;}).filter(Boolean).sort();var latest=dates.length?dates[dates.length-1]:'';
         cards.push({href:'pages/timesheet.html',icon:'clock',kicker:'Payroll',title:'Time entries',detail:(ts.length+' entr'+(ts.length===1?'y':'ies'))+(latest?(' · last '+ago(latest)):'')});seen['pages/timesheet.html']=true;}
     }catch(_){}
+    var COMPACT=2;
+    var va=document.getElementById('continue-viewall');
+    var slide=document.getElementById('continue-slide');
+    var extra=document.getElementById('continue-extra');
     if(cards.length){
-      cards.forEach(function(c){track.appendChild(card(c));});
+      cards.forEach(function(c,i){
+        (i<COMPACT?track:extra).appendChild(card(c));
+      });
+      if(cards.length>COMPACT){
+        va.removeAttribute('hidden');
+        va.addEventListener('click',function(){
+          var exp=va.getAttribute('aria-expanded')==='true';
+          slide.classList.toggle('is-open',!exp);
+          va.setAttribute('aria-expanded',exp?'false':'true');
+          va.textContent=exp?'View all activity':'Show less';
+        });
+      }
     }else{
       var e=document.createElement('div');e.className='continue-empty';e.textContent='Your recent tools will appear here. Quick start:';track.appendChild(e);
       [{k:'njsearch'},{k:'dc144'},{k:'closeout'},{k:'timesheet'}].forEach(function(s){var i=toolMap[s.k];track.appendChild(card({href:i.href,icon:i.icon,kicker:'Quick start',title:i.title}));});
