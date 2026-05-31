@@ -381,3 +381,18 @@ Driven by the existing `html[data-dark]` / `field_dark_mode` toggle. The homepag
 | `dc144.html` | `.btn-export` | Green `#166534` specific to Excel export action |
 | `dc144.html` | `.dc-modal-*` | Predates ft-modal-* system; renaming would require JS changes |
 | `njsearch.html` / `njfuel.html` | `.guide-overlay` / `.guide-modal` | Predates ft-modal-* system; identical across both pages but renaming requires JS changes in both |
+
+---
+
+## Group icon color rules
+
+Homepage section icons, homepage tool card icons, Continue/recent icons, and individual tool-page main/hero/header icons must use group-based colors. Do not use random accent colors within a group.
+
+| Group | Color | Tools |
+|---|---|---|
+| Field Operations | teal/green (`card-icon-teal`) | Bridge Navigator, Fuel Finder, Milepost Finder |
+| Documentation | purple/indigo (`card-icon-purple`) | Work Order Closeout, DC-144 Field Form |
+| Time & Admin | amber/gold (`card-icon-gold`) | Payroll Calculator |
+| Coming Soon | muted (overridden by `.grp-soon .card-icon`) | Drainage Finder, Emergency Assistance |
+
+**Scope:** icon color alignment only. Do not broadly recolor controls, toggles, buttons, status dots, map styles, form sections, card borders, or page backgrounds to match icon colors.

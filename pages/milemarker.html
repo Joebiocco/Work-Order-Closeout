@@ -11,10 +11,50 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="../css/field-ui.css">
   <style>
-    /* Design tokens + body base + topbar shell now in ../css/field-ui.css */
-    /* milemarker overrides: --text in dark mode is f1f5f9 (not FEE9A1) — kept here */
-    html[data-dark] { --text:#f1f5f9; --muted:#94a3b8; }
-    body { min-height:100vh; }
+    /* ── Homepage design system tokens (milemarker-local overrides) ── */
+    :root {
+      --bg:#eaf0f8; --surface:#ffffff; --surface-2:#f5f8fc;
+      --border:#d6dfeb; --border-lo:#e6edf5;
+      --text:#0f1d36; --muted:#5a6b85; --muted2:#33425c;
+      --shadow:0 6px 20px rgba(20,45,95,0.09);
+      --shadow-hi:0 14px 34px rgba(20,55,120,0.16);
+      --grid-line:rgba(26,86,219,0.07);
+      --topbar-bg:linear-gradient(180deg,#10243f,#0c1d35);
+      --radius:10px; --radius-lg:14px;
+    }
+    /* milemarker dark: neutral-grey text + homepage-glass surfaces */
+    html[data-dark] {
+      --bg:#040c1a; --surface:rgba(20,40,72,0.72); --surface-2:rgba(14,30,56,0.70);
+      --border:rgba(120,170,230,0.18); --border-lo:rgba(120,170,230,0.10);
+      --text:#f1f5f9; --muted:#93a7c4; --muted2:#c4d2e8;
+      --accent:#3b82f6;
+      --grid-line:rgba(96,165,250,0.08);
+      --topbar-bg:linear-gradient(180deg,#0a1830,#06101f);
+      --shadow:0 8px 26px rgba(0,0,0,0.42);
+      --shadow-hi:0 16px 40px rgba(0,0,0,0.55);
+    }
+
+    /* ── Blueprint grid background ── */
+    body {
+      min-height:100vh;
+      background-color:var(--bg);
+      background-image:
+        linear-gradient(var(--grid-line) 1px,transparent 1px),
+        linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+      background-size:46px 46px;
+      background-position:center top;
+    }
+    html[data-dark] body {
+      background-image:
+        radial-gradient(130% 70% at 50% -10%, rgba(56,189,248,0.08), transparent 52%),
+        linear-gradient(var(--grid-line) 1px,transparent 1px),
+        linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+      background-size:100% 900px,46px 46px,46px 46px;
+      background-repeat:no-repeat,repeat,repeat;
+    }
+    @media (prefers-reduced-motion:reduce) { body { background-image:none; } }
+
+    /* ── Navigation transitions ── */
     html:not(.entering-from-hub):not(.exiting-to-hub) body { animation:pageFadeIn 360ms cubic-bezier(0.16,1,0.3,1); }
     @keyframes pageFadeIn { from { opacity:0; } to { opacity:1; } }
     @keyframes slideInLeft { 0% { opacity:0; transform:translate3d(-18vw,0,0) scale(0.98); } 100% { opacity:1; transform:none; } }
@@ -22,133 +62,199 @@
     html.entering-from-hub body { opacity:0; transform:translate3d(-18vw,0,0) scale(0.98); animation:slideInLeft 360ms cubic-bezier(0.22,1,0.36,1) both !important; will-change:transform,opacity; }
     html.exiting-to-hub body { animation:slideOutLeft 300ms cubic-bezier(0.65,0,0.35,1) both !important; overflow:hidden; will-change:transform,opacity; }
 
-    /* Topbar shell from field-ui.css; local overrides: 54px height, 16px padding, 12px gap */
-    #topbar { position:sticky; top:0; z-index:600; height:54px; padding:0 16px; gap:12px; }
-    #topbar-title { color:#fff; font-size:15px; font-weight:700; flex:1; }
+    /* ── Topbar ── */
+    #topbar { position:sticky; top:0; z-index:600; height:54px; padding:0 16px; gap:12px; background:var(--topbar-bg); }
+    #topbar-title { color:#fff; font-size:15px; font-weight:700; letter-spacing:0.01em; }
 
+    /* ── Layout ── */
     .wrap { max-width:1180px; margin:0 auto; padding:18px 16px 36px; }
 
-    /* Hero / search panel */
-    .hero { background:var(--surface); border:1.5px solid var(--border); border-radius:14px; padding:16px 18px; margin-bottom:14px; box-shadow:0 6px 18px rgba(15,23,42,0.05); }
-    html[data-dark] .hero { box-shadow:0 10px 26px rgba(0,0,0,0.24); }
+    /* ── Locator card ── */
+    .hero { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 18px; margin-bottom:14px; box-shadow:var(--shadow); }
     .hero-top { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:14px; align-items:start; }
-    .hero h1 { font-size:20px; font-weight:700; line-height:1.25; margin-bottom:4px; }
+    .hero-heading { display:flex; align-items:flex-start; gap:12px; }
+    .hero-ic { width:36px; height:36px; border-radius:10px; background:rgba(13,148,136,0.12); color:#0d9488; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+    html[data-dark] .hero-ic { background:rgba(45,212,191,0.14); color:#2dd4bf; }
+    .hero h1 { font-size:20px; font-weight:800; line-height:1.25; margin-bottom:4px; color:var(--text); }
     .hero p { color:var(--muted); font-size:13px; line-height:1.5; max-width:640px; }
     .actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end; }
-    .btn {
-      font-family:var(--sans); border:1.5px solid var(--border); background:var(--surface);
-      color:var(--text); border-radius:10px; padding:11px 20px; font-size:14px; font-weight:600;
-      cursor:pointer; transition:transform 120ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
-      white-space:nowrap;
-    }
-    .btn:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(0,0,0,0.1); border-color:#b8c4d3; }
-    .btn:active { transform:scale(0.97); }
-    .btn-primary { background:#1a56db; border-color:#1a56db; color:#fff; }
-    .btn-primary:hover { background:#1647b8; border-color:#1647b8; box-shadow:0 4px 14px rgba(26,86,219,0.3); }
     #retry-btn { display:none; }
     #retry-btn.visible { display:inline-flex; }
+    @media (max-width:720px) { .actions .ft-btn { flex:1; } }
+    @media (max-width:600px) { .actions .ft-btn { width:100%; } }
 
-    /* Mode toggle — segmented control */
-    .mode-toggle { display:inline-flex; gap:0; background:var(--border-lo); border-radius:10px; padding:3px; margin-top:14px; }
+    /* ── Route type toggle ── */
+    .mode-toggle { display:inline-flex; gap:2px; background:var(--border-lo); border:1px solid var(--border); border-radius:10px; padding:3px; margin-top:14px; }
     .mode-btn { font-family:var(--sans); font-size:13px; font-weight:600; padding:7px 16px; border:none; background:transparent; color:var(--muted); border-radius:8px; cursor:pointer; transition:background 0.15s,color 0.15s,box-shadow 0.15s; white-space:nowrap; }
-    .mode-btn.active { background:var(--surface); color:var(--accent); box-shadow:0 1px 4px rgba(0,0,0,0.12); }
-    html[data-dark] .mode-btn.active { box-shadow:0 1px 4px rgba(0,0,0,0.4); }
+    .mode-btn.active { background:var(--surface); color:#0d9488; box-shadow:0 1px 4px rgba(0,0,0,0.10); }
+    html[data-dark] .mode-btn.active { color:#2dd4bf; background:rgba(45,212,191,0.08); box-shadow:0 1px 4px rgba(0,0,0,0.4); }
 
+    /* ── Status indicator ── */
     .status-wrap { margin-top:12px; display:flex; align-items:center; gap:8px; min-height:22px; padding-top:10px; border-top:1px solid var(--border-lo); }
     .status-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; background:var(--muted); transition:background 0.2s; }
-    .status-dot.active { background:#1a56db; animation:pulse 1.4s ease infinite; }
+    .status-dot.active { background:#0d9488; animation:pulse 1.4s ease infinite; }
+    html[data-dark] .status-dot.active { background:#2dd4bf; }
     .status-dot.ok { background:#10b981; animation:none; }
     .status-dot.err { background:#dc2626; animation:none; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
     #status { font-size:13px; color:var(--muted); }
 
-    /* Result layout */
+    /* ── Result layout ── */
     .layout { display:grid; gap:14px; grid-template-columns:1fr; align-items:start; }
-    .card { background:var(--surface); border:1.5px solid var(--border); border-radius:14px; padding:16px 18px; box-shadow:0 6px 18px rgba(15,23,42,0.04); }
-    html[data-dark] .card { box-shadow:0 10px 26px rgba(0,0,0,0.20); }
-    .card-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted); margin-bottom:14px; }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow); }
+    .card-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:14px; }
     .result-card { min-height:0; }
-    .result-empty { text-align:center; padding:20px 12px; color:var(--muted); font-size:13px; line-height:1.45; }
-    .result-empty svg { display:block; margin:0 auto 10px; opacity:0.35; }
+    .result-empty { text-align:center; padding:24px 12px; color:var(--muted); font-size:13px; line-height:1.5; }
+    .result-empty svg { display:block; margin:0 auto 12px; opacity:0.3; }
 
-    /* Result card format — matches bridge navigator style */
-    .r-header { background:var(--bg); border:1px solid var(--border-lo); border-left:4px solid var(--accent); border-radius:var(--radius); padding:12px 14px; margin-bottom:14px; }
+    /* ── Result data ── */
+    .r-header { background:var(--surface-2); border:1px solid var(--border-lo); border-left:4px solid var(--accent); border-radius:var(--radius); padding:12px 14px; margin-bottom:14px; }
     .r-title { font-size:16px; font-weight:700; line-height:1.3; color:var(--text); margin-bottom:5px; }
     .r-sri-badge { display:inline-block; background:var(--accent); color:#fff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:100px; letter-spacing:0.03em; }
     .r-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
-    .r-stat { background:var(--bg); border:1px solid var(--border-lo); border-radius:var(--radius); padding:8px 10px; min-width:0; }
+    .r-stat { background:var(--surface-2); border:1px solid var(--border-lo); border-radius:var(--radius); padding:8px 10px; min-width:0; }
     .r-stat-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted); margin-bottom:2px; }
     .r-stat-val { font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .r-stat-primary { font-size:17px; font-weight:700; color:var(--accent); }
     .r-zone { margin-bottom:14px; border-left:3px solid var(--border); padding-left:12px; }
     .r-zone:last-child { margin-bottom:0; }
-    .r-zone-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted2,#4b5563); margin-bottom:8px; }
+    .r-zone-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted2); margin-bottom:8px; }
     .r-zone.zone-blue { border-left-color:var(--accent); }
     .r-zone.zone-teal { border-left-color:#0d9488; }
+    html[data-dark] .r-zone.zone-teal { border-left-color:#2dd4bf; }
     .r-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .r-field { background:var(--bg); border:1px solid var(--border-lo); border-radius:var(--radius); padding:9px 11px; min-width:0; }
+    .r-field { background:var(--surface-2); border:1px solid var(--border-lo); border-radius:var(--radius); padding:9px 11px; min-width:0; }
     .r-field-wide { grid-column:1 / -1; }
     .r-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:2px; }
     .r-value { font-size:13px; font-weight:500; color:var(--text); word-break:break-word; }
     .r-mono { font-family:monospace; font-size:12px; color:var(--muted); }
     .small { font-size:11px; color:var(--muted); margin-top:12px; line-height:1.5; }
 
-    .map-card {
-      padding:0;
-      overflow:hidden;
-      background:#e8ecf0;
-      border:1px solid var(--border);
-      border-radius:14px;
-      box-shadow:0 10px 28px rgba(15,23,42,0.10);
-    }
-    html[data-dark] .map-card { box-shadow:0 12px 32px rgba(0,0,0,0.32); }
-    #map {
-      height:340px;
-      border:0;
-      border-radius:0;
-      overflow:hidden;
-      background:#e8ecf0;
-    }
+    /* ── Map card ── */
+    .map-card { padding:0; overflow:hidden; background:#e8ecf0; border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-hi); }
+    html[data-dark] .map-card { background:#0c1a30; border-color:var(--border); }
+    #map { height:340px; border:0; border-radius:0; overflow:hidden; background:#e8ecf0; }
+    html[data-dark] #map { background:#0c1a30; }
 
+    /* ── Responsive ── */
     @media (max-width:720px) {
       .wrap { padding:14px 10px 28px; }
       .map-card { border-radius:12px; }
       .hero-top { grid-template-columns:1fr; gap:12px; }
       .actions { justify-content:stretch; }
-      .actions .btn { flex:1; }
     }
-
     @media (max-width:600px) {
       .hero { padding:14px 16px; }
       .hero h1 { font-size:18px; }
+      .hero-ic { width:32px; height:32px; }
       .actions { flex-direction:column; gap:8px; }
-      .btn { width:100%; padding:13px 16px; text-align:center; }
       .card { padding:14px 16px; }
       .map-card { padding:0; border-radius:12px; }
       #map { height:280px; }
-      .kv { font-size:13px; }
     }
-
     @media (min-width:720px) {
       .wrap { padding:20px 24px 40px; }
-      .hero { padding:18px 20px; margin-bottom:16px; }
+      .hero { padding:20px 22px; margin-bottom:16px; }
       .hero h1 { font-size:22px; }
       .layout { grid-template-columns:minmax(340px, 400px) minmax(0, 1fr); align-items:start; gap:16px; }
       .card { padding:18px 20px; }
       #map { height:460px; }
     }
-
     @media (min-width:1100px) {
       .hero h1 { font-size:24px; }
       .layout { grid-template-columns:minmax(360px, 410px) minmax(0, 1fr); }
       .map-card { position:sticky; top:72px; }
       #map { height:540px; }
     }
+
+    /* ── Help modal — guide-slide structure (page-local) ── */
+    .ft-modal-backdrop {
+      backdrop-filter:blur(4px);
+      -webkit-backdrop-filter:blur(4px);
+    }
+    /* Override ft-modal-box padding/radius/layout for the guide format */
+    .ft-modal-box {
+      padding:0;
+      border-radius:18px;
+      width:min(520px,calc(100vw - 24px));
+      max-width:none;
+      max-height:min(680px,calc(100dvh - 40px));
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+    .guide-header {
+      display:flex;align-items:center;justify-content:space-between;
+      padding:18px 20px 14px;
+      border-bottom:1.5px solid var(--border-lo);
+      flex-shrink:0;
+    }
+    .guide-header-title { font-size:16px;font-weight:700;color:var(--text); }
+    .guide-close {
+      background:none;border:none;color:var(--muted);
+      font-size:22px;line-height:1;cursor:pointer;padding:0 4px;
+      font-family:var(--sans);
+    }
+    .guide-close:hover { color:var(--text); }
+    .guide-slides { overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch; }
+    .guide-slide {
+      padding:20px 22px;border-bottom:1px solid var(--border-lo);
+      display:flex;gap:14px;align-items:flex-start;
+    }
+    .guide-slide:last-child { border-bottom:none; }
+    .guide-icon {
+      width:40px;height:40px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;margin-top:1px;
+    }
+    .gi-blue  { background:rgba(26,86,219,0.10);  color:var(--accent); }
+    .gi-teal  { background:rgba(13,148,136,0.12); color:#0d9488; }
+    .gi-green { background:rgba(16,185,129,0.12); color:#059669; }
+    .gi-navy  { background:rgba(30,41,57,0.08);   color:var(--muted2); }
+    html[data-dark] .gi-blue  { background:rgba(96,165,250,0.16);  color:#93c5fd; }
+    html[data-dark] .gi-teal  { background:rgba(45,212,191,0.16);  color:#2dd4bf; }
+    html[data-dark] .gi-green { background:rgba(52,211,153,0.16);  color:#6ee7b7; }
+    html[data-dark] .gi-navy  { background:rgba(255,255,255,0.06); color:var(--muted); }
+    .guide-slide-body { flex:1;min-width:0; }
+    .guide-slide-title { font-size:14px;font-weight:700;margin-bottom:5px;color:var(--text); }
+    .guide-slide-text { font-size:13px;color:var(--muted2);line-height:1.55; }
+    .guide-slide-text strong { color:var(--text); }
+    .guide-footer {
+      padding:14px 20px;border-top:1.5px solid var(--border-lo);
+      display:flex;align-items:center;justify-content:space-between;
+      flex-shrink:0;gap:10px;
+    }
+    .guide-footer-note { font-size:11px;color:var(--muted); }
+    .guide-done {
+      background:var(--accent);color:#fff;border:none;
+      border-radius:var(--radius);padding:10px 22px;
+      font-family:var(--sans);font-size:13px;font-weight:700;
+      cursor:pointer;transition:background var(--transition);
+    }
+    .guide-done:hover { background:#1647b8; }
+    .guide-done:active { transform:scale(0.97); }
+    @media (max-width:520px) {
+      .ft-modal-box { width:calc(100vw - 18px);max-height:calc(100dvh - 26px);border-radius:14px; }
+      .guide-header { padding:15px 16px 12px; }
+      .guide-header-title { font-size:15px; }
+      .guide-slide { padding:16px;gap:11px; }
+      .guide-icon { width:34px;height:34px;border-radius:10px; }
+      .guide-slide-title { font-size:13px; }
+      .guide-slide-text { font-size:12px;line-height:1.5; }
+      .guide-footer { padding:12px 16px; }
+    }
+    @media (max-width:380px) {
+      .ft-modal-box { width:calc(100vw - 12px);max-height:calc(100dvh - 18px); }
+      .guide-slide { padding:14px;gap:9px; }
+      .guide-icon { width:30px;height:30px; }
+      .guide-footer { flex-direction:column;align-items:stretch; }
+      .guide-done { width:100%;text-align:center; }
+    }
   </style>
   <script>
     try {
       if (localStorage.getItem('field_dark_mode') === '1') document.documentElement.setAttribute('data-dark', '');
-      var ftpp=document.createElement('style');ftpp.textContent='html{background:#eef0f4}html[data-dark]{background:#0f1117}';document.head.appendChild(ftpp);
+      var ftpp=document.createElement('style');ftpp.textContent='html{background:#eaf0f8}html[data-dark]{background:#040c1a}';document.head.appendChild(ftpp);
       if (sessionStorage.getItem('ft_opening_from_hub') === '1') {
         document.documentElement.classList.add('entering-from-hub');
         sessionStorage.removeItem('ft_opening_from_hub');
@@ -159,28 +265,66 @@
 <body>
 <div id="topbar">
   <a href="../index.html" class="topbar-back" id="hub-back">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     Home
   </a>
   <div class="topbar-div"></div>
-  <span id="topbar-title">Road Milepost Finder</span>
+  <span id="topbar-title">Milepost Finder</span>
+  <div class="topbar-spacer"></div>
+  <span class="state-badge">NJ</span>
   <button class="topbar-help" id="mm-help-btn" aria-label="Help">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
   </button>
 </div>
 
-<!-- Help modal — uses ft-modal-* classes from field-ui.css -->
+<!-- Help modal — ft-modal-backdrop shell, guide-slide content -->
 <div class="ft-modal-backdrop" id="mm-help-overlay" role="dialog" aria-modal="true" aria-label="How to use Milepost Finder">
   <div class="ft-modal-box">
-    <div class="ft-modal-title">How to Use</div>
-    <ol style="padding-left:18px;line-height:1.7;font-size:14px;color:var(--text);">
-      <li>Choose a route type — <strong>State / US / Interstate</strong> for major highways, or <strong>County Routes</strong> for local roads.</li>
-      <li>Tap <strong>Find Nearest Milepost</strong> and allow location access.</li>
-      <li>Review the nearest milepost, route name, and distance shown in the result card.</li>
-      <li>Use the result with field notes or include in your reports.</li>
-    </ol>
-    <div class="ft-modal-actions">
-      <button class="ft-btn ft-btn-primary" id="mm-help-close">Got it</button>
+    <div class="guide-header">
+      <div class="guide-header-title">How to Use Milepost Finder</div>
+      <button class="guide-close" aria-label="Close" onclick="document.getElementById('mm-help-overlay').classList.remove('open')">&times;</button>
+    </div>
+    <div class="guide-slides">
+      <div class="guide-slide">
+        <div class="guide-icon gi-blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="9" height="10" rx="2"/><rect x="13" y="7" width="9" height="10" rx="2"/></svg>
+        </div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Choose a Route Type</div>
+          <div class="guide-slide-text">Select <strong>State / US / Interstate</strong> for numbered highways, or <strong>County Routes</strong> for local roads. The toggle is at the top of the locator card.</div>
+        </div>
+      </div>
+      <div class="guide-slide">
+        <div class="guide-icon gi-teal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="12" y1="7" x2="12" y2="13"/></svg>
+        </div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Find Nearest Milepost</div>
+          <div class="guide-slide-text">Tap <strong>Find Nearest Milepost</strong> and allow location access when prompted. Your device GPS locates you and searches for the closest official milepost on the selected route type.</div>
+        </div>
+      </div>
+      <div class="guide-slide">
+        <div class="guide-icon gi-green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg>
+        </div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Review the Result</div>
+          <div class="guide-slide-text">The result card shows the <strong>nearest milepost</strong>, route name, distance from your location, and a map pin. Use the map to visually confirm the position.</div>
+        </div>
+      </div>
+      <div class="guide-slide">
+        <div class="guide-icon gi-navy">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+        </div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Use with Field Notes</div>
+          <div class="guide-slide-text">Record the milepost in your field notes, work orders, or DC-144 reports. The milepost, route, and distance are shown together for quick reference.</div>
+        </div>
+      </div>
+    </div>
+    <div class="guide-footer">
+      <div class="guide-footer-note">Tap <strong>?</strong> in the header to reopen this guide.</div>
+      <button class="guide-done" id="mm-help-close">Got it</button>
     </div>
   </div>
 </div>
@@ -189,19 +333,26 @@
   <section class="hero">
     <div class="hero-top">
       <div>
-        <h1>Nearest Milepost Finder</h1>
-        <p id="hero-desc">Use GPS to find the nearest official milepost for major roads or county routes.</p>
+        <div class="hero-heading">
+          <div class="hero-ic" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="12" y1="7" x2="12" y2="13"/></svg>
+          </div>
+          <div>
+            <h1>Nearest Milepost Finder</h1>
+            <p id="hero-desc">Use GPS to find the nearest official milepost for major roads or county routes.</p>
+          </div>
+        </div>
         <div class="mode-toggle" role="group" aria-label="Route type">
           <button class="mode-btn" id="mode-state">State / US / Interstate</button>
           <button class="mode-btn" id="mode-local">County Routes</button>
         </div>
       </div>
       <div class="actions">
-        <button class="btn btn-primary" id="find-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-3px;margin-right:6px"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        <button class="ft-btn ft-btn-primary" id="find-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
           <span id="find-btn-label">Find Near Me</span>
         </button>
-        <button class="btn" id="retry-btn" aria-label="Refresh location">Refresh Location</button>
+        <button class="ft-btn" id="retry-btn" aria-label="Refresh location">Refresh Location</button>
       </div>
     </div>
     <div class="status-wrap">
