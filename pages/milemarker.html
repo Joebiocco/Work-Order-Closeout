@@ -166,6 +166,90 @@
       .map-card { position:sticky; top:72px; }
       #map { height:540px; }
     }
+
+    /* ── Help modal — guide-slide structure (page-local) ── */
+    .ft-modal-backdrop {
+      backdrop-filter:blur(4px);
+      -webkit-backdrop-filter:blur(4px);
+    }
+    /* Override ft-modal-box padding/radius/layout for the guide format */
+    .ft-modal-box {
+      padding:0;
+      border-radius:18px;
+      width:min(520px,calc(100vw - 24px));
+      max-width:none;
+      max-height:min(680px,calc(100dvh - 40px));
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+    .guide-header {
+      display:flex;align-items:center;justify-content:space-between;
+      padding:18px 20px 14px;
+      border-bottom:1.5px solid var(--border-lo);
+      flex-shrink:0;
+    }
+    .guide-header-title { font-size:16px;font-weight:700;color:var(--text); }
+    .guide-close {
+      background:none;border:none;color:var(--muted);
+      font-size:22px;line-height:1;cursor:pointer;padding:0 4px;
+      font-family:var(--sans);
+    }
+    .guide-close:hover { color:var(--text); }
+    .guide-slides { overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch; }
+    .guide-slide {
+      padding:20px 22px;border-bottom:1px solid var(--border-lo);
+      display:flex;gap:14px;align-items:flex-start;
+    }
+    .guide-slide:last-child { border-bottom:none; }
+    .guide-icon {
+      width:40px;height:40px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;margin-top:1px;
+    }
+    .gi-blue  { background:rgba(26,86,219,0.10);  color:var(--accent); }
+    .gi-teal  { background:rgba(13,148,136,0.12); color:#0d9488; }
+    .gi-green { background:rgba(16,185,129,0.12); color:#059669; }
+    .gi-navy  { background:rgba(30,41,57,0.08);   color:var(--muted2); }
+    html[data-dark] .gi-blue  { background:rgba(96,165,250,0.16);  color:#93c5fd; }
+    html[data-dark] .gi-teal  { background:rgba(45,212,191,0.16);  color:#2dd4bf; }
+    html[data-dark] .gi-green { background:rgba(52,211,153,0.16);  color:#6ee7b7; }
+    html[data-dark] .gi-navy  { background:rgba(255,255,255,0.06); color:var(--muted); }
+    .guide-slide-body { flex:1;min-width:0; }
+    .guide-slide-title { font-size:14px;font-weight:700;margin-bottom:5px;color:var(--text); }
+    .guide-slide-text { font-size:13px;color:var(--muted2);line-height:1.55; }
+    .guide-slide-text strong { color:var(--text); }
+    .guide-footer {
+      padding:14px 20px;border-top:1.5px solid var(--border-lo);
+      display:flex;align-items:center;justify-content:space-between;
+      flex-shrink:0;gap:10px;
+    }
+    .guide-footer-note { font-size:11px;color:var(--muted); }
+    .guide-done {
+      background:var(--accent);color:#fff;border:none;
+      border-radius:var(--radius);padding:10px 22px;
+      font-family:var(--sans);font-size:13px;font-weight:700;
+      cursor:pointer;transition:background var(--transition);
+    }
+    .guide-done:hover { background:#1647b8; }
+    .guide-done:active { transform:scale(0.97); }
+    @media (max-width:520px) {
+      .ft-modal-box { width:calc(100vw - 18px);max-height:calc(100dvh - 26px);border-radius:14px; }
+      .guide-header { padding:15px 16px 12px; }
+      .guide-header-title { font-size:15px; }
+      .guide-slide { padding:16px;gap:11px; }
+      .guide-icon { width:34px;height:34px;border-radius:10px; }
+      .guide-slide-title { font-size:13px; }
+      .guide-slide-text { font-size:12px;line-height:1.5; }
+      .guide-footer { padding:12px 16px; }
+    }
+    @media (max-width:380px) {
+      .ft-modal-box { width:calc(100vw - 12px);max-height:calc(100dvh - 18px); }
+      .guide-slide { padding:14px;gap:9px; }
+      .guide-icon { width:30px;height:30px; }
+      .guide-footer { flex-direction:column;align-items:stretch; }
+      .guide-done { width:100%;text-align:center; }
+    }
   </style>
   <script>
     try {
@@ -193,18 +277,54 @@
   </button>
 </div>
 
-<!-- Help modal — uses ft-modal-* classes from field-ui.css -->
+<!-- Help modal — ft-modal-backdrop shell, guide-slide content -->
 <div class="ft-modal-backdrop" id="mm-help-overlay" role="dialog" aria-modal="true" aria-label="How to use Milepost Finder">
   <div class="ft-modal-box">
-    <div class="ft-modal-title">How to Use</div>
-    <ol style="padding-left:18px;line-height:1.7;font-size:14px;color:var(--text);">
-      <li>Choose a route type — <strong>State / US / Interstate</strong> for major highways, or <strong>County Routes</strong> for local roads.</li>
-      <li>Tap <strong>Find Nearest Milepost</strong> and allow location access.</li>
-      <li>Review the nearest milepost, route name, and distance shown in the result card.</li>
-      <li>Use the result with field notes or include in your reports.</li>
-    </ol>
-    <div class="ft-modal-actions">
-      <button class="ft-btn ft-btn-primary" id="mm-help-close">Got it</button>
+    <div class="guide-header">
+      <div class="guide-header-title">How to Use Milepost Finder</div>
+      <button class="guide-close" aria-label="Close" onclick="document.getElementById('mm-help-overlay').classList.remove('open')">&times;</button>
+    </div>
+    <div class="guide-slides">
+      <div class="guide-slide">
+        <div class="guide-icon gi-blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="9" height="10" rx="2"/><rect x="13" y="7" width="9" height="10" rx="2"/></svg>
+        </div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Choose a Route Type</div>
+          <div class="guide-slide-text">Select <strong>State / US / Interstate</strong> for numbered highways, or <strong>County Routes</strong> for local roads. The toggle is at the top of the locator card.</div>
+        </div>
+      </div>
+      <div class="guide-slide">
+        <div class="guide-icon gi-teal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="12" y1="7" x2="12" y2="13"/></svg>
+        </div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Find Nearest Milepost</div>
+          <div class="guide-slide-text">Tap <strong>Find Nearest Milepost</strong> and allow location access when prompted. Your device GPS locates you and searches for the closest official milepost on the selected route type.</div>
+        </div>
+      </div>
+      <div class="guide-slide">
+        <div class="guide-icon gi-green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg>
+        </div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Review the Result</div>
+          <div class="guide-slide-text">The result card shows the <strong>nearest milepost</strong>, route name, distance from your location, and a map pin. Use the map to visually confirm the position.</div>
+        </div>
+      </div>
+      <div class="guide-slide">
+        <div class="guide-icon gi-navy">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+        </div>
+        <div class="guide-slide-body">
+          <div class="guide-slide-title">Use with Field Notes</div>
+          <div class="guide-slide-text">Record the milepost in your field notes, work orders, or DC-144 reports. The milepost, route, and distance are shown together for quick reference.</div>
+        </div>
+      </div>
+    </div>
+    <div class="guide-footer">
+      <div class="guide-footer-note">Tap <strong>?</strong> in the header to reopen this guide.</div>
+      <button class="guide-done" id="mm-help-close">Got it</button>
     </div>
   </div>
 </div>
